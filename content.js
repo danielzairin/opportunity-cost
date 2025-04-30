@@ -31,6 +31,13 @@
       // Add more currencies as needed
     };
     
+    // Regular expressions for abbreviated currency formats (k, m, b, t)
+    const abbreviatedCurrencyRegexes = {
+      usd: /\$[\s\u00A0]?(\d{1,3}(?:[,]\d{3})*(?:\.\d{1,2})?)[\s\u00A0]?([kmbt])\b/gi,
+      eur: /€[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([kmbt])\b/gi,
+      gbp: /£[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([kmbt])\b/gi
+    };
+    
     // Special case regexes for prices that might be split across elements
     const specialCurrencyRegexes = {
       // For cases like "$1" with the cents "59" in a separate element
@@ -43,6 +50,25 @@
       usd: (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       eur: (value) => `€${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       gbp: (value) => `£${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+    };
+    
+    // Helper function to parse abbreviated currency values (k, m, b, t)
+    const parseAbbreviatedValue = (value, abbr) => {
+      const numValue = parseFloat(value.replace(/,/g, ''));
+      const abbreviation = abbr.toLowerCase();
+      
+      switch (abbreviation) {
+        case 'k':
+          return numValue * 1000;
+        case 'm':
+          return numValue * 1000000;
+        case 'b':
+          return numValue * 1000000000;
+        case 't':
+          return numValue * 1000000000000;
+        default:
+          return numValue;
+      }
     };
     
     // Format bitcoin value based on user's denomination preference
@@ -595,6 +621,11 @@
       const currencyRegex = currencyRegexes[userPreferences.defaultCurrency] || currencyRegexes.usd;
       const currencyFormatter = currencyFormatters[userPreferences.defaultCurrency] || currencyFormatters.usd;
       
+      // Process abbreviated currency formats (k, m, b, t)
+      const abbreviatedRegex = abbreviatedCurrencyRegexes[userPreferences.defaultCurrency] || abbreviatedCurrencyRegexes.usd;
+      const currencySymbol = userPreferences.defaultCurrency === 'usd' ? '$' : 
+                             userPreferences.defaultCurrency === 'eur' ? '€' : '£';
+      
       // Text nodes that should be ignored (containing specific patterns)
       const shouldIgnoreNode = () => {
         // Ignore text nodes that already have "sats" or "BTC" in them (our own conversions)
@@ -661,6 +692,57 @@
           return formatBitcoinValue(satsValue);
         }
       });
+      
+      // Process abbreviated currency values (k, m, b, t)
+      if (!modified) {
+        // Process each abbreviation format
+        const abbrMatch = content.match(abbreviatedRegex);
+        if (abbrMatch) {
+          const match = abbrMatch[0];
+          const groups = abbreviatedRegex.exec(content);
+          
+          if (groups && groups.length >= 3) {
+            const value = groups[1];
+            const abbr = groups[2];
+            
+            // Parse the abbreviated value
+            const fiatValue = parseAbbreviatedValue(value, abbr);
+            
+            // Only process reasonable values
+            if (fiatValue > 0) {
+              // Calculate satoshi value
+              const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Format replacement based on user preference
+              let replacement;
+              if (userPreferences.displayMode === 'dual-display') {
+                let formattedFiatValue;
+                
+                if (fiatValue >= 1000000000) {
+                  formattedFiatValue = `${(fiatValue / 1000000000).toFixed(2)}B`;
+                } else if (fiatValue >= 1000000) {
+                  formattedFiatValue = `${(fiatValue / 1000000).toFixed(2)}M`;
+                } else if (fiatValue >= 1000) {
+                  formattedFiatValue = `${(fiatValue / 1000).toFixed(2)}K`;
+                } else {
+                  formattedFiatValue = fiatValue.toFixed(2);
+                }
+                
+                replacement = `${formatBitcoinValue(satsValue)} | ${currencySymbol}${formattedFiatValue}`;
+              } else {
+                replacement = formatBitcoinValue(satsValue);
+              }
+              
+              // Replace the matched text with our conversion
+              content = content.replace(match, replacement);
+              modified = true;
+              
+              // Increment conversion counter
+              conversionCount++;
+            }
+          }
+        }
+      }
       
       // Update the text node if modifications were made
       if (modified) {

@@ -37,6 +37,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Add more currencies as needed
     };
     
+    // Regular expressions for abbreviated currency formats (k, m, b, t)
+    const abbreviatedCurrencyRegexes = {
+      usd: /\$[\s\u00A0]?(\d{1,3}(?:[,]\d{3})*(?:\.\d{1,2})?)[\s\u00A0]?([kmbt])\b/gi,
+      eur: /€[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([kmbt])\b/gi,
+      gbp: /£[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([kmbt])\b/gi
+    };
+    
     // Special case regexes for prices that might be split across elements
     const specialCurrencyRegexes = {
       // For cases like "$1" with the cents "59" in a separate element
@@ -51,6 +58,25 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       usd: (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       eur: (value) => `€${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       gbp: (value) => `£${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+    };
+    
+    // Helper function to parse abbreviated currency values (k, m, b, t)
+    const parseAbbreviatedValue = (value, abbr) => {
+      const numValue = parseFloat(value.replace(/,/g, ''));
+      const abbreviation = abbr.toLowerCase();
+      
+      switch (abbreviation) {
+        case 'k':
+          return numValue * 1000;
+        case 'm':
+          return numValue * 1000000;
+        case 'b':
+          return numValue * 1000000000;
+        case 't':
+          return numValue * 1000000000000;
+        default:
+          return numValue;
+      }
     };
     
     // Helper function to format Bitcoin values based on user's denomination preference
@@ -609,6 +635,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Get the regex for the user's preferred currency
       const currencyRegex = currencyRegexes[userPreferences.defaultCurrency] || currencyRegexes.usd;
       const currencyFormatter = currencyFormatters[userPreferences.defaultCurrency] || currencyFormatters.usd;
+      
+      // Process abbreviated currency formats (k, m, b, t)
+      const abbreviatedRegex = abbreviatedCurrencyRegexes[userPreferences.defaultCurrency] || abbreviatedCurrencyRegexes.usd;
+      const currencySymbol = userPreferences.defaultCurrency === 'usd' ? '$' : 
+                             userPreferences.defaultCurrency === 'eur' ? '€' : '£';
       
       // Text nodes that should be ignored (containing specific patterns)
       const shouldIgnoreNode = () => {
