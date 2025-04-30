@@ -40,7 +40,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const specialCurrencyRegexes = {
       // For cases like "$1" with the cents "59" in a separate element
       usdDollarOnly: /^\$\s?(\d{1,3}(?:[,]\d{3})*)$/,
-      usdCentsOnly: /^(\d{1,2})$/
+      usdCentsOnly: /^(\d{1,2})$/,
+      // For matching clean prices like $3,150
+      usdCleanPrice: /\$([\d,]+(\.\d{2})?)/
     };
     
     // Currency formatting options
@@ -129,55 +131,108 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       
       console.log('Opportunity Cost: Checking for Amazon-style prices');
       
-      // Look for price elements that match Amazon's pattern
+      // Process clean whole prices (like $3,150 in product listings)
+      processAmazonCleanPrices();
+      
+      // Process split dollar/cents prices
+      processAmazonSplitPrices();
+      
+      // Process luxury product pages in grid displays (special case)
+      processAmazonLuxuryPrices();
+    };
+    
+    const processAmazonCleanPrices = () => {
+      // Look for clean price elements like $3,150 on product pages and listings
+      const cleanPriceElements = document.querySelectorAll('.a-price, span.a-offscreen, [class*="price-"][class*="whole"]');
+      
+      cleanPriceElements.forEach(priceElement => {
+        // Skip if we've already processed this element
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        // Get text content, might be hidden
+        let priceText = priceElement.textContent.trim();
+        
+        // Check for "a-offscreen" elements which often contain the clean price
+        if (priceElement.classList.contains('a-offscreen')) {
+          if (priceText.match(/^\$[\d,]+(\.\d{2})?$/)) {
+            // Extract the parent element which displays the visible price
+            const parentPrice = priceElement.closest('.a-price');
+            if (parentPrice && !parentPrice.getAttribute('data-sats-processed')) {
+              // Extract the price value
+              const priceMatch = priceText.match(/\$([0-9,]+\.?\d*)/);
+              if (priceMatch) {
+                const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+                
+                // Only process reasonable price values
+                if (fiatValue > 0 && fiatValue < 1000000) {
+                  // Calculate satoshi value
+                  const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+                  
+                  // Create a new element for the price
+                  const newElement = document.createElement('span');
+                  newElement.className = 'a-price'; // Keep same class for styling
+                  
+                  // Format based on user preference
+                  if (userPreferences.displayMode === 'dual-display') {
+                    newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+                  } else {
+                    newElement.textContent = `${satsValue.toLocaleString()} sats`;
+                  }
+                  
+                  // Replace the original price element
+                  parentPrice.parentNode.replaceChild(newElement, parentPrice);
+                  
+                  // Increment conversion counter
+                  conversionCount++;
+                }
+              }
+            }
+          }
+        } 
+      });
+    };
+    
+    const processAmazonSplitPrices = () => {
+      // Look for price elements that match Amazon's split pattern
       // This is typically where you see price like "$1" with superscript "59"
-      const priceElements = document.querySelectorAll('[class*="price"], [class*="Price"], .a-price, .a-price-whole, .a-price-fraction');
+      const priceElements = document.querySelectorAll('.a-price-whole, [class*="price-whole"]');
       
       priceElements.forEach(priceElement => {
         // Skip if we've already processed this element (has our sats conversion)
-        if (priceElement.textContent.includes('sats')) {
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
           return;
         }
         
         // Often in Amazon, the price has a dollars component and a cents component
-        let dollarElement = null;
+        let dollarElement = priceElement;
         let centsElement = null;
         
         // Check if this element itself contains just a dollar amount
-        const dollarMatch = priceElement.textContent.match(specialCurrencyRegexes.usdDollarOnly);
+        const dollarMatch = priceElement.textContent.match(/^[\s\$]?(\d{1,3}(?:[,]\d{3})*)[\s]*$/);
         if (dollarMatch) {
-          dollarElement = priceElement;
-          
-          // Look for a sibling or child element with just cents
-          // Check next sibling first (common pattern)
-          if (priceElement.nextElementSibling) {
-            const nextSiblingText = priceElement.nextElementSibling.textContent.trim();
-            if (nextSiblingText.match(specialCurrencyRegexes.usdCentsOnly)) {
-              centsElement = priceElement.nextElementSibling;
-            }
-          }
-          
-          // If no sibling with cents found, look at children
-          if (!centsElement) {
-            const potentialCentsElements = priceElement.querySelectorAll('*');
-            for (const element of potentialCentsElements) {
-              if (element.textContent.match(specialCurrencyRegexes.usdCentsOnly)) {
-                centsElement = element;
-                break;
-              }
-            }
+          // Look for a sibling with cents (.a-price-fraction)
+          const fractionElement = priceElement.parentNode.querySelector('.a-price-fraction');
+          if (fractionElement) {
+            centsElement = fractionElement;
           }
           
           // If we found a valid price pair, process it
           if (dollarElement && centsElement) {
             const dollars = parseFloat(dollarMatch[1].replace(/,/g, ''));
-            const cents = parseInt(centsElement.textContent, 10);
+            const cents = parseInt(centsElement.textContent, 10) || 0;
             const fiatValue = dollars + (cents / 100);
             
             // Only process reasonable price values
             if (fiatValue > 0 && fiatValue < 1000000) {
               // Calculate satoshi value
               const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Find the parent price container to replace
+              const priceContainer = priceElement.closest('.a-price') || priceElement.parentNode;
               
               // Create a new element to replace the price
               const newElement = document.createElement('span');
@@ -189,11 +244,104 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 newElement.textContent = `${satsValue.toLocaleString()} sats`;
               }
               
-              // Replace the original price elements
-              dollarElement.parentNode.replaceChild(newElement, dollarElement);
-              if (centsElement.parentNode) {
-                centsElement.parentNode.removeChild(centsElement);
+              // Mark as processed
+              newElement.setAttribute('data-sats-processed', 'true');
+              
+              // Replace the entire price container
+              priceContainer.parentNode.replaceChild(newElement, priceContainer);
+              
+              // Increment conversion counter
+              conversionCount++;
+            }
+          }
+        }
+      });
+    };
+    
+    const processAmazonLuxuryPrices = () => {
+      // Target luxury product listings that have different price formats
+      const luxuryPriceElements = document.querySelectorAll('span[id*="price"], div[id*="price"], span[id*="Price"], div[id*="Price"]');
+      
+      luxuryPriceElements.forEach(priceElement => {
+        // Skip if already processed
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const priceText = priceElement.textContent.trim();
+        const priceMatch = priceText.match(/\$([\d,]+(\.\d{2})?)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          // Only process reasonable price values
+          if (fiatValue > 0 && fiatValue < 1000000) {
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element
+            const newElement = document.createElement('span');
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+            } else {
+              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+            }
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            // Replace the original price element
+            priceElement.parentNode.replaceChild(newElement, priceElement);
+            
+            // Increment conversion counter
+            conversionCount++;
+          }
+        }
+      });
+      
+      // Special case for luxury product grid views
+      document.querySelectorAll('.s-result-item, [data-component-type="s-search-result"]').forEach(item => {
+        // Skip already processed items
+        if (item.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        // Find price elements in this grid item
+        const itemPrice = item.querySelector('span.a-price, .a-price, .a-color-base');
+        
+        if (itemPrice && !itemPrice.getAttribute('data-sats-processed')) {
+          const priceText = itemPrice.textContent.trim();
+          const priceMatch = priceText.match(/\$([\d,]+(\.\d{2})?)/);
+          
+          if (priceMatch) {
+            const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+            
+            // Only process reasonable price values
+            if (fiatValue > 0 && fiatValue < 1000000) {
+              // Calculate satoshi value
+              const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Create a new element
+              const newElement = document.createElement('span');
+              
+              // Format based on user preference
+              if (userPreferences.displayMode === 'dual-display') {
+                newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+              } else {
+                newElement.textContent = `${satsValue.toLocaleString()} sats`;
               }
+              
+              // Mark as processed
+              newElement.setAttribute('data-sats-processed', 'true');
+              
+              // Replace the original price element
+              itemPrice.parentNode.replaceChild(newElement, itemPrice);
+              
+              // Mark parent as processed to avoid duplication
+              item.setAttribute('data-sats-processed', 'true');
               
               // Increment conversion counter
               conversionCount++;
@@ -317,6 +465,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       
       // Also process Amazon prices after a short delay to catch any lazy-loaded content
       setTimeout(processAmazonPrices, 1500);
+      
+      // Process one more time after longer delay for images and other content to load
+      setTimeout(processAmazonPrices, 3000);
     }
     
     // Log this page visit with conversion stats
