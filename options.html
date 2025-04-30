@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price-in-Sats Options</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #f7931a;  /* Bitcoin orange */
+            border-bottom: 2px solid #f7931a;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+        .settings-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        select, input[type="checkbox"] {
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #f7931a;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #e78008;
+        }
+        .button-secondary {
+            background-color: #6c757d;
+        }
+        .button-secondary:hover {
+            background-color: #5a6268;
+        }
+        .stats {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .save-message {
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Price-in-Sats Options</h1>
+    
+    <div class="settings-section">
+        <h2>Settings</h2>
+        <form id="settings-form">
+            <div>
+                <label for="default-currency">Default Currency:</label>
+                <select id="default-currency" name="defaultCurrency">
+                    <option value="usd">US Dollar (USD)</option>
+                    <option value="eur" disabled>Euro (EUR) - Coming Soon</option>
+                    <option value="gbp" disabled>British Pound (GBP) - Coming Soon</option>
+                    <option value="jpy" disabled>Japanese Yen (JPY) - Coming Soon</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="display-mode">Display Mode:</label>
+                <select id="display-mode" name="displayMode">
+                    <option value="sats-only">Satoshis Only</option>
+                    <option value="dual-display">Dual Display (Sats | Fiat)</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>
+                    <input type="checkbox" id="auto-refresh" name="autoRefresh"> 
+                    Auto-refresh prices every 15 minutes
+                </label>
+            </div>
+            
+            <div>
+                <label>
+                    <input type="checkbox" id="track-stats" name="trackStats" checked> 
+                    Track conversion statistics
+                </label>
+            </div>
+            
+            <button type="submit">Save Settings</button>
+            <span id="save-message" class="save-message">Settings saved!</span>
+        </form>
+    </div>
+    
+    <div class="settings-section">
+        <h2>Price History</h2>
+        <div id="price-history-chart" class="chart-container">
+            <div class="empty-state">Loading price history data...</div>
+        </div>
+    </div>
+    
+    <div class="settings-section">
+        <h2>Visited Sites Statistics</h2>
+        <div class="stats">
+            <p>Sites where Price-in-Sats has converted prices:</p>
+            <table id="sites-table">
+                <thead>
+                    <tr>
+                        <th>Website</th>
+                        <th>Last Visit</th>
+                        <th>Conversions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        <button id="clear-data" class="button-secondary">Clear All Data</button>
+    </div>
+    
+    <script src="options.js" type="module"></script>
+</body>
+</html>
