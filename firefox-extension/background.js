@@ -1,5 +1,5 @@
 /**
- * Price-in-Sats Firefox Extension
+ * Opportunity Cost Firefox Extension
  * 
  * This background script handles:
  * 1. Toolbar icon click event
@@ -303,7 +303,7 @@ async function initialize() {
   try {
     await loadUserPreferences();
     await fetchAndStoreBitcoinPrice();
-    console.log('Price-in-Sats extension initialized successfully');
+    console.log('Opportunity Cost extension initialized successfully');
   } catch (error) {
     console.error('Error initializing extension:', error);
   }
