@@ -18,6 +18,7 @@
     let userPreferences = {
       defaultCurrency: 'usd',
       displayMode: 'dual-display', // Changed default from 'sats-only' to 'dual-display'
+      denomination: 'sats', // Default to satoshis, can be 'sats' or 'btc'
       autoRefresh: true,
       trackStats: true
     };
@@ -42,6 +43,27 @@
       usd: (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       eur: (value) => `€${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       gbp: (value) => `£${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+    };
+    
+    // Format bitcoin value based on user's denomination preference
+    const formatBitcoinValue = (satoshis) => {
+      if (userPreferences.denomination === 'btc') {
+        // Convert satoshis to bitcoin (1 BTC = 100,000,000 sats)
+        const btcValue = satoshis / SATS_IN_BTC;
+        // Format BTC with appropriate decimals (8 max)
+        if (btcValue < 0.000001) {
+          return `${btcValue.toFixed(8)} BTC`;
+        } else if (btcValue < 0.0001) {
+          return `${btcValue.toFixed(6)} BTC`;
+        } else if (btcValue < 0.01) {
+          return `${btcValue.toFixed(5)} BTC`;
+        } else {
+          return `${btcValue.toFixed(4)} BTC`;
+        }
+      } else {
+        // Default to satoshis
+        return `${satoshis.toLocaleString()} sats`;
+      }
     };
     
     // Get Bitcoin price and user preferences from background script
@@ -164,12 +186,12 @@
             
             // Format based on user preference
             if (userPreferences.displayMode === 'dual-display') {
-              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toLocaleString()}`;
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toLocaleString()}`;
               // Add styling to match Zillow's design
               newElement.style.cssText = priceElement.style.cssText;
               newElement.className = priceElement.className;
             } else {
-              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              newElement.textContent = formatBitcoinValue(satsValue);
               newElement.style.cssText = priceElement.style.cssText;
               newElement.className = priceElement.className;
             }
@@ -212,9 +234,9 @@
             
             // Format based on user preference
             if (userPreferences.displayMode === 'dual-display') {
-              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toLocaleString()}`;
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toLocaleString()}`;
             } else {
-              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              newElement.textContent = formatBitcoinValue(satsValue);
             }
             
             // Copy over styling and classes
@@ -270,9 +292,9 @@
                   
                   // Format based on user preference
                   if (userPreferences.displayMode === 'dual-display') {
-                    newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+                    newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
                   } else {
-                    newElement.textContent = `${satsValue.toLocaleString()} sats`;
+                    newElement.textContent = formatBitcoinValue(satsValue);
                   }
                   
                   // Replace the original price element

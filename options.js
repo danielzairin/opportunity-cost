@@ -28,6 +28,7 @@ async function loadSettings() {
     // Set form values from preferences
     document.getElementById('default-currency').value = preferences.defaultCurrency || 'usd';
     document.getElementById('display-mode').value = preferences.displayMode || 'dual-display';
+    document.getElementById('denomination').value = preferences.denomination || 'sats';
     document.getElementById('auto-refresh').checked = preferences.autoRefresh !== false; // Default to true
     document.getElementById('track-stats').checked = preferences.trackStats !== false; // Default to true
     
@@ -45,6 +46,7 @@ async function saveSettings(event) {
     const preferences = {
       defaultCurrency: document.getElementById('default-currency').value,
       displayMode: document.getElementById('display-mode').value,
+      denomination: document.getElementById('denomination').value,
       autoRefresh: document.getElementById('auto-refresh').checked,
       trackStats: document.getElementById('track-stats').checked
     };
