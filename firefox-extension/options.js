@@ -5,7 +5,60 @@
  * from the database.
  */
 
-import { PriceDatabase } from './storage.js';
+// Simple database operations for Firefox options page
+const PriceDatabase = {
+  // Get latest price
+  getLatestBitcoinPrice: async (currency) => {
+    const key = `btc_price_${currency.toLowerCase()}`;
+    const result = await browser.storage.local.get(key);
+    return result[key] || null;
+  },
+  
+  // Get price history
+  getPriceHistory: async (currency) => {
+    const result = await browser.storage.local.get('price_history');
+    const history = result.price_history || [];
+    return history.filter(item => item.currency === currency.toLowerCase());
+  },
+  
+  // Get visited sites
+  getVisitedSites: async () => {
+    const result = await browser.storage.local.get('visited_sites');
+    const sites = result.visited_sites || {};
+    return Object.values(sites);
+  },
+  
+  // Save preferences
+  savePreferences: async (preferences) => {
+    await browser.storage.local.set({ 'user_preferences': preferences });
+    return preferences;
+  },
+  
+  // Get preferences
+  getPreferences: async () => {
+    const result = await browser.storage.local.get('user_preferences');
+    return result.user_preferences || {
+      defaultCurrency: 'usd',
+      displayMode: 'dual-display',
+      autoRefresh: true,
+      trackStats: true
+    };
+  },
+  
+  // Clear all data
+  clearData: async () => {
+    // Get the current preferences first
+    const preferences = await PriceDatabase.getPreferences();
+    
+    // Clear all data except preferences
+    await browser.storage.local.clear();
+    
+    // Restore preferences
+    await browser.storage.local.set({ 'user_preferences': preferences });
+    
+    return { success: true };
+  }
+};
 
 // DOM elements
 const currencySelector = document.getElementById('currency');
@@ -200,10 +253,8 @@ async function loadVisitedSites() {
 async function clearAllData() {
   try {
     if (confirm('Are you sure you want to clear all stored data? This will remove all price history and site statistics.')) {
-      await PriceDatabase.db.clear('priceHistory');
-      await PriceDatabase.db.clear('visitedSites');
+      await PriceDatabase.clearData();
       
-      // Don't clear preferences
       console.log('All data cleared');
       
       // Reload the data displays

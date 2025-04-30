@@ -18,8 +18,7 @@
     }
   },
   "background": {
-    "scripts": ["browser-polyfill.js", "background.js"],
-    "type": "module"
+    "scripts": ["browser-polyfill.js", "background.js"]
   },
   "content_scripts": [
     {

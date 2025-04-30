@@ -8,8 +8,6 @@
  * 4. User preferences management
  */
 
-import { PriceDatabase } from './storage.js';
-
 // Constants
 const API_BASE = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin";
 const DEFAULT_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes in milliseconds
@@ -41,6 +39,93 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
     browser.runtime.openOptionsPage();
   }
 });
+
+// Simple database operations for Firefox
+const PriceDatabase = {
+  // Save price to storage
+  saveBitcoinPrice: async (currency, price) => {
+    const timestamp = Date.now();
+    const key = `btc_price_${currency.toLowerCase()}`;
+    
+    const priceData = {
+      currency: currency.toLowerCase(),
+      price: price,
+      timestamp: timestamp,
+      date: new Date(timestamp).toISOString()
+    };
+    
+    await browser.storage.local.set({ [key]: priceData });
+    
+    // Also store in history
+    const history = await browser.storage.local.get('price_history') || { price_history: [] };
+    history.price_history = history.price_history || [];
+    history.price_history.push(priceData);
+    
+    // Limit history to last 100 entries
+    if (history.price_history.length > 100) {
+      history.price_history = history.price_history.slice(-100);
+    }
+    
+    await browser.storage.local.set(history);
+    return priceData;
+  },
+  
+  // Get latest price
+  getLatestBitcoinPrice: async (currency) => {
+    const key = `btc_price_${currency.toLowerCase()}`;
+    const result = await browser.storage.local.get(key);
+    return result[key] || null;
+  },
+  
+  // Get price history
+  getPriceHistory: async (currency) => {
+    const result = await browser.storage.local.get('price_history');
+    const history = result.price_history || [];
+    return history.filter(item => item.currency === currency.toLowerCase());
+  },
+  
+  // Save visited site
+  saveVisitedSite: async (url, conversionCount) => {
+    const timestamp = Date.now();
+    const sites = await browser.storage.local.get('visited_sites') || { visited_sites: {} };
+    sites.visited_sites = sites.visited_sites || {};
+    
+    // Update or add site data
+    sites.visited_sites[url] = {
+      url: url,
+      timestamp: timestamp,
+      conversionCount: (sites.visited_sites[url]?.conversionCount || 0) + conversionCount,
+      date: new Date(timestamp).toISOString()
+    };
+    
+    await browser.storage.local.set(sites);
+    return sites.visited_sites[url];
+  },
+  
+  // Get visited sites
+  getVisitedSites: async () => {
+    const result = await browser.storage.local.get('visited_sites');
+    const sites = result.visited_sites || {};
+    return Object.values(sites);
+  },
+  
+  // Save preferences
+  savePreferences: async (preferences) => {
+    await browser.storage.local.set({ 'user_preferences': preferences });
+    return preferences;
+  },
+  
+  // Get preferences
+  getPreferences: async () => {
+    const result = await browser.storage.local.get('user_preferences');
+    return result.user_preferences || {
+      defaultCurrency: 'usd',
+      displayMode: 'dual-display',
+      autoRefresh: true,
+      trackStats: true
+    };
+  }
+};
 
 // Load user preferences
 async function loadUserPreferences() {
@@ -150,60 +235,67 @@ async function getBitcoinPrice() {
 
 // Listen for messages from content scripts and options page
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Create a promise to handle the request
+  let responsePromise;
+  
   if (message.action === 'getBitcoinPrice') {
-    // Using an async function in a listener in Firefox requires a different approach
-    getBitcoinPrice().then(price => {
-      return Promise.resolve({ 
+    responsePromise = getBitcoinPrice().then(price => {
+      return { 
         price: price,
         displayMode: userPreferences?.displayMode || 'dual-display',
         currency: userPreferences?.defaultCurrency || 'usd'
-      });
+      };
     }).catch(error => {
       console.error('Error in getBitcoinPrice:', error);
-      return Promise.reject({ error: error.message });
+      return { error: error.message };
     });
   } 
   else if (message.action === 'saveVisitedSite') {
     // Only save site data if tracking is enabled
     if (userPreferences?.trackStats !== false) {
-      return PriceDatabase.saveVisitedSite(message.url, message.conversionCount)
+      responsePromise = PriceDatabase.saveVisitedSite(message.url, message.conversionCount)
         .then(() => {
-          return Promise.resolve({ success: true });
+          return { success: true };
         })
         .catch(error => {
           console.error('Error saving visited site:', error);
-          return Promise.reject({ error: error.message });
+          return { error: error.message };
         });
     } else {
       // Don't save if tracking is disabled
-      return Promise.resolve({ success: true, trackingDisabled: true });
+      responsePromise = Promise.resolve({ success: true, trackingDisabled: true });
     }
   }
   else if (message.action === 'preferencesUpdated') {
     // Reload preferences when options page updates them
-    return loadUserPreferences().then(() => {
-      return Promise.resolve({ success: true });
+    responsePromise = loadUserPreferences().then(() => {
+      return { success: true };
     }).catch(error => {
       console.error('Error reloading preferences:', error);
-      return Promise.reject({ error: error.message });
+      return { error: error.message };
     });
   }
   else if (message.action === 'getPreferences') {
     // Send current preferences to content script
     if (userPreferences) {
-      return Promise.resolve({ preferences: userPreferences });
+      responsePromise = Promise.resolve({ preferences: userPreferences });
     } else {
-      return loadUserPreferences().then(prefs => {
-        return Promise.resolve({ preferences: prefs });
+      responsePromise = loadUserPreferences().then(prefs => {
+        return { preferences: prefs };
       }).catch(error => {
         console.error('Error loading preferences:', error);
-        return Promise.reject({ error: error.message });
+        return { error: error.message };
       });
     }
   }
+  else {
+    // Unknown action
+    responsePromise = Promise.resolve({ error: "Unknown action" });
+  }
   
-  // Return a Promise for Firefox compatibility
-  return Promise.resolve({ error: "Unknown action" });
+  // Firefox requires returning true when sending a response asynchronously
+  responsePromise.then(sendResponse);
+  return true;
 });
 
 // Initialize when the extension starts

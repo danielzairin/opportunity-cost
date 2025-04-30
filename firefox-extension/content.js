@@ -6,6 +6,12 @@
  * It works with the background script for price data and storage.
  */
 
+// Detect when we're returning a promise from a message handler
+// This fixes Firefox message passing
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  return true; // Will respond asynchronously
+});
+
 (async () => {
   try {
     // Constants
