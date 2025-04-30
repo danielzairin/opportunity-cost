@@ -708,6 +708,57 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
       });
       
+      // Process abbreviated currency values (k, m, b, t)
+      if (!modified) {
+        // Process each abbreviation format
+        const abbrMatch = content.match(abbreviatedRegex);
+        if (abbrMatch) {
+          const match = abbrMatch[0];
+          const groups = abbreviatedRegex.exec(content);
+          
+          if (groups && groups.length >= 3) {
+            const value = groups[1];
+            const abbr = groups[2];
+            
+            // Parse the abbreviated value
+            const fiatValue = parseAbbreviatedValue(value, abbr);
+            
+            // Only process reasonable values
+            if (fiatValue > 0) {
+              // Calculate satoshi value
+              const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Format replacement based on user preference
+              let replacement;
+              if (userPreferences.displayMode === 'dual-display') {
+                let formattedFiatValue;
+                
+                if (fiatValue >= 1000000000) {
+                  formattedFiatValue = `${(fiatValue / 1000000000).toFixed(2)}B`;
+                } else if (fiatValue >= 1000000) {
+                  formattedFiatValue = `${(fiatValue / 1000000).toFixed(2)}M`;
+                } else if (fiatValue >= 1000) {
+                  formattedFiatValue = `${(fiatValue / 1000).toFixed(2)}K`;
+                } else {
+                  formattedFiatValue = fiatValue.toFixed(2);
+                }
+                
+                replacement = `${formatBitcoinValue(satsValue)} | ${currencySymbol}${formattedFiatValue}`;
+              } else {
+                replacement = formatBitcoinValue(satsValue);
+              }
+              
+              // Replace the matched text with our conversion
+              content = content.replace(match, replacement);
+              modified = true;
+              
+              // Increment conversion counter
+              conversionCount++;
+            }
+          }
+        }
+      }
+      
       // Update the text node if modifications were made
       if (modified) {
         textNode.textContent = content;
