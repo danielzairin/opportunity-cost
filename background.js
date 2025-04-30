@@ -13,10 +13,16 @@ import { PriceDatabase } from './storage.js';
 // Constants
 const API_BASE = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin";
 const DEFAULT_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes in milliseconds
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minute cache duration for aggressive caching
+const INITIAL_BACKOFF = 2000; // Initial backoff duration in ms (2 seconds)
+const MAX_BACKOFF = 5 * 60 * 1000; // Maximum backoff duration (5 minutes)
+const MAX_RETRIES = 5; // Maximum number of retry attempts
 
 // Extension state
 let priceRefreshInterval = null;
 let userPreferences = null;
+let backoffTime = INITIAL_BACKOFF;
+let retryCount = 0;
 
 // Handle toolbar icon click - either open options or Opportunity Cost
 chrome.action.onClicked.addListener(() => {
@@ -86,7 +92,7 @@ function getApiEndpoint() {
   return `${API_BASE}&vs_currencies=${currency}`;
 }
 
-// Fetch and store Bitcoin price
+// Fetch and store Bitcoin price with exponential backoff
 async function fetchAndStoreBitcoinPrice() {
   if (!userPreferences) {
     await loadUserPreferences();
@@ -99,9 +105,37 @@ async function fetchAndStoreBitcoinPrice() {
     // Fetch current price from API
     const response = await fetch(apiEndpoint);
     if (!response.ok) {
-      console.warn('Failed to fetch BTC price from API');
-      return null;
+      // Check if we hit rate limits (HTTP 429) or server errors (5xx)
+      if (response.status === 429 || response.status >= 500) {
+        if (retryCount < MAX_RETRIES) {
+          console.warn(`API request failed with status ${response.status}. Retrying in ${backoffTime/1000} seconds...`);
+          retryCount++;
+          
+          // Set up retry with exponential backoff
+          return new Promise((resolve) => {
+            setTimeout(async () => {
+              // Double the backoff time for next potential retry (exponential backoff)
+              backoffTime = Math.min(backoffTime * 2, MAX_BACKOFF);
+              const result = await fetchAndStoreBitcoinPrice();
+              resolve(result);
+            }, backoffTime);
+          });
+        } else {
+          console.error(`Maximum retries (${MAX_RETRIES}) reached. Using cached data if available.`);
+          // Reset backoff for next time
+          backoffTime = INITIAL_BACKOFF;
+          retryCount = 0;
+          return null;
+        }
+      } else {
+        console.warn(`Failed to fetch BTC price from API: ${response.status} ${response.statusText}`);
+        return null;
+      }
     }
+    
+    // Reset backoff parameters on successful request
+    backoffTime = INITIAL_BACKOFF;
+    retryCount = 0;
     
     const data = await response.json();
     const btcPrice = data?.bitcoin?.[currency];
@@ -118,7 +152,27 @@ async function fetchAndStoreBitcoinPrice() {
     return btcPrice;
   } catch (error) {
     console.error('Error fetching or storing BTC price:', error);
-    return null;
+    
+    // Handle network errors with backoff as well
+    if (retryCount < MAX_RETRIES) {
+      console.warn(`Network error. Retrying in ${backoffTime/1000} seconds...`);
+      retryCount++;
+      
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          // Double the backoff time for next potential retry
+          backoffTime = Math.min(backoffTime * 2, MAX_BACKOFF);
+          const result = await fetchAndStoreBitcoinPrice();
+          resolve(result);
+        }, backoffTime);
+      });
+    } else {
+      console.error(`Maximum retries (${MAX_RETRIES}) reached after network errors.`);
+      // Reset backoff for next time
+      backoffTime = INITIAL_BACKOFF;
+      retryCount = 0;
+      return null;
+    }
   }
 }
 
@@ -134,8 +188,8 @@ async function getBitcoinPrice() {
     // Try to get the latest price from the database first
     const storedPrice = await PriceDatabase.getLatestBitcoinPrice(currency);
     
-    // If we have a recent price (less than 15 minutes old), use it
-    if (storedPrice && (Date.now() - storedPrice.timestamp < DEFAULT_REFRESH_INTERVAL)) {
+    // If we have a recent price (less than 5 minutes old), use it
+    if (storedPrice && (Date.now() - storedPrice.timestamp < CACHE_DURATION)) {
       console.log(`Using cached BTC price (${currency}): ${storedPrice.price}`);
       return storedPrice.price;
     }
