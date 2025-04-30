@@ -1,6 +1,6 @@
 {
-  "name": "Price-in-Sats",
-  "description": "See every price in satoshis.",
+  "name": "Opportunity Cost",
+  "description": "See every price in satoshis. Understand the Bitcoin opportunity cost of your purchases.",
   "version": "0.0.1",
   "manifest_version": 3,
   "permissions": ["activeTab", "scripting", "storage", "contextMenus"],
