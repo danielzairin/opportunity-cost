@@ -1,5 +1,5 @@
 /**
- * Price-in-Sats Chrome Extension
+ * Price-in-Sats Firefox Extension
  * 
  * This background script handles:
  * 1. Toolbar icon click event
@@ -19,26 +19,26 @@ let priceRefreshInterval = null;
 let userPreferences = null;
 
 // Handle toolbar icon click - either open options or Opportunity Cost
-chrome.action.onClicked.addListener(() => {
+browser.browserAction.onClicked.addListener(() => {
   // Right-click opens options, normal click opens Opportunity Cost
-  chrome.tabs.create({ 
-    url: "https://opportunitycost.app?utm_source=chrome_ext" 
+  browser.tabs.create({ 
+    url: "https://opportunitycost.app?utm_source=firefox_ext" 
   });
 });
 
 // Add context menu option to open settings
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
+browser.runtime.onInstalled.addListener(() => {
+  browser.contextMenus.create({
     id: "open-options",
     title: "Options & Statistics",
-    contexts: ["action"]
+    contexts: ["browser_action"]
   });
 });
 
 // Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+browser.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "open-options") {
-    chrome.runtime.openOptionsPage();
+    browser.runtime.openOptionsPage();
   }
 });
 
@@ -149,68 +149,61 @@ async function getBitcoinPrice() {
 }
 
 // Listen for messages from content scripts and options page
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getBitcoinPrice') {
-    // Using an async function in a listener requires this promise handling pattern
+    // Using an async function in a listener in Firefox requires a different approach
     getBitcoinPrice().then(price => {
-      sendResponse({ 
+      return Promise.resolve({ 
         price: price,
         displayMode: userPreferences?.displayMode || 'dual-display',
         currency: userPreferences?.defaultCurrency || 'usd'
       });
     }).catch(error => {
       console.error('Error in getBitcoinPrice:', error);
-      sendResponse({ error: error.message });
+      return Promise.reject({ error: error.message });
     });
-    
-    // Return true to indicate we'll respond asynchronously
-    return true;
   } 
   else if (message.action === 'saveVisitedSite') {
     // Only save site data if tracking is enabled
     if (userPreferences?.trackStats !== false) {
-      PriceDatabase.saveVisitedSite(message.url, message.conversionCount)
+      return PriceDatabase.saveVisitedSite(message.url, message.conversionCount)
         .then(() => {
-          sendResponse({ success: true });
+          return Promise.resolve({ success: true });
         })
         .catch(error => {
           console.error('Error saving visited site:', error);
-          sendResponse({ error: error.message });
+          return Promise.reject({ error: error.message });
         });
-      
-      return true;
     } else {
       // Don't save if tracking is disabled
-      sendResponse({ success: true, trackingDisabled: true });
-      return false;
+      return Promise.resolve({ success: true, trackingDisabled: true });
     }
   }
   else if (message.action === 'preferencesUpdated') {
     // Reload preferences when options page updates them
-    loadUserPreferences().then(() => {
-      sendResponse({ success: true });
+    return loadUserPreferences().then(() => {
+      return Promise.resolve({ success: true });
     }).catch(error => {
       console.error('Error reloading preferences:', error);
-      sendResponse({ error: error.message });
+      return Promise.reject({ error: error.message });
     });
-    
-    return true;
   }
   else if (message.action === 'getPreferences') {
     // Send current preferences to content script
     if (userPreferences) {
-      sendResponse({ preferences: userPreferences });
+      return Promise.resolve({ preferences: userPreferences });
     } else {
-      loadUserPreferences().then(prefs => {
-        sendResponse({ preferences: prefs });
+      return loadUserPreferences().then(prefs => {
+        return Promise.resolve({ preferences: prefs });
       }).catch(error => {
         console.error('Error loading preferences:', error);
-        sendResponse({ error: error.message });
+        return Promise.reject({ error: error.message });
       });
     }
-    
-    return true;
   }
+  
+  // Return a Promise for Firefox compatibility
+  return Promise.resolve({ error: "Unknown action" });
 });
 
 // Initialize when the extension starts

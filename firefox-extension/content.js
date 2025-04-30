@@ -1,5 +1,5 @@
 /**
- * Price-in-Sats Chrome Extension
+ * Price-in-Sats Firefox Extension
  * 
  * This content script scans the DOM for fiat currency prices and
  * converts them to their Bitcoin satoshi equivalent.
@@ -39,43 +39,48 @@
     
     // Get Bitcoin price and user preferences from background script
     async function getBitcoinPriceAndPreferences() {
-      return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ action: 'getBitcoinPrice' }, response => {
-          if (response.error) {
-            reject(new Error(response.error));
-          } else {
-            // Update user preferences if they're included in the response
-            if (response.displayMode) {
-              userPreferences.displayMode = response.displayMode;
-              console.log("Display mode set to:", response.displayMode);
-            }
-            if (response.currency) {
-              userPreferences.defaultCurrency = response.currency;
-              console.log("Currency set to:", response.currency);
-            }
+      try {
+        const response = await browser.runtime.sendMessage({ action: 'getBitcoinPrice' });
+        if (response.error) {
+          throw new Error(response.error);
+        }
+          
+        // Update user preferences if they're included in the response
+        if (response.displayMode) {
+          userPreferences.displayMode = response.displayMode;
+          console.log("Display mode set to:", response.displayMode);
+        }
+        if (response.currency) {
+          userPreferences.defaultCurrency = response.currency;
+          console.log("Currency set to:", response.currency);
+        }
             
-            resolve(response.price);
-          }
-        });
-      });
+        return response.price;
+      } catch (error) {
+        console.error("Error getting Bitcoin price:", error);
+        throw error;
+      }
     }
     
     // Make sure we have the latest preferences before doing anything else
     async function ensurePreferencesLoaded() {
-      return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ action: 'getPreferences' }, response => {
-          if (response.error) {
-            reject(new Error(response.error));
-          } else if (response.preferences) {
-            // Update our local preferences object with what's in storage
-            userPreferences = response.preferences;
-            console.log("User preferences loaded:", userPreferences);
-            resolve(userPreferences);
-          } else {
-            resolve(userPreferences); // Use defaults
-          }
-        });
-      });
+      try {
+        const response = await browser.runtime.sendMessage({ action: 'getPreferences' });
+        if (response.error) {
+          throw new Error(response.error);
+        } 
+        
+        if (response.preferences) {
+          // Update our local preferences object with what's in storage
+          userPreferences = response.preferences;
+          console.log("User preferences loaded:", userPreferences);
+        }
+        
+        return userPreferences;
+      } catch (error) {
+        console.error("Error loading preferences:", error);
+        return userPreferences; // Use defaults as fallback
+      }
     }
     
     // Log this page visit to database once conversions are done
@@ -83,7 +88,7 @@
       // Only log if we actually did conversions and tracking is enabled
       if (conversionCount > 0 && userPreferences.trackStats) {
         const url = window.location.href;
-        chrome.runtime.sendMessage({ 
+        browser.runtime.sendMessage({ 
           action: 'saveVisitedSite',
           url: url,
           conversionCount: conversionCount

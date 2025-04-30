@@ -80,11 +80,16 @@
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        .save-message {
-            color: green;
+        #save-success, #save-error, #clear-success, #clear-error {
             margin-top: 10px;
             font-weight: bold;
             display: none;
+        }
+        #save-success, #clear-success {
+            color: green;
+        }
+        #save-error, #clear-error {
+            color: #d9534f;
         }
         .chart-container {
             width: 100%;
@@ -96,6 +101,17 @@
             padding: 40px;
             color: #777;
         }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .stats-summary {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -105,8 +121,8 @@
         <h2>Settings</h2>
         <form id="settings-form">
             <div>
-                <label for="default-currency">Default Currency:</label>
-                <select id="default-currency" name="defaultCurrency">
+                <label for="currency">Default Currency:</label>
+                <select id="currency" name="defaultCurrency">
                     <option value="usd">US Dollar (USD)</option>
                     <option value="eur" disabled>Euro (EUR) - Coming Soon</option>
                     <option value="gbp" disabled>British Pound (GBP) - Coming Soon</option>
@@ -136,38 +152,30 @@
                 </label>
             </div>
             
-            <button type="submit">Save Settings</button>
-            <span id="save-message" class="save-message">Settings saved!</span>
+            <button type="submit" id="save-settings">Save Settings</button>
+            <div id="save-success" class="save-success">Settings saved!</div>
+            <div id="save-error" class="save-error"></div>
         </form>
     </div>
     
     <div class="settings-section">
         <h2>Price History</h2>
-        <div id="price-history-chart" class="chart-container">
+        <div id="price-history">
             <div class="empty-state">Loading price history data...</div>
         </div>
     </div>
     
     <div class="settings-section">
         <h2>Visited Sites Statistics</h2>
-        <div class="stats">
-            <p>Sites where Price-in-Sats has converted prices:</p>
-            <table id="sites-table">
-                <thead>
-                    <tr>
-                        <th>Website</th>
-                        <th>Last Visit</th>
-                        <th>Conversions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be populated by JavaScript -->
-                </tbody>
-            </table>
+        <div id="visited-sites">
+            <div class="empty-state">Loading site statistics...</div>
         </div>
         <button id="clear-data" class="button-secondary">Clear All Data</button>
+        <div id="clear-success"></div>
+        <div id="clear-error"></div>
     </div>
     
+    <script src="browser-polyfill.js"></script>
     <script src="options.js" type="module"></script>
 </body>
 </html>

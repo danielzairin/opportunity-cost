@@ -27,7 +27,7 @@ async function loadSettings() {
     
     // Set form values from preferences
     document.getElementById('default-currency').value = preferences.defaultCurrency || 'usd';
-    document.getElementById('display-mode').value = preferences.displayMode || 'sats-only';
+    document.getElementById('display-mode').value = preferences.displayMode || 'dual-display';
     document.getElementById('auto-refresh').checked = preferences.autoRefresh !== false; // Default to true
     document.getElementById('track-stats').checked = preferences.trackStats !== false; // Default to true
     
@@ -171,7 +171,7 @@ async function clearAllData() {
       await PriceDatabase.savePreferences({
         id: 'user-preferences',
         defaultCurrency: 'usd',
-        displayMode: 'sats-only',
+        displayMode: 'dual-display',
         autoRefresh: true,
         trackStats: true,
         lastUpdated: Date.now()
