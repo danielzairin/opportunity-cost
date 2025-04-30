@@ -141,6 +141,112 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       processAmazonLuxuryPrices();
     };
     
+    // Process Zillow-style real estate prices
+    const processZillowPrices = () => {
+      // Only run on Zillow domains
+      if (!window.location.hostname.includes('zillow')) {
+        return;
+      }
+      
+      console.log('Opportunity Cost: Checking for Zillow-style prices');
+      
+      // Process main property listing prices
+      const propertyPrices = document.querySelectorAll('[data-test="property-card-price"], .list-card-price, .ds-price, span[data-testid="price"], h3:first-of-type');
+      
+      propertyPrices.forEach(priceElement => {
+        // Skip if we've already processed this element
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const priceText = priceElement.textContent.trim();
+        // Zillow often has prices like $2,195,000
+        const priceMatch = priceText.match(/\$([\d,]+)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          // Only process reasonable real estate price values
+          if (fiatValue > 0) {
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element
+            const newElement = document.createElement('span');
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toLocaleString()}`;
+              // Add styling to match Zillow's design
+              newElement.style.cssText = priceElement.style.cssText;
+              newElement.className = priceElement.className;
+            } else {
+              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              newElement.style.cssText = priceElement.style.cssText;
+              newElement.className = priceElement.className;
+            }
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            // Replace the original price element
+            priceElement.parentNode.replaceChild(newElement, priceElement);
+            
+            // Increment conversion counter
+            conversionCount++;
+          }
+        }
+      });
+      
+      // Process home price headings (on property detail pages)
+      const priceHeadings = document.querySelectorAll('h1 span, h2, .hdp__sc-1tsvzbc-1, [data-testid="home-details-price"]');
+      
+      priceHeadings.forEach(heading => {
+        // Skip if already processed
+        if (heading.textContent.includes('sats') || 
+            heading.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const headingText = heading.textContent;
+        const priceMatch = headingText.match(/\$([\d,]+)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          if (fiatValue > 0) {
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element - we'll use the same tag to preserve styling
+            const tagName = heading.tagName.toLowerCase();
+            const newElement = document.createElement(tagName);
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toLocaleString()}`;
+            } else {
+              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+            }
+            
+            // Copy over styling and classes
+            newElement.style.cssText = heading.style.cssText;
+            newElement.className = heading.className;
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            // Replace the heading
+            heading.parentNode.replaceChild(newElement, heading);
+            
+            // Increment conversion counter
+            conversionCount++;
+          }
+        }
+      });
+    };
+    
     const processAmazonCleanPrices = () => {
       // Look for clean price elements like $3,150 on product pages and listings
       const cleanPriceElements = document.querySelectorAll('.a-price, span.a-offscreen, [class*="price-"][class*="whole"]');
@@ -470,6 +576,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       setTimeout(processAmazonPrices, 3000);
     }
     
+    // Process Zillow-specific price formats
+    if (window.location.hostname.includes('zillow')) {
+      processZillowPrices();
+      
+      // Real estate sites often load content dynamically as you scroll
+      setTimeout(processZillowPrices, 1500);
+      setTimeout(processZillowPrices, 3000);
+    }
+    
     // Log this page visit with conversion stats
     logPageVisit();
     
@@ -486,6 +601,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Process Amazon-specific prices if on Amazon
         if (window.location.hostname.includes('amazon')) {
           processAmazonPrices();
+        }
+        
+        // Process Zillow-specific prices if on Zillow
+        if (window.location.hostname.includes('zillow')) {
+          processZillowPrices();
         }
         
         // If new conversions happened during the mutation, log the visit again

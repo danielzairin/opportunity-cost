@@ -443,7 +443,6 @@
         }
       });
     };
-    };
 
     // Function to walk through the DOM and process text nodes
     const walkDOM = (node) => {
