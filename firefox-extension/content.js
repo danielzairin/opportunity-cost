@@ -36,6 +36,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Add more currencies as needed
     };
     
+    // Special case regexes for prices that might be split across elements
+    const specialCurrencyRegexes = {
+      // For cases like "$1" with the cents "59" in a separate element
+      usdDollarOnly: /^\$\s?(\d{1,3}(?:[,]\d{3})*)$/,
+      usdCentsOnly: /^(\d{1,2})$/
+    };
+    
     // Currency formatting options
     const currencyFormatters = {
       usd: (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
@@ -112,6 +119,89 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.warn('Opportunity Cost: Failed to get BTC price. Prices will not be converted.');
       return;
     }
+    
+    // Process Amazon-style split prices where dollar and cents are in separate elements
+    const processAmazonPrices = () => {
+      // Only run on Amazon domains
+      if (!window.location.hostname.includes('amazon')) {
+        return;
+      }
+      
+      console.log('Opportunity Cost: Checking for Amazon-style prices');
+      
+      // Look for price elements that match Amazon's pattern
+      // This is typically where you see price like "$1" with superscript "59"
+      const priceElements = document.querySelectorAll('[class*="price"], [class*="Price"], .a-price, .a-price-whole, .a-price-fraction');
+      
+      priceElements.forEach(priceElement => {
+        // Skip if we've already processed this element (has our sats conversion)
+        if (priceElement.textContent.includes('sats')) {
+          return;
+        }
+        
+        // Often in Amazon, the price has a dollars component and a cents component
+        let dollarElement = null;
+        let centsElement = null;
+        
+        // Check if this element itself contains just a dollar amount
+        const dollarMatch = priceElement.textContent.match(specialCurrencyRegexes.usdDollarOnly);
+        if (dollarMatch) {
+          dollarElement = priceElement;
+          
+          // Look for a sibling or child element with just cents
+          // Check next sibling first (common pattern)
+          if (priceElement.nextElementSibling) {
+            const nextSiblingText = priceElement.nextElementSibling.textContent.trim();
+            if (nextSiblingText.match(specialCurrencyRegexes.usdCentsOnly)) {
+              centsElement = priceElement.nextElementSibling;
+            }
+          }
+          
+          // If no sibling with cents found, look at children
+          if (!centsElement) {
+            const potentialCentsElements = priceElement.querySelectorAll('*');
+            for (const element of potentialCentsElements) {
+              if (element.textContent.match(specialCurrencyRegexes.usdCentsOnly)) {
+                centsElement = element;
+                break;
+              }
+            }
+          }
+          
+          // If we found a valid price pair, process it
+          if (dollarElement && centsElement) {
+            const dollars = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            const cents = parseInt(centsElement.textContent, 10);
+            const fiatValue = dollars + (cents / 100);
+            
+            // Only process reasonable price values
+            if (fiatValue > 0 && fiatValue < 1000000) {
+              // Calculate satoshi value
+              const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Create a new element to replace the price
+              const newElement = document.createElement('span');
+              
+              // Format based on user preference
+              if (userPreferences.displayMode === 'dual-display') {
+                newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+              } else {
+                newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              }
+              
+              // Replace the original price elements
+              dollarElement.parentNode.replaceChild(newElement, dollarElement);
+              if (centsElement.parentNode) {
+                centsElement.parentNode.removeChild(centsElement);
+              }
+              
+              // Increment conversion counter
+              conversionCount++;
+            }
+          }
+        }
+      });
+    };
     
     // Function to walk through the DOM and process text nodes
     const walkDOM = (node) => {
@@ -221,6 +311,14 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Start processing the document body
     walkDOM(document.body);
     
+    // Process Amazon-specific price formats
+    if (window.location.hostname.includes('amazon')) {
+      processAmazonPrices();
+      
+      // Also process Amazon prices after a short delay to catch any lazy-loaded content
+      setTimeout(processAmazonPrices, 1500);
+    }
+    
     // Log this page visit with conversion stats
     logPageVisit();
     
@@ -233,6 +331,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             mutation.addedNodes.forEach(walkDOM);
           }
         });
+        
+        // Process Amazon-specific prices if on Amazon
+        if (window.location.hostname.includes('amazon')) {
+          processAmazonPrices();
+        }
         
         // If new conversions happened during the mutation, log the visit again
         if (conversionCount > newConversions) {
