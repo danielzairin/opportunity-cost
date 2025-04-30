@@ -354,9 +354,9 @@
               
               // Format based on user preference
               if (userPreferences.displayMode === 'dual-display') {
-                newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+                newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
               } else {
-                newElement.textContent = `${satsValue.toLocaleString()} sats`;
+                newElement.textContent = formatBitcoinValue(satsValue);
               }
               
               // Mark as processed
@@ -400,9 +400,9 @@
             
             // Format based on user preference
             if (userPreferences.displayMode === 'dual-display') {
-              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
             } else {
-              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              newElement.textContent = formatBitcoinValue(satsValue);
             }
             
             // Mark as processed
@@ -444,9 +444,9 @@
               
               // Format based on user preference
               if (userPreferences.displayMode === 'dual-display') {
-                newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+                newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
               } else {
-                newElement.textContent = `${satsValue.toLocaleString()} sats`;
+                newElement.textContent = formatBitcoinValue(satsValue);
               }
               
               // Mark as processed
@@ -500,8 +500,8 @@
       
       // Text nodes that should be ignored (containing specific patterns)
       const shouldIgnoreNode = () => {
-        // Ignore text nodes that already have "sats" in them (our own conversions)
-        if (content.includes(" sats")) {
+        // Ignore text nodes that already have "sats" or "BTC" in them (our own conversions)
+        if (content.includes(" sats") || content.includes(" BTC")) {
           return true;
         }
         
@@ -559,9 +559,9 @@
         
         // Return formatted output based on display mode
         if (userPreferences.displayMode === 'dual-display') {
-          return `${satsValue.toLocaleString()} sats | ${currencyFormatter(fiatValue)}`;
+          return `${formatBitcoinValue(satsValue)} | ${currencyFormatter(fiatValue)}`;
         } else {
-          return `${satsValue.toLocaleString()} sats`;
+          return formatBitcoinValue(satsValue);
         }
       });
       

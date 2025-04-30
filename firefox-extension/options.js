@@ -40,6 +40,7 @@ const PriceDatabase = {
     return result.user_preferences || {
       defaultCurrency: 'usd',
       displayMode: 'dual-display',
+      denomination: 'sats',
       autoRefresh: true,
       trackStats: true
     };
@@ -79,6 +80,7 @@ async function loadSettings() {
     if (prefs) {
       currencySelector.value = prefs.defaultCurrency || 'usd';
       displayModeSelector.value = prefs.displayMode || 'dual-display';
+      document.getElementById('denomination').value = prefs.denomination || 'sats';
       autoRefreshToggle.checked = prefs.autoRefresh !== false;
       trackStatsToggle.checked = prefs.trackStats !== false;
     }
@@ -97,6 +99,7 @@ async function saveSettings(event) {
     const preferences = {
       defaultCurrency: currencySelector.value,
       displayMode: displayModeSelector.value,
+      denomination: document.getElementById('denomination').value,
       autoRefresh: autoRefreshToggle.checked,
       trackStats: trackStatsToggle.checked
     };

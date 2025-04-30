@@ -24,6 +24,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let userPreferences = {
       defaultCurrency: 'usd',
       displayMode: 'dual-display', // Changed default from 'sats-only' to 'dual-display'
+      denomination: 'sats', // Default to satoshis, can be 'sats' or 'btc'
       autoRefresh: true,
       trackStats: true
     };
@@ -50,6 +51,29 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       usd: (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       eur: (value) => `€${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
       gbp: (value) => `£${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+    };
+    
+    // Helper function to format Bitcoin values based on user's denomination preference
+    const formatBitcoinValue = (satsValue) => {
+      if (userPreferences.denomination === 'btc') {
+        // Convert sats to BTC (1 BTC = 100,000,000 satoshis)
+        const btcValue = satsValue / SATS_IN_BTC;
+        // Format BTC with appropriate precision
+        if (btcValue < 0.0001) {
+          return `${btcValue.toFixed(8)} BTC`;
+        } else if (btcValue < 0.001) {
+          return `${btcValue.toFixed(6)} BTC`;
+        } else if (btcValue < 0.1) {
+          return `${btcValue.toFixed(5)} BTC`;
+        } else if (btcValue < 1) {
+          return `${btcValue.toFixed(4)} BTC`;
+        } else {
+          return `${btcValue.toFixed(2)} BTC`;
+        }
+      } else {
+        // Default to satoshis
+        return `${satsValue.toLocaleString()} sats`;
+      }
     };
     
     // Get Bitcoin price and user preferences from background script
@@ -177,12 +201,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             
             // Format based on user preference
             if (userPreferences.displayMode === 'dual-display') {
-              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toLocaleString()}`;
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toLocaleString()}`;
               // Add styling to match Zillow's design
               newElement.style.cssText = priceElement.style.cssText;
               newElement.className = priceElement.className;
             } else {
-              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              newElement.textContent = formatBitcoinValue(satsValue);
               newElement.style.cssText = priceElement.style.cssText;
               newElement.className = priceElement.className;
             }
@@ -225,9 +249,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             
             // Format based on user preference
             if (userPreferences.displayMode === 'dual-display') {
-              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toLocaleString()}`;
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toLocaleString()}`;
             } else {
-              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              newElement.textContent = formatBitcoinValue(satsValue);
             }
             
             // Copy over styling and classes
@@ -283,9 +307,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                   
                   // Format based on user preference
                   if (userPreferences.displayMode === 'dual-display') {
-                    newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+                    newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
                   } else {
-                    newElement.textContent = `${satsValue.toLocaleString()} sats`;
+                    newElement.textContent = formatBitcoinValue(satsValue);
                   }
                   
                   // Replace the original price element
