@@ -271,6 +271,103 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     };
     
+    // Process prices on Google Finance pages
+    const processGoogleFinancePrices = () => {
+      // Only run on Google Finance domains
+      if (!window.location.hostname.includes('google.com') || !window.location.pathname.includes('/finance')) {
+        return;
+      }
+      
+      console.log('Opportunity Cost: Checking for Google Finance prices');
+      
+      // Process main stock price - the large current price displayed at the top of the page
+      const mainPriceSelector = 'div[jsname] > div > div:first-child > div:first-child > div > div > div > div > span';
+      const mainPriceElements = document.querySelectorAll(mainPriceSelector);
+      
+      // Process "After Hours" prices
+      const afterHoursPriceSelector = 'div[jsname] > div > div > span:contains("After Hours")';
+      const afterHoursElements = document.querySelectorAll('div[role="heading"]:contains("After Hours")');
+      
+      // Process both main price and after hours prices
+      const processStockPrice = (priceElement) => {
+        // Skip if we've already processed this element
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.textContent.includes('BTC') ||
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const priceText = priceElement.textContent.trim();
+        // Stock price format $123.45
+        const priceMatch = priceText.match(/\$?([\d,]+\.?\d*)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          // Only process reasonable stock price values
+          if (fiatValue > 0 && fiatValue < 100000) {  // Reasonable stock price range
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element that matches the original
+            const newElement = document.createElement(priceElement.tagName || 'span');
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
+            } else {
+              newElement.textContent = formatBitcoinValue(satsValue);
+            }
+            
+            // Copy over styling and classes to maintain the look and feel
+            newElement.style.cssText = priceElement.style.cssText;
+            newElement.className = priceElement.className;
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            try {
+              // Replace the original price element
+              if (priceElement.parentNode) {
+                priceElement.parentNode.replaceChild(newElement, priceElement);
+                
+                // Increment conversion counter
+                conversionCount++;
+              }
+            } catch (e) {
+              console.error('Error replacing Google Finance price element:', e);
+            }
+          }
+        }
+      };
+      
+      // Process the main price elements
+      mainPriceElements.forEach(processStockPrice);
+      
+      // Process pre/after hours and other price elements
+      document.querySelectorAll('span, div').forEach(el => {
+        const text = el.textContent.trim();
+        if (text.startsWith('$') && /^\$[\d,]+\.\d+$/.test(text) && 
+            !el.getAttribute('data-sats-processed')) {
+          processStockPrice(el);
+        }
+      });
+      
+      // Target specific "After Hours" structure
+      document.querySelectorAll('div[role="heading"] + div span').forEach(el => {
+        if (/\$[\d,]+\.\d+/.test(el.textContent) && !el.getAttribute('data-sats-processed')) {
+          processStockPrice(el);
+        }
+      });
+      
+      // Handle stock price in the header section
+      document.querySelectorAll('c-wiz div[role="heading"] + div span').forEach(el => {
+        if (/\$[\d,]+\.\d+/.test(el.textContent) && !el.getAttribute('data-sats-processed')) {
+          processStockPrice(el);
+        }
+      });
+    };
+    
     const processAmazonCleanPrices = () => {
       // Look for clean price elements like $3,150 on product pages and listings
       const cleanPriceElements = document.querySelectorAll('.a-price, span.a-offscreen, [class*="price-"][class*="whole"]');
@@ -369,9 +466,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
               
               // Format based on user preference
               if (userPreferences.displayMode === 'dual-display') {
-                newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+                newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
               } else {
-                newElement.textContent = `${satsValue.toLocaleString()} sats`;
+                newElement.textContent = formatBitcoinValue(satsValue);
               }
               
               // Mark as processed
@@ -415,9 +512,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             
             // Format based on user preference
             if (userPreferences.displayMode === 'dual-display') {
-              newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
             } else {
-              newElement.textContent = `${satsValue.toLocaleString()} sats`;
+              newElement.textContent = formatBitcoinValue(satsValue);
             }
             
             // Mark as processed
@@ -459,9 +556,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
               
               // Format based on user preference
               if (userPreferences.displayMode === 'dual-display') {
-                newElement.textContent = `${satsValue.toLocaleString()} sats | $${fiatValue.toFixed(2)}`;
+                newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
               } else {
-                newElement.textContent = `${satsValue.toLocaleString()} sats`;
+                newElement.textContent = formatBitcoinValue(satsValue);
               }
               
               // Mark as processed
@@ -515,8 +612,8 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       
       // Text nodes that should be ignored (containing specific patterns)
       const shouldIgnoreNode = () => {
-        // Ignore text nodes that already have "sats" in them (our own conversions)
-        if (content.includes(" sats")) {
+        // Ignore text nodes that already have "sats" or "BTC" in them (our own conversions)
+        if (content.includes(" sats") || content.includes(" BTC")) {
           return true;
         }
         
@@ -574,9 +671,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         
         // Return formatted output based on display mode
         if (userPreferences.displayMode === 'dual-display') {
-          return `${satsValue.toLocaleString()} sats | ${currencyFormatter(fiatValue)}`;
+          return `${formatBitcoinValue(satsValue)} | ${currencyFormatter(fiatValue)}`;
         } else {
-          return `${satsValue.toLocaleString()} sats`;
+          return formatBitcoinValue(satsValue);
         }
       });
       
@@ -609,6 +706,16 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       setTimeout(processZillowPrices, 3000);
     }
     
+    // Process Google Finance price formats
+    if (window.location.hostname.includes('google.com') && window.location.pathname.includes('/finance')) {
+      processGoogleFinancePrices();
+      
+      // Finance apps update prices frequently - check more often
+      setTimeout(processGoogleFinancePrices, 1000);
+      setTimeout(processGoogleFinancePrices, 2000); 
+      setInterval(processGoogleFinancePrices, 5000); // Continuous monitoring for live prices
+    }
+    
     // Log this page visit with conversion stats
     logPageVisit();
     
@@ -630,6 +737,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Process Zillow-specific prices if on Zillow
         if (window.location.hostname.includes('zillow')) {
           processZillowPrices();
+        }
+        
+        // Process Google Finance prices if on Google Finance
+        if (window.location.hostname.includes('google.com') && window.location.pathname.includes('/finance')) {
+          processGoogleFinancePrices();
         }
         
         // If new conversions happened during the mutation, log the visit again
