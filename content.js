@@ -47,12 +47,32 @@
             // Update user preferences if they're included in the response
             if (response.displayMode) {
               userPreferences.displayMode = response.displayMode;
+              console.log("Display mode set to:", response.displayMode);
             }
             if (response.currency) {
               userPreferences.defaultCurrency = response.currency;
+              console.log("Currency set to:", response.currency);
             }
             
             resolve(response.price);
+          }
+        });
+      });
+    }
+    
+    // Make sure we have the latest preferences before doing anything else
+    async function ensurePreferencesLoaded() {
+      return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ action: 'getPreferences' }, response => {
+          if (response.error) {
+            reject(new Error(response.error));
+          } else if (response.preferences) {
+            // Update our local preferences object with what's in storage
+            userPreferences = response.preferences;
+            console.log("User preferences loaded:", userPreferences);
+            resolve(userPreferences);
+          } else {
+            resolve(userPreferences); // Use defaults
           }
         });
       });
@@ -71,6 +91,9 @@
       }
     }
     
+    // Make sure preferences are loaded before anything else
+    await ensurePreferencesLoaded();
+    
     // Get the Bitcoin price and user preferences
     const btcPrice = await getBitcoinPriceAndPreferences();
     
@@ -81,49 +104,20 @@
     
     // Function to walk through the DOM and process text nodes
     const walkDOM = (node) => {
-      // Skip already processed nodes
-      if (node.hasAttribute && node.hasAttribute('data-sats-processed')) {
-        return;
-      }
-      
-      // Skip certain elements that shouldn't be processed
+      // Skip script and style elements - we don't need to process their text content
       if (node.nodeType === Node.ELEMENT_NODE) {
-        // Get the tag name in lowercase
         const tagName = node.tagName.toLowerCase();
-        
-        // Skip certain types of elements entirely
-        if (['script', 'style', 'noscript', 'svg', 'canvas', 'input', 'textarea', 'select', 'option'].includes(tagName)) {
-          return;
-        }
-        
-        // Skip elements with certain classes/IDs that indicate complex price structures
-        const classNames = node.className ? node.className.toLowerCase() : '';
-        const id = node.id ? node.id.toLowerCase() : '';
-        
-        if (classNames.includes('savings') || 
-            classNames.includes('discount') || 
-            classNames.includes('price-list') ||
-            id.includes('savings') || 
-            id.includes('discount')) {
-          // Mark as processed to avoid revisiting
-          if (node.setAttribute) {
-            node.setAttribute('data-sats-processed', 'skipped');
-          }
+        if (['script', 'style', 'noscript'].includes(tagName)) {
           return;
         }
       }
       
-      // Process text nodes
+      // Process text nodes - this is what contains the prices
       if (node.nodeType === Node.TEXT_NODE) {
         replacePrice(node);
       }
       // Recursively process child nodes
       else if (node.nodeType === Node.ELEMENT_NODE) {
-        // Mark this element as processed
-        if (node.setAttribute) {
-          node.setAttribute('data-sats-processed', 'true');
-        }
-        
         // Process children
         for (let i = 0; i < node.childNodes.length; i++) {
           walkDOM(node.childNodes[i]);
@@ -152,64 +146,8 @@
           return true;
         }
         
-        // Check if the node is part of a complex pricing structure
-        const parentElement = textNode.parentElement;
-        if (!parentElement) {
-          return false;
-        }
-        
-        const parentText = parentElement.textContent;
-        const grandParentElement = parentElement.parentElement;
-        const grandParentText = grandParentElement ? grandParentElement.parentElement : '';
-        
-        // Don't process nodes that already have multiple prices or sats mentions
-        if (parentText && (
-            (parentText.match(/\$/g) || []).length > 2 || // More than 2 dollar signs
-            parentText.includes(" sats") ||  // Already has satoshis
-            (parentText.match(/sats/g) || []).length > 0 || // Already has "sats" mentioned
-            parentText.includes("List:") || // List prices
-            parentText.includes("Save") ||  // Save amount text
-            parentText.toLowerCase().includes("coupon") // Coupon text
-           )) {
-          return true;
-        }
-        
-        // Check for specific cases from the screenshots
-        // Handling for creatine powder example (multiple values in a row)
-        if (
-          (content.match(/sats/g) || []).length > 1 ||  // Multiple "sats" occurrences
-          (content.includes("|") && content.includes("sats")) || // Format like "X sats | Y sats"
-          (content.includes("As low as")) // "As low as" pricing
-        ) {
-          return true;
-        }
-        
-        // Check parent element attributes for hints about pricing structures
-        const parentClass = parentElement.className || '';
-        const parentTagName = parentElement.tagName ? parentElement.tagName.toLowerCase() : '';
-        
-        if (
-          parentClass.toLowerCase().includes('price') ||
-          parentClass.toLowerCase().includes('saving') ||
-          parentClass.toLowerCase().includes('discount') ||
-          parentClass.toLowerCase().includes('strike') ||
-          parentClass.toLowerCase().includes('original') ||
-          parentTagName === 'strike' ||
-          parentTagName === 'del' ||
-          parentTagName === 's'
-        ) {
-          return true;
-        }
-        
-        // Look for specific patterns from the screenshots
-        if (
-          // Match the "58,116 sats | 58,116 sats | $55.99" pattern
-          (/\d{1,3}(?:[,]\d{3})*\s+sats\s+\|/).test(parentText) ||
-          // Match list price patterns
-          (/list:.*sats/i).test(parentText) ||
-          // Match save amount patterns
-          (/save.*sats/i).test(parentText)
-        ) {
+        // Check for text in complex pricing structures
+        if (content.includes("List:") || content.includes("Save ")) {
           return true;
         }
         
