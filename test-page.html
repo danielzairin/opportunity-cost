@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price-in-Sats Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .product {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .price {
+            font-weight: bold;
+            color: #2a2a2a;
+            font-size: 1.2em;
+        }
+        .sale-price {
+            color: #cc0000;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .cart-total {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Online Shopping Demo</h1>
+    <p>This page demonstrates various price formats that should be converted by the Price-in-Sats extension.</p>
+    
+    <div class="product">
+        <h2>Premium Laptop</h2>
+        <p>High-performance laptop with latest features</p>
+        <p class="price">$1,299.99</p>
+    </div>
+    
+    <div class="product">
+        <h2>Wireless Headphones</h2>
+        <p>Noise-cancelling with 30-hour battery life</p>
+        <p class="price">$249.00</p>
+    </div>
+    
+    <div class="product">
+        <h2>Smart Watch</h2>
+        <p>Track fitness and receive notifications</p>
+        <p class="price"><span class="sale-price">$199.50</span> <strike>$299.99</strike></p>
+        <p>Save $100.49 today!</p>
+    </div>
+    
+    <div class="product">
+        <h2>Coffee Maker</h2>
+        <p>Programmable with thermal carafe</p>
+        <p class="price">$89.95</p>
+    </div>
+    
+    <div class="cart-total">
+        <h2>Shopping Cart</h2>
+        <p>Subtotal: $1,838.44</p>
+        <p>Tax (8%): $147.08</p>
+        <p>Shipping: $12.99</p>
+        <p><strong>Total: $1,998.51</strong></p>
+    </div>
+    
+    <div>
+        <h2>Different Price Formats</h2>
+        <p>Small item: $4.99</p>
+        <p>Medium item: $ 24.50</p>
+        <p>Large item: $599</p>
+        <p>Premium item: $1,750.00</p>
+        <p>Enterprise solution: $10,499.99</p>
+    </div>
+
+    <script>
+        // Add dynamic content after 2 seconds to test MutationObserver
+        setTimeout(() => {
+            const dynamicSection = document.createElement('div');
+            dynamicSection.innerHTML = `
+                <h2>Flash Sale! (Dynamically Added Content)</h2>
+                <div class="product">
+                    <h2>Limited Edition Speakers</h2>
+                    <p>Premium sound quality with wireless connectivity</p>
+                    <p class="price"><span class="sale-price">$349.99</span> <strike>$499.99</strike></p>
+                    <p>Save $150.00 today only!</p>
+                </div>
+            `;
+            document.body.appendChild(dynamicSection);
+        }, 2000);
+    </script>
+</body>
+</html>
