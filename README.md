@@ -1,7 +1,7 @@
-# Price-in-Sats Browser Extension
+# Opportunity Cost Browser Extension
 
 ## Overview
-Price-in-Sats is a browser extension for Chrome and Firefox that scans webpages for fiat currency prices (currently USD) and automatically converts them to their Bitcoin satoshi equivalent. It also provides a direct link to the Opportunity Cost app when clicking the extension icon.
+Opportunity Cost is a browser extension for Chrome and Firefox that scans webpages for fiat currency prices (currently USD) and automatically converts them to their Bitcoin satoshi equivalent. It also provides a direct link to the Opportunity Cost app when clicking the extension icon.
 
 ## Features
 - Automatically converts USD prices to satoshis on any webpage
@@ -15,7 +15,7 @@ Price-in-Sats is a browser extension for Chrome and Firefox that scans webpages 
 ## Installation
 
 ### Chrome
-1. Download the `chrome-extension.zip` file
+1. Download the `opportunity-cost-chrome.zip` file
 2. Extract the contents to a folder
 3. Open Chrome and navigate to `chrome://extensions/`
 4. Enable "Developer mode" in the top-right corner
@@ -23,7 +23,7 @@ Price-in-Sats is a browser extension for Chrome and Firefox that scans webpages 
 6. The extension will immediately be active and ready to use
 
 ### Firefox
-1. Download the `firefox-extension.zip` file
+1. Download the `opportunity-cost-firefox.zip` file
 2. Extract the contents to a folder
 3. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
 4. Click "Load Temporary Add-on" and select any file in the extracted directory

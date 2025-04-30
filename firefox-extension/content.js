@@ -1,5 +1,5 @@
 /**
- * Price-in-Sats Firefox Extension
+ * Opportunity Cost Firefox Extension
  * 
  * This content script scans the DOM for fiat currency prices and
  * converts them to their Bitcoin satoshi equivalent.
@@ -109,7 +109,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const btcPrice = await getBitcoinPriceAndPreferences();
     
     if (!btcPrice) {
-      console.warn('Price-in-Sats: Failed to get BTC price. Prices will not be converted.');
+      console.warn('Opportunity Cost: Failed to get BTC price. Prices will not be converted.');
       return;
     }
     
@@ -259,7 +259,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     
   } catch (error) {
-    console.error('Price-in-Sats: An error occurred:', error);
+    console.error('Opportunity Cost: An error occurred:', error);
     // Graceful fallback - leave prices untouched
   }
 })();
