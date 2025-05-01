@@ -22,11 +22,11 @@ let userPreferences = null;
 let backoffTime = INITIAL_BACKOFF;
 let retryCount = 0;
 
-// Handle toolbar icon click - either open options or Opportunity Cost
+// Handle toolbar icon click - either open options or Bitcoin Brief by TFTC
 browser.browserAction.onClicked.addListener(() => {
-  // Right-click opens options, normal click opens Opportunity Cost
+  // Right-click opens options, normal click opens Bitcoin Brief
   browser.tabs.create({ 
-    url: "https://opportunitycost.app?utm_source=firefox_ext" 
+    url: "https://tftc.io/bitcoin-brief?utm_source=opportunity_cost_ext" 
   });
 });
 
