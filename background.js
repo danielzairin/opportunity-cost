@@ -260,40 +260,69 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Handle newsletter signup
     console.log('Newsletter signup received:', message.email);
     
-    // Here you would typically send this to your newsletter service API
-    // For a minimalistic implementation, we'll just store it locally
-
-    // For SendGrid integration, you'd use:
-    /*
-    try {
-      const res = await fetch('YOUR_NEWSLETTER_API_ENDPOINT', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + SENDGRID_API_KEY
-        },
-        body: JSON.stringify({
-          email: message.email,
-          source: 'opportunity_cost_extension'
-        })
-      });
-      
-      const data = await res.json();
-      sendResponse({ success: true, data: data });
-    } catch (error) {
-      console.error('Error sending to newsletter API:', error);
-      sendResponse({ error: error.message });
-    }
-    */
+    // For Ghost CMS integration
+    const subscribeToGhostNewsletter = async (email) => {
+      try {
+        // Get your Ghost Admin API key from environment
+        const ghostApiKey = 'GHOST_ADMIN_API_KEY'; // This will be replaced at runtime
+        
+        // Your Ghost blog URL - adjust this to your actual Ghost website
+        // Default format is your domain + "/ghost/api/admin/"
+        const ghostApiUrl = 'https://your-ghost-blog.com/ghost/api/v3/admin/';
+        
+        console.log('Attempting to subscribe to Ghost newsletter...');
+        
+        // Create the request to add a member
+        const response = await fetch(`${ghostApiUrl}members/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Ghost ${ghostApiKey}`
+          },
+          body: JSON.stringify({
+            members: [{
+              email: email,
+              subscribed: true,
+              labels: ['Opportunity Cost Extension'],
+              note: 'Subscribed via Opportunity Cost browser extension'
+            }]
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Ghost API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return { success: true, data };
+      } catch (error) {
+        console.error('Error subscribing to Ghost newsletter:', error);
+        return { success: false, error: error.message };
+      }
+    };
     
-    // For now, we'll just store the subscription locally
+    // Store subscription locally
     chrome.storage.local.set({
       'newsletter_subscribed': true,
       'newsletter_email': message.email,
       'newsletter_date': new Date().toISOString()
-    }, function() {
-      sendResponse({ success: true });
     });
+    
+    // Try to subscribe to Ghost with the API key
+    subscribeToGhostNewsletter(message.email)
+      .then(result => {
+        if (result.success) {
+          console.log('Successfully subscribed to Ghost newsletter');
+          sendResponse({ success: true, ghostResult: result.data });
+        } else {
+          console.error('Failed to subscribe to Ghost:', result.error);
+          sendResponse({ success: true, ghostError: result.error });
+        }
+      })
+      .catch(err => {
+        console.error('Error in Ghost subscription process:', err);
+        sendResponse({ success: true, ghostError: err.message });
+      });
     
     return true;
   }

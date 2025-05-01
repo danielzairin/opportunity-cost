@@ -2,56 +2,39 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('newsletter-form');
   const successMessage = document.getElementById('success-message');
   
+  // Detect which browser API to use (Chrome or Firefox)
+  const browserAPI = typeof chrome !== 'undefined' ? chrome : browser;
+  
   form.addEventListener('submit', async function(event) {
     event.preventDefault();
     
     const email = document.getElementById('email').value;
     
     try {
-      // This is where you'd normally connect to your newsletter service API
-      // For a minimalistic approach, we'll just simulate a successful subscription
-      
-      // For integration with your actual newsletter service, you would:
-      // 1. Make a fetch request to your newsletter API
-      // 2. Handle the response appropriately
-      
-      // Example for SendGrid:
-      /*
-      const response = await fetch('YOUR_NEWSLETTER_API_ENDPOINT', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          source: 'opportunity_cost_extension'
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to subscribe');
-      }
-      */
-      
-      // For demo purposes, we'll simulate a successful API call
-      console.log('Newsletter signup for:', email);
-      
-      // Show success message
+      // Show success message (we do this first for better user experience)
       form.style.display = 'none';
       successMessage.style.display = 'block';
       
       // Store subscription status in extension storage
-      chrome.storage.local.set({
+      browserAPI.storage.local.set({
         'newsletter_subscribed': true,
         'newsletter_email': email
       });
 
-      // Send this info to background script for tracking
-      chrome.runtime.sendMessage({
+      // Send this info to background script for Ghost CMS integration
+      console.log('Sending newsletter signup to background script:', email);
+      
+      browserAPI.runtime.sendMessage({
         action: 'newsletterSignup',
         email: email
+      }, function(response) {
+        console.log('Newsletter signup response:', response);
+        
+        // If there was an error with the Ghost integration, we'll still keep
+        // the user subscribed locally, but log the error
+        if (response && response.ghostError) {
+          console.error('Ghost API error:', response.ghostError);
+        }
       });
       
     } catch (error) {
@@ -61,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Check if already subscribed
-  chrome.storage.local.get(['newsletter_subscribed'], function(result) {
+  browserAPI.storage.local.get(['newsletter_subscribed'], function(result) {
     if (result.newsletter_subscribed) {
       form.style.display = 'none';
       successMessage.textContent = 'You are already subscribed to our newsletter!';

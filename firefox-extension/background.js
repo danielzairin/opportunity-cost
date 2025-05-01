@@ -22,11 +22,28 @@ let userPreferences = null;
 let backoffTime = INITIAL_BACKOFF;
 let retryCount = 0;
 
-// Handle toolbar icon click - either open options or Opportunity Cost
+// Handle toolbar icon click
 browser.browserAction.onClicked.addListener(() => {
-  // Right-click opens options, normal click opens Opportunity Cost
-  browser.tabs.create({ 
-    url: "https://opportunitycost.app?utm_source=firefox_ext" 
+  // Check if user has been prompted about newsletter
+  browser.storage.local.get(['newsletter_prompted'], function(result) {
+    // If user hasn't been prompted yet, show newsletter popup first
+    if (!result.newsletter_prompted) {
+      // Set flag to prevent repeated prompts
+      browser.storage.local.set({ 'newsletter_prompted': true });
+      
+      // Open newsletter signup in a popup
+      browser.windows.create({
+        url: 'newsletter.html',
+        type: 'popup',
+        width: 550,
+        height: 600
+      });
+    } else {
+      // Otherwise, proceed directly to Opportunity Cost website
+      browser.tabs.create({ 
+        url: "https://opportunitycost.app?utm_source=firefox_ext" 
+      });
+    }
   });
 });
 
@@ -341,6 +358,83 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return { error: error.message };
       });
     }
+  }
+  else if (message.action === 'newsletterSignup') {
+    // Handle newsletter signup
+    console.log('Newsletter signup received:', message.email);
+    
+    // For Ghost CMS integration
+    const subscribeToGhostNewsletter = async (email) => {
+      try {
+        // Get your Ghost Admin API key from environment
+        const ghostApiKey = 'GHOST_ADMIN_API_KEY'; // This will be replaced at runtime
+        
+        // Your Ghost blog URL - adjust this to your actual Ghost website
+        // Default format is your domain + "/ghost/api/admin/"
+        const ghostApiUrl = 'https://your-ghost-blog.com/ghost/api/v3/admin/';
+        
+        console.log('Attempting to subscribe to Ghost newsletter (Firefox)...');
+        
+        // Create the request to add a member
+        const response = await fetch(`${ghostApiUrl}members/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Ghost ${ghostApiKey}`
+          },
+          body: JSON.stringify({
+            members: [{
+              email: email,
+              subscribed: true,
+              labels: ['Opportunity Cost Extension', 'Firefox'],
+              note: 'Subscribed via Opportunity Cost browser extension (Firefox)'
+            }]
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Ghost API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return { success: true, data };
+      } catch (error) {
+        console.error('Error subscribing to Ghost newsletter:', error);
+        return { success: false, error: error.message };
+      }
+    };
+    
+    // Store subscription locally
+    browser.storage.local.set({
+      'newsletter_subscribed': true,
+      'newsletter_email': message.email,
+      'newsletter_date': new Date().toISOString()
+    });
+    
+    // Subscribe to Ghost with the API key
+    responsePromise = subscribeToGhostNewsletter(message.email).then(result => {
+      if (result.success) {
+        console.log('Successfully subscribed to Ghost newsletter');
+        return { success: true, ghostResult: 'Subscription successful' };
+      } else {
+        console.error('Failed to subscribe to Ghost:', result.error);
+        return { success: true, ghostError: result.error };
+      }
+    }).catch(err => {
+      console.error('Error in Ghost subscription process:', err);
+      return { success: true, ghostError: err.message };
+    });
+  }
+  else if (message.action === 'openNewsletterPage') {
+    // Open the newsletter page in a popup window
+    browser.windows.create({
+      url: 'newsletter.html',
+      type: 'popup',
+      width: 550,
+      height: 600
+    });
+    
+    responsePromise = Promise.resolve({ success: true });
   }
   else {
     // Unknown action
