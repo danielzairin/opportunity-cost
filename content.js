@@ -150,6 +150,78 @@
       }
     }
     
+    // Show a non-intrusive newsletter prompt
+    function maybeShowNewsletterPrompt() {
+      // Only show prompt with low probability and if user hasn't already subscribed
+      chrome.storage.local.get(['newsletter_subscribed', 'newsletter_prompted_count'], function(result) {
+        // Don't show if user is already subscribed
+        if (result.newsletter_subscribed) return;
+        
+        // Keep track of how many times we've shown the prompt
+        const promptCount = result.newsletter_prompted_count || 0;
+        
+        // Only show occasionally (25% chance) and max 3 times
+        if (promptCount < 3 && Math.random() < 0.25) {
+          // Create a subtle floating prompt
+          const promptElement = document.createElement('div');
+          promptElement.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            border: 1px solid #f7931a;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            z-index: 10000;
+            max-width: 300px;
+            line-height: 1.5;
+          `;
+          
+          promptElement.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+              <img src="${chrome.runtime.getURL('icons/icon48.svg')}" width="24" height="24" style="margin-right: 10px;">
+              <b style="color: #f7931a;">Opportunity Cost</b>
+              <button id="close-newsletter-prompt" style="margin-left: auto; background: none; border: none; cursor: pointer; font-size: 16px; color: #999;">&times;</button>
+            </div>
+            <p>Enjoying seeing prices in Bitcoin? Get more Bitcoin insights in your inbox.</p>
+            <button id="subscribe-newsletter" style="background-color: #f7931a; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%;">Join Newsletter</button>
+          `;
+          
+          // Add to page
+          document.body.appendChild(promptElement);
+          
+          // Update prompt count
+          chrome.storage.local.set({
+            'newsletter_prompted_count': promptCount + 1
+          });
+          
+          // Add event listeners
+          document.getElementById('close-newsletter-prompt').addEventListener('click', function() {
+            promptElement.remove();
+          });
+          
+          document.getElementById('subscribe-newsletter').addEventListener('click', function() {
+            // Open newsletter page
+            chrome.runtime.sendMessage({
+              action: 'openNewsletterPage'
+            });
+            promptElement.remove();
+          });
+          
+          // Auto-remove after 15 seconds
+          setTimeout(() => {
+            if (document.body.contains(promptElement)) {
+              promptElement.remove();
+            }
+          }, 15000);
+        }
+      });
+    }
+    
     // Make sure preferences are loaded before anything else
     await ensurePreferencesLoaded();
     
@@ -787,6 +859,11 @@
     
     // Log this page visit with conversion stats
     logPageVisit();
+    
+    // Show newsletter prompt if this page had many conversions
+    if (conversionCount > 5) {
+      maybeShowNewsletterPrompt();
+    }
     
     // Set up a MutationObserver to handle dynamically added content
     const observer = new MutationObserver((mutations) => {

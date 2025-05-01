@@ -27,5 +27,11 @@
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*.svg", "newsletter.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

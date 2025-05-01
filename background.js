@@ -24,11 +24,28 @@ let userPreferences = null;
 let backoffTime = INITIAL_BACKOFF;
 let retryCount = 0;
 
-// Handle toolbar icon click - either open options or Opportunity Cost
+// Handle toolbar icon click
 chrome.action.onClicked.addListener(() => {
-  // Right-click opens options, normal click opens Opportunity Cost
-  chrome.tabs.create({ 
-    url: "https://opportunitycost.app?utm_source=chrome_ext" 
+  // Check if user has been prompted about newsletter
+  chrome.storage.local.get(['newsletter_prompted'], function(result) {
+    // If user hasn't been prompted yet, show newsletter popup first
+    if (!result.newsletter_prompted) {
+      // Set flag to prevent repeated prompts
+      chrome.storage.local.set({ 'newsletter_prompted': true });
+      
+      // Open newsletter signup in a popup
+      chrome.windows.create({
+        url: 'newsletter.html',
+        type: 'popup',
+        width: 550,
+        height: 600
+      });
+    } else {
+      // Otherwise, proceed directly to Opportunity Cost website
+      chrome.tabs.create({ 
+        url: "https://opportunitycost.app?utm_source=chrome_ext" 
+      });
+    }
   });
 });
 
@@ -238,6 +255,59 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: true, trackingDisabled: true });
       return false;
     }
+  }
+  else if (message.action === 'newsletterSignup') {
+    // Handle newsletter signup
+    console.log('Newsletter signup received:', message.email);
+    
+    // Here you would typically send this to your newsletter service API
+    // For a minimalistic implementation, we'll just store it locally
+
+    // For SendGrid integration, you'd use:
+    /*
+    try {
+      const res = await fetch('YOUR_NEWSLETTER_API_ENDPOINT', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + SENDGRID_API_KEY
+        },
+        body: JSON.stringify({
+          email: message.email,
+          source: 'opportunity_cost_extension'
+        })
+      });
+      
+      const data = await res.json();
+      sendResponse({ success: true, data: data });
+    } catch (error) {
+      console.error('Error sending to newsletter API:', error);
+      sendResponse({ error: error.message });
+    }
+    */
+    
+    // For now, we'll just store the subscription locally
+    chrome.storage.local.set({
+      'newsletter_subscribed': true,
+      'newsletter_email': message.email,
+      'newsletter_date': new Date().toISOString()
+    }, function() {
+      sendResponse({ success: true });
+    });
+    
+    return true;
+  }
+  else if (message.action === 'openNewsletterPage') {
+    // Open the newsletter page in a popup window
+    chrome.windows.create({
+      url: 'newsletter.html',
+      type: 'popup',
+      width: 550,
+      height: 600
+    });
+    
+    sendResponse({ success: true });
+    return false;
   }
   else if (message.action === 'preferencesUpdated') {
     // Reload preferences when options page updates them

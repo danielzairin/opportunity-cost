@@ -1,0 +1,15 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "## Overview Opportunity Cost is a browser extension for Chrome and Firefox that scans webpages for fiat currency prices (currently USD) and automatically converts them to their Bitcoin satoshi equivalent. It also provides a direct link to the Opportunity Cost app when clicking the extension icon.",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.5"
+  }
+}
