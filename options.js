@@ -28,7 +28,7 @@ async function loadSettings() {
     // Set form values from preferences
     document.getElementById('default-currency').value = preferences.defaultCurrency || 'usd';
     document.getElementById('display-mode').value = preferences.displayMode || 'dual-display';
-    document.getElementById('denomination').value = preferences.denomination || 'sats';
+    document.getElementById('denomination').value = preferences.denomination || 'btc';
     document.getElementById('auto-refresh').checked = preferences.autoRefresh !== false; // Default to true
     document.getElementById('track-stats').checked = preferences.trackStats !== false; // Default to true
     
@@ -174,6 +174,7 @@ async function clearAllData() {
         id: 'user-preferences',
         defaultCurrency: 'usd',
         displayMode: 'dual-display',
+        denomination: 'btc',
         autoRefresh: true,
         trackStats: true,
         lastUpdated: Date.now()

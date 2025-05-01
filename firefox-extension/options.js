@@ -40,7 +40,7 @@ const PriceDatabase = {
     return result.user_preferences || {
       defaultCurrency: 'usd',
       displayMode: 'dual-display',
-      denomination: 'sats',
+      denomination: 'btc',
       autoRefresh: true,
       trackStats: true
     };
@@ -80,7 +80,7 @@ async function loadSettings() {
     if (prefs) {
       currencySelector.value = prefs.defaultCurrency || 'usd';
       displayModeSelector.value = prefs.displayMode || 'dual-display';
-      document.getElementById('denomination').value = prefs.denomination || 'sats';
+      document.getElementById('denomination').value = prefs.denomination || 'btc';
       autoRefreshToggle.checked = prefs.autoRefresh !== false;
       trackStatsToggle.checked = prefs.trackStats !== false;
     }
