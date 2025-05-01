@@ -18,7 +18,7 @@
     let userPreferences = {
       defaultCurrency: 'usd',
       displayMode: 'dual-display', // Changed default from 'sats-only' to 'dual-display'
-      denomination: 'sats', // Default to satoshis, can be 'sats' or 'btc'
+      denomination: 'btc', // Default to bitcoin (BTC) instead of satoshis
       autoRefresh: true,
       trackStats: true
     };

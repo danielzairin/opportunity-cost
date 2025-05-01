@@ -127,6 +127,7 @@ const PriceDatabase = {
     return result.user_preferences || {
       defaultCurrency: 'usd',
       displayMode: 'dual-display',
+      denomination: 'btc',
       autoRefresh: true,
       trackStats: true
     };
@@ -149,7 +150,8 @@ async function loadUserPreferences() {
     // Use defaults
     userPreferences = {
       defaultCurrency: 'usd',
-      displayMode: 'dual-display', // Changed default from 'sats-only' to 'dual-display'
+      displayMode: 'dual-display',
+      denomination: 'btc', // Default to BTC instead of sats
       autoRefresh: true,
       trackStats: true
     };
