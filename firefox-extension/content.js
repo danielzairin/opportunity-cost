@@ -37,11 +37,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Add more currencies as needed
     };
     
-    // Regular expressions for abbreviated currency formats (k, m, b, t)
+    // Regular expressions for abbreviated currency formats (k, m, b, t) - case insensitive
     const abbreviatedCurrencyRegexes = {
-      usd: /\$[\s\u00A0]?(\d{1,3}(?:[,]\d{3})*(?:\.\d{1,2})?)[\s\u00A0]?([kmbt])\b/gi,
-      eur: /€[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([kmbt])\b/gi,
-      gbp: /£[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([kmbt])\b/gi
+      usd: /\$[\s\u00A0]?(\d{1,3}(?:[,]\d{3})*(?:\.\d{1,2})?)[\s\u00A0]?([KMBTkmbt])\b/gi,
+      eur: /€[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([KMBTkmbt])\b/gi,
+      gbp: /£[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([KMBTkmbt])\b/gi
     };
     
     // Special case regexes for prices that might be split across elements
@@ -67,12 +67,16 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       
       switch (abbreviation) {
         case 'k':
+        case 'K':
           return numValue * 1000;
         case 'm':
+        case 'M':
           return numValue * 1000000;
         case 'b':
+        case 'B':
           return numValue * 1000000000;
         case 't':
+        case 'T':
           return numValue * 1000000000000;
         default:
           return numValue;
