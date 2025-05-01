@@ -369,9 +369,8 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Get your Ghost Admin API key from environment
         const ghostApiKey = 'GHOST_ADMIN_API_KEY'; // This will be replaced at runtime
         
-        // Your Ghost blog URL - adjust this to your actual Ghost website
-        // Default format is your domain + "/ghost/api/admin/"
-        const ghostApiUrl = 'https://your-ghost-blog.com/ghost/api/v3/admin/';
+        // Your Ghost blog URL
+        const ghostApiUrl = 'https://tftc.ghost.io/ghost/api/v3/admin/';
         
         console.log('Attempting to subscribe to Ghost newsletter (Firefox)...');
         

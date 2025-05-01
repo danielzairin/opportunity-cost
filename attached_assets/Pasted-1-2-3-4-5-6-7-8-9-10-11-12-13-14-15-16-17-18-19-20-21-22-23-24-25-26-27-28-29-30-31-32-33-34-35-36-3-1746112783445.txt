@@ -1,0 +1,1844 @@
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+540
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569
+570
+571
+572
+573
+574
+575
+576
+577
+578
+579
+580
+581
+582
+583
+584
+585
+586
+587
+588
+589
+590
+591
+592
+593
+594
+595
+596
+597
+598
+599
+600
+601
+602
+603
+604
+605
+606
+607
+608
+609
+610
+611
+612
+613
+614
+615
+616
+617
+618
+619
+620
+621
+622
+623
+624
+625
+626
+627
+628
+629
+630
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642
+643
+644
+645
+646
+647
+648
+649
+650
+651
+652
+653
+654
+655
+656
+657
+658
+659
+660
+661
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684
+685
+686
+687
+688
+689
+690
+691
+692
+693
+694
+695
+696
+697
+698
+699
+700
+701
+702
+703
+704
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720
+721
+722
+723
+724
+725
+726
+727
+728
+729
+730
+731
+732
+733
+734
+735
+736
+737
+738
+739
+740
+741
+742
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+756
+757
+758
+759
+760
+761
+762
+763
+764
+765
+766
+767
+768
+769
+770
+771
+772
+773
+774
+775
+776
+777
+778
+779
+780
+781
+782
+783
+784
+785
+786
+787
+788
+789
+790
+791
+792
+793
+794
+795
+796
+797
+798
+799
+800
+801
+802
+803
+804
+805
+806
+807
+808
+809
+810
+811
+812
+813
+814
+815
+816
+817
+818
+819
+820
+821
+822
+823
+824
+825
+826
+827
+828
+829
+830
+831
+832
+833
+834
+835
+836
+837
+838
+839
+840
+841
+842
+843
+844
+845
+846
+847
+848
+849
+850
+851
+852
+853
+854
+855
+856
+857
+858
+859
+860
+861
+862
+863
+864
+865
+866
+867
+868
+869
+870
+871
+872
+873
+874
+875
+876
+877
+878
+879
+880
+881
+882
+883
+884
+885
+886
+887
+888
+889
+890
+891
+892
+893
+894
+895
+896
+897
+898
+899
+900
+901
+902
+903
+904
+905
+906
+907
+908
+909
+910
+911
+912
+913
+914
+915
+916
+917
+918
+919
+920
+921
+922
+/**
+ * Opportunity Cost Extension
+ * 
+ * This content script scans the DOM for fiat currency prices and
+ * converts them to their Bitcoin satoshi equivalent.
+ * It works with the background script for price data and storage.
+ */
+
+(async () => {
+  try {
+    // Constants
+    const SATS_IN_BTC = 100_000_000;
+    
+    // Statistics for tracking conversions
+    let conversionCount = 0;
+    
+    // User preferences (will be populated from database)
+    let userPreferences = {
+      defaultCurrency: 'usd',
+      displayMode: 'dual-display', // Changed default from 'sats-only' to 'dual-display'
+      denomination: 'sats', // Default to satoshis, can be 'sats' or 'btc'
+      autoRefresh: true,
+      trackStats: true
+    };
+    
+    // Regular expressions for currency patterns
+    const currencyRegexes = {
+      usd: /\$[\s\u00A0]?(\d{1,3}(?:[,]\d{3})*(?:\.\d{1,2})?)/g,
+      eur: /€[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)/g,
+      gbp: /£[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)/g,
+      // Add more currencies as needed
+    };
+    
+    // Regular expressions for abbreviated currency formats (k, m, b, t) - case insensitive
+    const abbreviatedCurrencyRegexes = {
+      usd: /\$[\s\u00A0]?(\d{1,3}(?:[,]\d{3})*(?:\.\d{1,2})?)[\s\u00A0]?([KMBTkmbt])\b/gi,
+      eur: /€[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([KMBTkmbt])\b/gi,
+      gbp: /£[\s\u00A0]?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)[\s\u00A0]?([KMBTkmbt])\b/gi
+    };
+    
+    // Special case regexes for prices that might be split across elements
+    const specialCurrencyRegexes = {
+      // For cases like "$1" with the cents "59" in a separate element
+      usdDollarOnly: /^\$\s?(\d{1,3}(?:[,]\d{3})*)$/,
+      usdCentsOnly: /^(\d{1,2})$/
+    };
+    
+    // Currency formatting options
+    const currencyFormatters = {
+      usd: (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      eur: (value) => `€${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+      gbp: (value) => `£${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+    };
+    
+    // Helper function to parse abbreviated currency values (k, m, b, t)
+    const parseAbbreviatedValue = (value, abbr) => {
+      const numValue = parseFloat(value.replace(/,/g, ''));
+      const abbreviation = abbr.toLowerCase();
+      
+      switch (abbreviation) {
+        case 'k':
+        case 'K':
+          return numValue * 1000;
+        case 'm':
+        case 'M':
+          return numValue * 1000000;
+        case 'b':
+        case 'B':
+          return numValue * 1000000000;
+        case 't':
+        case 'T':
+          return numValue * 1000000000000;
+        default:
+          return numValue;
+      }
+    };
+    
+    // Format bitcoin value based on user's denomination preference
+    const formatBitcoinValue = (satoshis) => {
+      if (userPreferences.denomination === 'btc') {
+        // Convert satoshis to bitcoin (1 BTC = 100,000,000 sats)
+        const btcValue = satoshis / SATS_IN_BTC;
+        // Format BTC with appropriate decimals (8 max)
+        if (btcValue < 0.000001) {
+          return `${btcValue.toFixed(8)} BTC`;
+        } else if (btcValue < 0.0001) {
+          return `${btcValue.toFixed(6)} BTC`;
+        } else if (btcValue < 0.01) {
+          return `${btcValue.toFixed(5)} BTC`;
+        } else {
+          return `${btcValue.toFixed(4)} BTC`;
+        }
+      } else {
+        // Default to satoshis
+        return `${satoshis.toLocaleString()} sats`;
+      }
+    };
+    
+    // Get Bitcoin price and user preferences from background script
+    async function getBitcoinPriceAndPreferences() {
+      return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ action: 'getBitcoinPrice' }, response => {
+          if (response.error) {
+            reject(new Error(response.error));
+          } else {
+            // Update user preferences if they're included in the response
+            if (response.displayMode) {
+              userPreferences.displayMode = response.displayMode;
+              console.log("Display mode set to:", response.displayMode);
+            }
+            if (response.currency) {
+              userPreferences.defaultCurrency = response.currency;
+              console.log("Currency set to:", response.currency);
+            }
+            
+            resolve(response.price);
+          }
+        });
+      });
+    }
+    
+    // Make sure we have the latest preferences before doing anything else
+    async function ensurePreferencesLoaded() {
+      return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ action: 'getPreferences' }, response => {
+          if (response.error) {
+            reject(new Error(response.error));
+          } else if (response.preferences) {
+            // Update our local preferences object with what's in storage
+            userPreferences = response.preferences;
+            console.log("User preferences loaded:", userPreferences);
+            resolve(userPreferences);
+          } else {
+            resolve(userPreferences); // Use defaults
+          }
+        });
+      });
+    }
+    
+    // Log this page visit to database once conversions are done
+    function logPageVisit() {
+      // Only log if we actually did conversions and tracking is enabled
+      if (conversionCount > 0 && userPreferences.trackStats) {
+        const url = window.location.href;
+        chrome.runtime.sendMessage({ 
+          action: 'saveVisitedSite',
+          url: url,
+          conversionCount: conversionCount
+        });
+      }
+    }
+    
+    // Show a non-intrusive newsletter prompt
+    function maybeShowNewsletterPrompt() {
+      // Only show prompt with low probability and if user hasn't already subscribed
+      chrome.storage.local.get(['newsletter_subscribed', 'newsletter_prompted_count'], function(result) {
+        // Don't show if user is already subscribed
+        if (result.newsletter_subscribed) return;
+        
+        // Keep track of how many times we've shown the prompt
+        const promptCount = result.newsletter_prompted_count || 0;
+        
+        // Only show occasionally (25% chance) and max 3 times
+        if (promptCount < 3 && Math.random() < 0.25) {
+          // Create a subtle floating prompt
+          const promptElement = document.createElement('div');
+          promptElement.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            border: 1px solid #f7931a;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            z-index: 10000;
+            max-width: 300px;
+            line-height: 1.5;
+          `;
+          
+          promptElement.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+              <img src="${chrome.runtime.getURL('icons/icon48.svg')}" width="24" height="24" style="margin-right: 10px;">
+              <b style="color: #f7931a;">Opportunity Cost</b>
+              <button id="close-newsletter-prompt" style="margin-left: auto; background: none; border: none; cursor: pointer; font-size: 16px; color: #999;">&times;</button>
+            </div>
+            <p>Enjoying seeing prices in Bitcoin? Get more Bitcoin insights in your inbox.</p>
+            <button id="subscribe-newsletter" style="background-color: #f7931a; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%;">Join Newsletter</button>
+          `;
+          
+          // Add to page
+          document.body.appendChild(promptElement);
+          
+          // Update prompt count
+          chrome.storage.local.set({
+            'newsletter_prompted_count': promptCount + 1
+          });
+          
+          // Add event listeners
+          document.getElementById('close-newsletter-prompt').addEventListener('click', function() {
+            promptElement.remove();
+          });
+          
+          document.getElementById('subscribe-newsletter').addEventListener('click', function() {
+            // Open newsletter page
+            chrome.runtime.sendMessage({
+              action: 'openNewsletterPage'
+            });
+            promptElement.remove();
+          });
+          
+          // Auto-remove after 15 seconds
+          setTimeout(() => {
+            if (document.body.contains(promptElement)) {
+              promptElement.remove();
+            }
+          }, 15000);
+        }
+      });
+    }
+    
+    // Make sure preferences are loaded before anything else
+    await ensurePreferencesLoaded();
+    
+    // Get the Bitcoin price and user preferences
+    const btcPrice = await getBitcoinPriceAndPreferences();
+    
+    if (!btcPrice) {
+      console.warn('Opportunity Cost: Failed to get BTC price. Prices will not be converted.');
+      return;
+    }
+    
+    // Process Amazon-style split prices where dollar and cents are in separate elements
+    const processAmazonPrices = () => {
+      // Only run on Amazon domains
+      if (!window.location.hostname.includes('amazon')) {
+        return;
+      }
+      
+      console.log('Opportunity Cost: Checking for Amazon-style prices');
+      
+      // Process clean whole prices (like $3,150 in product listings)
+      processAmazonCleanPrices();
+      
+      // Process split dollar/cents prices
+      processAmazonSplitPrices();
+      
+      // Process luxury product pages in grid displays (special case)
+      processAmazonLuxuryPrices();
+    };
+    
+    // Process Zillow-style real estate prices
+    const processZillowPrices = () => {
+      // Only run on Zillow domains
+      if (!window.location.hostname.includes('zillow')) {
+        return;
+      }
+      
+      console.log('Opportunity Cost: Checking for Zillow-style prices');
+      
+      // Process main property listing prices
+      const propertyPrices = document.querySelectorAll('[data-test="property-card-price"], .list-card-price, .ds-price, span[data-testid="price"], h3:first-of-type');
+      
+      propertyPrices.forEach(priceElement => {
+        // Skip if we've already processed this element
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const priceText = priceElement.textContent.trim();
+        // Zillow often has prices like $2,195,000
+        const priceMatch = priceText.match(/\$([\d,]+)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          // Only process reasonable real estate price values
+          if (fiatValue > 0) {
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element
+            const newElement = document.createElement('span');
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toLocaleString()}`;
+              // Add styling to match Zillow's design
+              newElement.style.cssText = priceElement.style.cssText;
+              newElement.className = priceElement.className;
+            } else {
+              newElement.textContent = formatBitcoinValue(satsValue);
+              newElement.style.cssText = priceElement.style.cssText;
+              newElement.className = priceElement.className;
+            }
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            // Replace the original price element
+            priceElement.parentNode.replaceChild(newElement, priceElement);
+            
+            // Increment conversion counter
+            conversionCount++;
+          }
+        }
+      });
+      
+      // Process home price headings (on property detail pages)
+      const priceHeadings = document.querySelectorAll('h1 span, h2, .hdp__sc-1tsvzbc-1, [data-testid="home-details-price"]');
+      
+      priceHeadings.forEach(heading => {
+        // Skip if already processed
+        if (heading.textContent.includes('sats') || 
+            heading.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const headingText = heading.textContent;
+        const priceMatch = headingText.match(/\$([\d,]+)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          if (fiatValue > 0) {
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element - we'll use the same tag to preserve styling
+            const tagName = heading.tagName.toLowerCase();
+            const newElement = document.createElement(tagName);
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toLocaleString()}`;
+            } else {
+              newElement.textContent = formatBitcoinValue(satsValue);
+            }
+            
+            // Copy over styling and classes
+            newElement.style.cssText = heading.style.cssText;
+            newElement.className = heading.className;
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            // Replace the heading
+            heading.parentNode.replaceChild(newElement, heading);
+            
+            // Increment conversion counter
+            conversionCount++;
+          }
+        }
+      });
+    };
+    
+    // Process prices on Google Finance pages
+    const processGoogleFinancePrices = () => {
+      // Only run on Google Finance domains
+      if (!window.location.hostname.includes('google.com') || !window.location.pathname.includes('/finance')) {
+        return;
+      }
+      
+      console.log('Opportunity Cost: Checking for Google Finance prices');
+      
+      // Process main stock price - the large current price displayed at the top of the page
+      const mainPriceSelector = 'div[jsname] > div > div:first-child > div:first-child > div > div > div > div > span';
+      const mainPriceElements = document.querySelectorAll(mainPriceSelector);
+      
+      // Process "After Hours" prices
+      const afterHoursPriceSelector = 'div[jsname] > div > div > span:contains("After Hours")';
+      const afterHoursElements = document.querySelectorAll('div[role="heading"]:contains("After Hours")');
+      
+      // Process both main price and after hours prices
+      const processStockPrice = (priceElement) => {
+        // Skip if we've already processed this element
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.textContent.includes('BTC') ||
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const priceText = priceElement.textContent.trim();
+        // Stock price format $123.45
+        const priceMatch = priceText.match(/\$?([\d,]+\.?\d*)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          // Only process reasonable stock price values
+          if (fiatValue > 0 && fiatValue < 100000) {  // Reasonable stock price range
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element that matches the original
+            const newElement = document.createElement(priceElement.tagName || 'span');
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
+            } else {
+              newElement.textContent = formatBitcoinValue(satsValue);
+            }
+            
+            // Copy over styling and classes to maintain the look and feel
+            newElement.style.cssText = priceElement.style.cssText;
+            newElement.className = priceElement.className;
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            try {
+              // Replace the original price element
+              if (priceElement.parentNode) {
+                priceElement.parentNode.replaceChild(newElement, priceElement);
+                
+                // Increment conversion counter
+                conversionCount++;
+              }
+            } catch (e) {
+              console.error('Error replacing Google Finance price element:', e);
+            }
+          }
+        }
+      };
+      
+      // Process the main price elements
+      mainPriceElements.forEach(processStockPrice);
+      
+      // Process pre/after hours and other price elements
+      document.querySelectorAll('span, div').forEach(el => {
+        const text = el.textContent.trim();
+        if (text.startsWith('$') && /^\$[\d,]+\.\d+$/.test(text) && 
+            !el.getAttribute('data-sats-processed')) {
+          processStockPrice(el);
+        }
+      });
+      
+      // Target specific "After Hours" structure
+      document.querySelectorAll('div[role="heading"] + div span').forEach(el => {
+        if (/\$[\d,]+\.\d+/.test(el.textContent) && !el.getAttribute('data-sats-processed')) {
+          processStockPrice(el);
+        }
+      });
+      
+      // Handle stock price in the header section
+      document.querySelectorAll('c-wiz div[role="heading"] + div span').forEach(el => {
+        if (/\$[\d,]+\.\d+/.test(el.textContent) && !el.getAttribute('data-sats-processed')) {
+          processStockPrice(el);
+        }
+      });
+    };
+    
+    const processAmazonCleanPrices = () => {
+      // Look for clean price elements like $3,150 on product pages and listings
+      const cleanPriceElements = document.querySelectorAll('.a-price, span.a-offscreen, [class*="price-"][class*="whole"]');
+      
+      cleanPriceElements.forEach(priceElement => {
+        // Skip if we've already processed this element
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        // Get text content, might be hidden
+        let priceText = priceElement.textContent.trim();
+        
+        // Check for "a-offscreen" elements which often contain the clean price
+        if (priceElement.classList.contains('a-offscreen')) {
+          if (priceText.match(/^\$[\d,]+(\.\d{2})?$/)) {
+            // Extract the parent element which displays the visible price
+            const parentPrice = priceElement.closest('.a-price');
+            if (parentPrice && !parentPrice.getAttribute('data-sats-processed')) {
+              // Extract the price value
+              const priceMatch = priceText.match(/\$([0-9,]+\.?\d*)/);
+              if (priceMatch) {
+                const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+                
+                // Only process reasonable price values
+                if (fiatValue > 0 && fiatValue < 1000000) {
+                  // Calculate satoshi value
+                  const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+                  
+                  // Create a new element for the price
+                  const newElement = document.createElement('span');
+                  newElement.className = 'a-price'; // Keep same class for styling
+                  
+                  // Format based on user preference
+                  if (userPreferences.displayMode === 'dual-display') {
+                    newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
+                  } else {
+                    newElement.textContent = formatBitcoinValue(satsValue);
+                  }
+                  
+                  // Replace the original price element
+                  parentPrice.parentNode.replaceChild(newElement, parentPrice);
+                  
+                  // Increment conversion counter
+                  conversionCount++;
+                }
+              }
+            }
+          }
+        } 
+      });
+    };
+    
+    const processAmazonSplitPrices = () => {
+      // Look for price elements that match Amazon's split pattern
+      // This is typically where you see price like "$1" with superscript "59"
+      const priceElements = document.querySelectorAll('.a-price-whole, [class*="price-whole"]');
+      
+      priceElements.forEach(priceElement => {
+        // Skip if we've already processed this element (has our sats conversion)
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        // Often in Amazon, the price has a dollars component and a cents component
+        let dollarElement = priceElement;
+        let centsElement = null;
+        
+        // Check if this element itself contains just a dollar amount
+        const dollarMatch = priceElement.textContent.match(/^[\s\$]?(\d{1,3}(?:[,]\d{3})*)[\s]*$/);
+        if (dollarMatch) {
+          // Look for a sibling with cents (.a-price-fraction)
+          const fractionElement = priceElement.parentNode.querySelector('.a-price-fraction');
+          if (fractionElement) {
+            centsElement = fractionElement;
+          }
+          
+          // If we found a valid price pair, process it
+          if (dollarElement && centsElement) {
+            const dollars = parseFloat(dollarMatch[1].replace(/,/g, ''));
+            const cents = parseInt(centsElement.textContent, 10) || 0;
+            const fiatValue = dollars + (cents / 100);
+            
+            // Only process reasonable price values
+            if (fiatValue > 0 && fiatValue < 1000000) {
+              // Calculate satoshi value
+              const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Find the parent price container to replace
+              const priceContainer = priceElement.closest('.a-price') || priceElement.parentNode;
+              
+              // Create a new element to replace the price
+              const newElement = document.createElement('span');
+              
+              // Format based on user preference
+              if (userPreferences.displayMode === 'dual-display') {
+                newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
+              } else {
+                newElement.textContent = formatBitcoinValue(satsValue);
+              }
+              
+              // Mark as processed
+              newElement.setAttribute('data-sats-processed', 'true');
+              
+              // Replace the entire price container
+              priceContainer.parentNode.replaceChild(newElement, priceContainer);
+              
+              // Increment conversion counter
+              conversionCount++;
+            }
+          }
+        }
+      });
+    };
+    
+    const processAmazonLuxuryPrices = () => {
+      // Target luxury product listings that have different price formats
+      const luxuryPriceElements = document.querySelectorAll('span[id*="price"], div[id*="price"], span[id*="Price"], div[id*="Price"]');
+      
+      luxuryPriceElements.forEach(priceElement => {
+        // Skip if already processed
+        if (priceElement.textContent.includes('sats') || 
+            priceElement.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        const priceText = priceElement.textContent.trim();
+        const priceMatch = priceText.match(/\$([\d,]+(\.\d{2})?)/);
+        
+        if (priceMatch) {
+          const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+          
+          // Only process reasonable price values
+          if (fiatValue > 0 && fiatValue < 1000000) {
+            // Calculate satoshi value
+            const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+            
+            // Create a new element
+            const newElement = document.createElement('span');
+            
+            // Format based on user preference
+            if (userPreferences.displayMode === 'dual-display') {
+              newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
+            } else {
+              newElement.textContent = formatBitcoinValue(satsValue);
+            }
+            
+            // Mark as processed
+            newElement.setAttribute('data-sats-processed', 'true');
+            
+            // Replace the original price element
+            priceElement.parentNode.replaceChild(newElement, priceElement);
+            
+            // Increment conversion counter
+            conversionCount++;
+          }
+        }
+      });
+      
+      // Special case for luxury product grid views
+      document.querySelectorAll('.s-result-item, [data-component-type="s-search-result"]').forEach(item => {
+        // Skip already processed items
+        if (item.getAttribute('data-sats-processed') === 'true') {
+          return;
+        }
+        
+        // Find price elements in this grid item
+        const itemPrice = item.querySelector('span.a-price, .a-price, .a-color-base');
+        
+        if (itemPrice && !itemPrice.getAttribute('data-sats-processed')) {
+          const priceText = itemPrice.textContent.trim();
+          const priceMatch = priceText.match(/\$([\d,]+(\.\d{2})?)/);
+          
+          if (priceMatch) {
+            const fiatValue = parseFloat(priceMatch[1].replace(/,/g, ''));
+            
+            // Only process reasonable price values
+            if (fiatValue > 0 && fiatValue < 1000000) {
+              // Calculate satoshi value
+              const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Create a new element
+              const newElement = document.createElement('span');
+              
+              // Format based on user preference
+              if (userPreferences.displayMode === 'dual-display') {
+                newElement.textContent = `${formatBitcoinValue(satsValue)} | $${fiatValue.toFixed(2)}`;
+              } else {
+                newElement.textContent = formatBitcoinValue(satsValue);
+              }
+              
+              // Mark as processed
+              newElement.setAttribute('data-sats-processed', 'true');
+              
+              // Replace the original price element
+              itemPrice.parentNode.replaceChild(newElement, itemPrice);
+              
+              // Mark parent as processed to avoid duplication
+              item.setAttribute('data-sats-processed', 'true');
+              
+              // Increment conversion counter
+              conversionCount++;
+            }
+          }
+        }
+      });
+    };
+
+    // Function to walk through the DOM and process text nodes
+    const walkDOM = (node) => {
+      // Skip script and style elements - we don't need to process their text content
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tagName = node.tagName.toLowerCase();
+        if (['script', 'style', 'noscript'].includes(tagName)) {
+          return;
+        }
+      }
+      
+      // Process text nodes - this is what contains the prices
+      if (node.nodeType === Node.TEXT_NODE) {
+        replacePrice(node);
+      }
+      // Recursively process child nodes
+      else if (node.nodeType === Node.ELEMENT_NODE) {
+        // Process children
+        for (let i = 0; i < node.childNodes.length; i++) {
+          walkDOM(node.childNodes[i]);
+        }
+      }
+    };
+    
+    // Function to replace fiat prices with satoshi values in a text node
+    const replacePrice = (textNode) => {
+      let content = textNode.textContent;
+      let modified = false;
+      
+      // Get the regex for the user's preferred currency
+      const currencyRegex = currencyRegexes[userPreferences.defaultCurrency] || currencyRegexes.usd;
+      const currencyFormatter = currencyFormatters[userPreferences.defaultCurrency] || currencyFormatters.usd;
+      
+      // Process abbreviated currency formats (k, m, b, t)
+      const abbreviatedRegex = abbreviatedCurrencyRegexes[userPreferences.defaultCurrency] || abbreviatedCurrencyRegexes.usd;
+      const currencySymbol = userPreferences.defaultCurrency === 'usd' ? '$' : 
+                             userPreferences.defaultCurrency === 'eur' ? '€' : '£';
+      
+      // Text nodes that should be ignored (containing specific patterns)
+      const shouldIgnoreNode = () => {
+        // Ignore text nodes that already have "sats" or "BTC" in them (our own conversions)
+        if (content.includes(" sats") || content.includes(" BTC")) {
+          return true;
+        }
+        
+        // Ignore empty or very short text nodes
+        if (content.trim().length < 2) {
+          return true;
+        }
+        
+        // Check for text in complex pricing structures
+        if (content.includes("List:") || content.includes("Save ")) {
+          return true;
+        }
+        
+        return false;
+      };
+      
+      // Skip processing if this node should be ignored
+      if (shouldIgnoreNode()) {
+        return;
+      }
+      
+      // Replace currency based on the current display mode
+      content = content.replace(currencyRegex, (match, numStr) => {
+        // Check if the matched text is part of a more complex string that might contain
+        // price comparison or multiple prices
+        const surroundingText = content;
+        
+        // Skip if there are multiple dollar signs or prices in the text node
+        if ((surroundingText.match(/\$/g) || []).length > 1) {
+          return match; // Return the original match without modification
+        }
+        
+        modified = true;
+        
+        // Parse the fiat value (handling both comma and period as decimal separators)
+        let fiatValue;
+        if (userPreferences.defaultCurrency === 'usd') {
+          // US format: 1,234.56
+          fiatValue = parseFloat(numStr.replace(/,/g, ""));
+        } else {
+          // European format: 1.234,56 or 1 234,56
+          fiatValue = parseFloat(numStr.replace(/\./g, "").replace(/,/g, ".").replace(/\s/g, ""));
+        }
+        
+        // Skip very large or very small values that might be identifiers or codes
+        if (fiatValue > 1000000 || fiatValue < 0.01) {
+          return match; // Return original without modification
+        }
+        
+        // Calculate satoshi value
+        const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+        
+        // Increment our conversion counter
+        conversionCount++;
+        
+        // Return formatted output based on display mode
+        if (userPreferences.displayMode === 'dual-display') {
+          return `${formatBitcoinValue(satsValue)} | ${currencyFormatter(fiatValue)}`;
+        } else {
+          return formatBitcoinValue(satsValue);
+        }
+      });
+      
+      // Process abbreviated currency values (k, m, b, t)
+      if (!modified) {
+        // Process each abbreviation format
+        const abbrMatch = content.match(abbreviatedRegex);
+        if (abbrMatch) {
+          const match = abbrMatch[0];
+          const groups = abbreviatedRegex.exec(content);
+          
+          if (groups && groups.length >= 3) {
+            const value = groups[1];
+            const abbr = groups[2];
+            
+            // Parse the abbreviated value
+            const fiatValue = parseAbbreviatedValue(value, abbr);
+            
+            // Only process reasonable values
+            if (fiatValue > 0) {
+              // Calculate satoshi value
+              const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+              
+              // Format replacement based on user preference
+              let replacement;
+              if (userPreferences.displayMode === 'dual-display') {
+                let formattedFiatValue;
+                
+                if (fiatValue >= 1000000000) {
+                  formattedFiatValue = `${(fiatValue / 1000000000).toFixed(2)}B`;
+                } else if (fiatValue >= 1000000) {
+                  formattedFiatValue = `${(fiatValue / 1000000).toFixed(2)}M`;
+                } else if (fiatValue >= 1000) {
+                  formattedFiatValue = `${(fiatValue / 1000).toFixed(2)}K`;
+                } else {
+                  formattedFiatValue = fiatValue.toFixed(2);
+                }
+                
+                replacement = `${formatBitcoinValue(satsValue)} | ${currencySymbol}${formattedFiatValue}`;
+              } else {
+                replacement = formatBitcoinValue(satsValue);
+              }
+              
+              // Replace the matched text with our conversion
+              content = content.replace(match, replacement);
+              modified = true;
+              
+              // Increment conversion counter
+              conversionCount++;
+            }
+          }
+        }
+      }
+      
+      // Update the text node if modifications were made
+      if (modified) {
+        textNode.textContent = content;
+      }
+    };
+    
+    // Start processing the document body
+    walkDOM(document.body);
+    
+    // Process Amazon-specific price formats
+    if (window.location.hostname.includes('amazon')) {
+      processAmazonPrices();
+      
+      // Also process Amazon prices after a short delay to catch any lazy-loaded content
+      setTimeout(processAmazonPrices, 1500);
+      setTimeout(processAmazonPrices, 3000);
+    }
+    
+    // Process Zillow-specific price formats
+    if (window.location.hostname.includes('zillow')) {
+      processZillowPrices();
+      
+      // Real estate sites often load content dynamically as you scroll
+      setTimeout(processZillowPrices, 1500);
+      setTimeout(processZillowPrices, 3000);
+    }
+    
+    // Process Google Finance price formats
+    if (window.location.hostname.includes('google.com') && window.location.pathname.includes('/finance')) {
+      processGoogleFinancePrices();
+      
+      // Finance apps update prices frequently - check more often
+      setTimeout(processGoogleFinancePrices, 1000);
+      setTimeout(processGoogleFinancePrices, 2000); 
+      setInterval(processGoogleFinancePrices, 5000); // Continuous monitoring for live prices
+    }
+    
+    // Log this page visit with conversion stats
+    logPageVisit();
+    
+    // Show newsletter prompt if this page had many conversions
+    if (conversionCount > 5) {
+      maybeShowNewsletterPrompt();
+    }
+    
+    // Set up a MutationObserver to handle dynamically added content
+    const observer = new MutationObserver((mutations) => {
+      let newConversions = 0;
+      const processChanges = () => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(walkDOM);
+          }
+        });
+        
+        // Process Amazon-specific prices if on Amazon
+        if (window.location.hostname.includes('amazon')) {
+          processAmazonPrices();
+        }
+        
+        // Process Zillow-specific prices if on Zillow
+        if (window.location.hostname.includes('zillow')) {
+          processZillowPrices();
+        }
+        
+        // Process Google Finance prices if on Google Finance
+        if (window.location.hostname.includes('google.com') && window.location.pathname.includes('/finance')) {
+          processGoogleFinancePrices();
+        }
+        
+        // If new conversions happened during the mutation, log the visit again
+        if (conversionCount > newConversions) {
+          logPageVisit();
+          newConversions = conversionCount;
+        }
+      };
+      
+      // Track current conversion count
+      newConversions = conversionCount;
+      processChanges();
+    });
+    
+    // Start observing mutations to the DOM
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Add an event listener for when the page is about to be unloaded
+    window.addEventListener('beforeunload', () => {
+      // Final log before page unloads
+      logPageVisit();
+    });
+    
+  } catch (error) {
+    console.error('Opportunity Cost: An error occurred:', error);
+    // Graceful fallback - leave prices untouched
+  }
+})();
+ 

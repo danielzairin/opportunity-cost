@@ -7,12 +7,12 @@ echo_status() {
 
 # Package Chrome extension
 echo_status "Packaging Chrome extension..."
-zip -r opportunity-cost-chrome.zip manifest.json background.js content.js storage.js options.html options.js icons/
+zip -r opportunity-cost-chrome.zip manifest.json background-wrapper.js background.js content.js storage.js options.html options.js newsletter.html newsletter.js icons/
 
 # Package Firefox extension
 echo_status "Packaging Firefox extension..."
 cd firefox-extension
-zip -r ../opportunity-cost-firefox.zip manifest.json background.js content.js storage.js options.html options.js browser-polyfill.js icons/
+zip -r ../opportunity-cost-firefox.zip manifest.json background.js content.js storage.js options.html options.js newsletter.html newsletter.js browser-polyfill.js icons/
 cd ..
 
 echo_status "Extension packaging complete!"
