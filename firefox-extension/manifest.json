@@ -18,7 +18,7 @@
     }
   },
   "background": {
-    "scripts": ["browser-polyfill.js", "storage.js", "background.js"]
+    "scripts": ["browser-polyfill.js", "background.js"]
   },
   "content_scripts": [
     {
@@ -31,10 +31,6 @@
     "page": "options.html",
     "open_in_tab": true
   },
-  "web_accessible_resources": [
-    "icons/*.svg",
-    "newsletter.html"
-  ],
   "browser_specific_settings": {
     "gecko": {
       "id": "opportunity-cost@example.com",

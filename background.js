@@ -8,8 +8,7 @@
  * 4. User preferences management
  */
 
-// Import PriceDatabase from storage.js
-const PriceDatabase = window.PriceDatabase;
+import { PriceDatabase } from './storage.js';
 
 // Constants
 const API_BASE = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin";
@@ -25,28 +24,11 @@ let userPreferences = null;
 let backoffTime = INITIAL_BACKOFF;
 let retryCount = 0;
 
-// Handle toolbar icon click
+// Handle toolbar icon click - either open options or Opportunity Cost
 chrome.action.onClicked.addListener(() => {
-  // Check if user has been prompted about newsletter
-  chrome.storage.local.get(['newsletter_prompted'], function(result) {
-    // If user hasn't been prompted yet, show newsletter popup first
-    if (!result.newsletter_prompted) {
-      // Set flag to prevent repeated prompts
-      chrome.storage.local.set({ 'newsletter_prompted': true });
-      
-      // Open newsletter signup in a popup
-      chrome.windows.create({
-        url: 'newsletter.html',
-        type: 'popup',
-        width: 550,
-        height: 600
-      });
-    } else {
-      // Otherwise, proceed directly to Opportunity Cost website
-      chrome.tabs.create({ 
-        url: "https://opportunitycost.app?utm_source=chrome_ext" 
-      });
-    }
+  // Right-click opens options, normal click opens Opportunity Cost
+  chrome.tabs.create({ 
+    url: "https://opportunitycost.app?utm_source=chrome_ext" 
   });
 });
 
@@ -256,87 +238,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: true, trackingDisabled: true });
       return false;
     }
-  }
-  else if (message.action === 'newsletterSignup') {
-    // Handle newsletter signup
-    console.log('Newsletter signup received:', message.email);
-    
-    // For Ghost CMS integration
-    const subscribeToGhostNewsletter = async (email) => {
-      try {
-        // Get your Ghost Admin API key from environment
-        const ghostApiKey = 'GHOST_ADMIN_API_KEY'; // This will be replaced at runtime
-        
-        // Your Ghost blog URL
-        const ghostApiUrl = 'https://tftc.ghost.io/ghost/api/v3/admin/';
-        
-        console.log('Attempting to subscribe to Ghost newsletter...');
-        
-        // Create the request to add a member
-        const response = await fetch(`${ghostApiUrl}members/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Ghost ${ghostApiKey}`
-          },
-          body: JSON.stringify({
-            members: [{
-              email: email,
-              subscribed: true,
-              labels: ['Opportunity Cost Extension'],
-              note: 'Subscribed via Opportunity Cost browser extension'
-            }]
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Ghost API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return { success: true, data };
-      } catch (error) {
-        console.error('Error subscribing to Ghost newsletter:', error);
-        return { success: false, error: error.message };
-      }
-    };
-    
-    // Store subscription locally
-    chrome.storage.local.set({
-      'newsletter_subscribed': true,
-      'newsletter_email': message.email,
-      'newsletter_date': new Date().toISOString()
-    });
-    
-    // Try to subscribe to Ghost with the API key
-    subscribeToGhostNewsletter(message.email)
-      .then(result => {
-        if (result.success) {
-          console.log('Successfully subscribed to Ghost newsletter');
-          sendResponse({ success: true, ghostResult: result.data });
-        } else {
-          console.error('Failed to subscribe to Ghost:', result.error);
-          sendResponse({ success: true, ghostError: result.error });
-        }
-      })
-      .catch(err => {
-        console.error('Error in Ghost subscription process:', err);
-        sendResponse({ success: true, ghostError: err.message });
-      });
-    
-    return true;
-  }
-  else if (message.action === 'openNewsletterPage') {
-    // Open the newsletter page in a popup window
-    chrome.windows.create({
-      url: 'newsletter.html',
-      type: 'popup',
-      width: 550,
-      height: 600
-    });
-    
-    sendResponse({ success: true });
-    return false;
   }
   else if (message.action === 'preferencesUpdated') {
     // Reload preferences when options page updates them

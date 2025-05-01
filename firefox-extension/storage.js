@@ -370,7 +370,5 @@ const PriceDatabase = {
   }
 };
 
-// Make the storage objects available globally
-window.BrowserStorage = BrowserStorage;
-window.IndexedDBStorage = IndexedDBStorage;
-window.PriceDatabase = PriceDatabase;
+// Export the storage objects
+export { BrowserStorage, IndexedDBStorage, PriceDatabase };
