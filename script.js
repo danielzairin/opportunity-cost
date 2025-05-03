@@ -1,4 +1,49 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Slideshow functionality
+    let slideIndex = 1;
+    showSlide(slideIndex);
+    
+    // Auto advance slideshow every 5 seconds
+    setInterval(function() {
+        plusSlide(1);
+    }, 5000);
+    
+    // Make slideshow functions available globally
+    window.plusSlide = function(n) {
+        showSlide(slideIndex += n);
+    };
+    
+    window.currentSlide = function(n) {
+        showSlide(slideIndex = n);
+    };
+    
+    function showSlide(n) {
+        const slides = document.getElementsByClassName("slide");
+        const dots = document.getElementsByClassName("dot");
+        
+        if (n > slides.length) {
+            slideIndex = 1;
+        }
+        if (n < 1) {
+            slideIndex = slides.length;
+        }
+        
+        // Hide all slides
+        for (let i = 0; i < slides.length; i++) {
+            slides[i].classList.remove("active");
+            slides[i].style.display = "none";
+        }
+        
+        // Remove active class from all dots
+        for (let i = 0; i < dots.length; i++) {
+            dots[i].classList.remove("active");
+        }
+        
+        // Show the current slide and activate the dot
+        slides[slideIndex - 1].style.display = "block";
+        slides[slideIndex - 1].classList.add("active");
+        dots[slideIndex - 1].classList.add("active");
+    }
     // Add fixed header class on scroll
     const header = document.querySelector('header');
     const heroSection = document.querySelector('.hero');

@@ -36,8 +36,27 @@
                     <a href="#firefox" class="button secondary">Add to Firefox</a>
                 </div>
             </div>
-            <div class="hero-image">
-                <img src="images/zillow-btc-prices.png" alt="Opportunity Cost Extension on Zillow showing Bitcoin prices" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+            <div class="hero-image slideshow-container">
+                <div class="slide fade">
+                    <img src="images/zillow-btc-prices.png" alt="Opportunity Cost Extension on Zillow showing Bitcoin prices">
+                </div>
+                <div class="slide fade">
+                    <img src="images/nike-btc-example.svg" alt="Opportunity Cost Extension on Nike showing Bitcoin prices">
+                </div>
+                <div class="slide fade">
+                    <img src="images/salt-btc-example.svg" alt="Opportunity Cost Extension on Salt of the Earth showing Bitcoin prices">
+                </div>
+                
+                <!-- Navigation dots -->
+                <div class="dots-container">
+                    <span class="dot active" onclick="currentSlide(1)"></span>
+                    <span class="dot" onclick="currentSlide(2)"></span>
+                    <span class="dot" onclick="currentSlide(3)"></span>
+                </div>
+                
+                <!-- Navigation arrows -->
+                <a class="prev" onclick="plusSlide(-1)">&#10094;</a>
+                <a class="next" onclick="plusSlide(1)">&#10095;</a>
             </div>
         </div>
     </section>
