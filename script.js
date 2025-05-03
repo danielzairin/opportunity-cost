@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showSlide(n) {
         const slides = document.getElementsByClassName("slide");
-        const dots = document.getElementsByClassName("dot");
         
         if (n > slides.length) {
             slideIndex = 1;
@@ -34,15 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
             slides[i].style.display = "none";
         }
         
-        // Remove active class from all dots
-        for (let i = 0; i < dots.length; i++) {
-            dots[i].classList.remove("active");
-        }
-        
-        // Show the current slide and activate the dot
+        // Show the current slide
         slides[slideIndex - 1].style.display = "block";
         slides[slideIndex - 1].classList.add("active");
-        dots[slideIndex - 1].classList.add("active");
     }
     // Add fixed header class on scroll
     const header = document.querySelector('header');
