@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#FFFFFF"/>
+  
+  <!-- Nike header -->
+  <rect width="800" height="60" fill="#FFFFFF" stroke="#E6E6E6" stroke-width="1"/>
+  <path d="M57 30L67 20L47 10L37 30L57 30Z" fill="#000000"/>
+  <text x="550" y="35" font-family="Arial" font-size="16" font-weight="bold" fill="#000000">Nike</text>
+  
+  <text x="100" y="35" font-family="Arial" font-size="12" fill="#333333">New</text>
+  <text x="150" y="35" font-family="Arial" font-size="12" fill="#333333">Men</text>
+  <text x="200" y="35" font-family="Arial" font-size="12" fill="#333333">Women</text>
+  <text x="270" y="35" font-family="Arial" font-size="12" fill="#333333">Kids</text>
+  <text x="320" y="35" font-family="Arial" font-size="12" fill="#333333">Jordan</text>
+  <text x="380" y="35" font-family="Arial" font-size="12" fill="#333333">Sport</text>
+  
+  <!-- Products section -->
+  <text x="50" y="100" font-family="Arial" font-size="24" font-weight="bold" fill="#333333">Men's Shoes &amp; Sneakers (674)</text>
+  
+  <!-- Product 1 -->
+  <rect x="50" y="150" width="220" height="220" rx="8" fill="#FFFFFF" stroke="#E6E6E6" stroke-width="1"/>
+  <rect x="60" y="160" width="200" height="120" rx="8" fill="#333333"/>
+  <text x="60" y="300" font-family="Arial" font-size="16" font-weight="bold" fill="#333333">Nike Air Max</text>
+  <text x="60" y="320" font-family="Arial" font-size="14" fill="#666666">Men's Shoes</text>
+  <text x="60" y="340" font-family="Arial" font-size="14" font-weight="bold" fill="#333333">197,114 sats | $190.00</text>
+  
+  <!-- Bitcoin price popup for product 1 -->
+  <rect x="60" y="110" width="140" height="50" rx="8" fill="#F7931A"/>
+  <path d="M60 135L50 135L60 120V135Z" fill="#F7931A"/>
+  <text x="75" y="135" font-family="Arial" font-size="16" font-weight="bold" fill="#FFFFFF">197,114 sats</text>
+  
+  <!-- Product 2 -->
+  <rect x="290" y="150" width="220" height="220" rx="8" fill="#FFFFFF" stroke="#E6E6E6" stroke-width="1"/>
+  <rect x="300" y="160" width="200" height="120" rx="8" fill="#EEEEEE"/>
+  <text x="290" y="300" font-family="Arial" font-size="16" font-weight="bold" fill="#333333">Nike Air Max Dn</text>
+  <text x="290" y="320" font-family="Arial" font-size="14" fill="#666666">Men's Shoes</text>
+  <text x="290" y="340" font-family="Arial" font-size="14" font-weight="bold" fill="#333333">165,991 sats | $160.00</text>
+  
+  <!-- Bitcoin price popup for product 2 -->
+  <rect x="290" y="110" width="140" height="50" rx="8" fill="#F7931A"/>
+  <path d="M290 135L280 135L290 120V135Z" fill="#F7931A"/>
+  <text x="305" y="135" font-family="Arial" font-size="16" font-weight="bold" fill="#FFFFFF">165,991 sats</text>
+  
+  <!-- Product 3 -->
+  <rect x="530" y="150" width="220" height="220" rx="8" fill="#FFFFFF" stroke="#E6E6E6" stroke-width="1"/>
+  <rect x="540" y="160" width="200" height="120" rx="8" fill="#FFFFFF"/>
+  <text x="530" y="300" font-family="Arial" font-size="16" font-weight="bold" fill="#333333">Nike Air Force 1</text>
+  <text x="530" y="320" font-family="Arial" font-size="14" fill="#666666">Men's Shoes</text>
+  <text x="530" y="340" font-family="Arial" font-size="14" font-weight="bold" fill="#333333">124,493 sats | $120.00</text>
+  
+  <!-- Bitcoin price popup for product 3 -->
+  <rect x="530" y="110" width="140" height="50" rx="8" fill="#F7931A"/>
+  <path d="M530 135L520 135L530 120V135Z" fill="#F7931A"/>
+  <text x="545" y="135" font-family="Arial" font-size="16" font-weight="bold" fill="#FFFFFF">124,493 sats</text>
+  
+  <!-- Extension icon -->
+  <circle cx="770" y="35" r="15" fill="#F7931A"/>
+  <path d="M777 30V39H770V30H777Z" fill="white"/>
+  <path d="M770 39V30L763 34.5L770 39Z" fill="white"/>
+</svg>
