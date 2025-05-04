@@ -1,0 +1,16 @@
+{
+  "name": "opportunity-cost-landing",
+  "version": "1.0.0",
+  "description": "Landing page for the Opportunity Cost browser extension",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "keywords": [
+    "bitcoin",
+    "extension",
+    "landing-page"
+  ],
+  "author": "TFTC",
+  "license": "MIT"
+}
