@@ -1,6 +1,8 @@
 "use client";
+
 import Image from "next/image";
 import { Twitter, Github } from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -21,36 +23,36 @@ export function Footer() {
             <h3 className="text-white mb-4 text-base font-semibold">Links</h3>
             <ul>
               <li className="mb-2">
-                <a
-                  href="#features"
+                <Link
+                  href="/#features"
                   className="text-gray-300 hover:text-white transition"
                 >
                   Features
-                </a>
+                </Link>
               </li>
               <li className="mb-2">
-                <a
-                  href="#download"
+                <Link
+                  href="/#download"
                   className="text-gray-300 hover:text-white transition"
                 >
                   Download
-                </a>
+                </Link>
               </li>
               <li className="mb-2">
-                <a
-                  href="#about"
+                <Link
+                  href="/#about"
                   className="text-gray-300 hover:text-white transition"
                 >
                   About
-                </a>
+                </Link>
               </li>
               <li className="mb-2">
-                <a
-                  href="#faq"
+                <Link
+                  href="/#faq"
                   className="text-gray-300 hover:text-white transition"
                 >
                   FAQ
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -58,28 +60,28 @@ export function Footer() {
             <h3 className="text-white mb-4 text-base font-semibold">Legal</h3>
             <ul>
               <li className="mb-2">
-                <a
-                  href="/privacy-policy.html"
+                <Link
+                  href="/privacy-policy"
                   className="text-gray-300 hover:text-white transition"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
-              <li className="mb-2">
-                <a
-                  href="/terms.html"
+              {/* <li className="mb-2">
+                <Link
+                  href="/terms"
                   className="text-gray-300 hover:text-white transition"
                 >
                   Terms of Use
-                </a>
-              </li>
+                </Link>
+              </li> */}
             </ul>
           </div>
           <div>
             <h3 className="text-white mb-4 text-base font-semibold">Connect</h3>
             <div className="flex gap-4">
               <a
-                href="https://twitter.com/tfcbrand"
+                href="https://x.com/TFTC21"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white transition"

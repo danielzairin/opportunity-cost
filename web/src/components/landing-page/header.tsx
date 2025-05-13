@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 export function Header() {
   return (
     <header className="fixed top-0 left-0 w-full bg-white shadow z-[1000] py-4 transition-all">
       <div className="w-[90%] max-w-[1200px] mx-auto px-5 flex justify-between items-center">
-        <div className="flex items-center">
+        <Link href="/" className="flex items-center">
           <Image
             src="/images/logo.svg"
             alt="Opportunity Cost Logo"
@@ -15,40 +16,40 @@ export function Header() {
             className="h-10 w-10 mr-3"
           />
           <h1 className="text-xl font-bold mb-0">Opportunity Cost</h1>
-        </div>
+        </Link>
         <nav className="hidden sm:block">
           <ul className="flex">
             <li className="ml-8">
-              <a
-                href="#features"
+              <Link
+                href="/#features"
                 className="text-gray-900 font-medium hover:text-orange-500 transition"
               >
                 Features
-              </a>
+              </Link>
             </li>
             <li className="ml-8">
-              <a
-                href="#download"
+              <Link
+                href="/#download"
                 className="text-gray-900 font-medium hover:text-orange-500 transition"
               >
                 Download
-              </a>
+              </Link>
             </li>
             <li className="ml-8">
-              <a
-                href="#about"
+              <Link
+                href="/#about"
                 className="text-gray-900 font-medium hover:text-orange-500 transition"
               >
                 About
-              </a>
+              </Link>
             </li>
             <li className="ml-8">
-              <a
-                href="#faq"
+              <Link
+                href="/#faq"
                 className="text-gray-900 font-medium hover:text-orange-500 transition"
               >
                 FAQ
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>
