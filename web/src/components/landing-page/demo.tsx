@@ -35,7 +35,7 @@ export function Demo() {
             </p>
             <a
               href="#download"
-              className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-orange-500 text-orange-500 hover:bg-orange-100 transition"
+              className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-orange-100 transition"
             >
               Get Started Now
             </a>

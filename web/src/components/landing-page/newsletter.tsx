@@ -2,7 +2,7 @@
 
 export function Newsletter() {
   return (
-    <section className="bg-orange-500 text-white text-center py-16">
+    <section className="bg-[var(--primary)] text-white text-center py-16">
       <div className="w-[90%] max-w-[1200px] mx-auto px-5">
         <h2 className="text-3xl font-bold mb-4 text-white">Stay Updated</h2>
         <p className="max-w-2xl mx-auto mb-8 text-lg text-white">
@@ -13,7 +13,7 @@ export function Newsletter() {
           href="https://tftc.io/bitcoin-brief?utm_source=opportunitycost"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block px-6 py-3 font-semibold rounded-lg bg-white text-orange-500 border-2 border-white hover:bg-transparent hover:text-white transition"
+          className="inline-block px-6 py-3 font-semibold rounded-lg bg-white text-[var(--primary)] border-2 border-white hover:bg-transparent hover:text-white transition"
         >
           Subscribe to Bitcoin Brief
         </a>

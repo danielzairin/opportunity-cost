@@ -9,7 +9,7 @@ export function FAQ() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-lg p-6 shadow-md mb-4">
-            <h3 className="text-orange-500 text-lg font-bold mb-2">
+            <h3 className="text-[var(--primary)] text-lg font-bold mb-2">
               Is the extension free to use?
             </h3>
             <p className="text-gray-600 mb-0">
@@ -17,7 +17,7 @@ export function FAQ() {
             </p>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-md mb-4">
-            <h3 className="text-orange-500 text-lg font-bold mb-2">
+            <h3 className="text-[var(--primary)] text-lg font-bold mb-2">
               How does it get the Bitcoin price?
             </h3>
             <p className="text-gray-600 mb-0">
@@ -26,7 +26,7 @@ export function FAQ() {
             </p>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-md mb-4">
-            <h3 className="text-orange-500 text-lg font-bold mb-2">
+            <h3 className="text-[var(--primary)] text-lg font-bold mb-2">
               Does it collect my browsing data?
             </h3>
             <p className="text-gray-600 mb-0">
@@ -36,7 +36,7 @@ export function FAQ() {
             </p>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-md mb-4">
-            <h3 className="text-orange-500 text-lg font-bold mb-2">
+            <h3 className="text-[var(--primary)] text-lg font-bold mb-2">
               Which currencies are supported?
             </h3>
             <p className="text-gray-600 mb-0">
@@ -45,7 +45,7 @@ export function FAQ() {
             </p>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-md mb-4">
-            <h3 className="text-orange-500 text-lg font-bold mb-2">
+            <h3 className="text-[var(--primary)] text-lg font-bold mb-2">
               Will it slow down my browsing?
             </h3>
             <p className="text-gray-600 mb-0">
@@ -54,7 +54,7 @@ export function FAQ() {
             </p>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-md mb-4">
-            <h3 className="text-orange-500 text-lg font-bold mb-2">
+            <h3 className="text-[var(--primary)] text-lg font-bold mb-2">
               How do I customize the extension?
             </h3>
             <p className="text-gray-600 mb-0">

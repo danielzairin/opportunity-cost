@@ -20,7 +20,7 @@ export function Download() {
             <p className="mb-6 text-gray-600">Version 1.0.0</p>
             <a
               href="https://chrome.google.com/webstore/detail/opportunity-cost/"
-              className="inline-block px-6 py-3 font-semibold rounded-lg bg-orange-500 text-white border-2 border-orange-500 hover:bg-orange-600 transition"
+              className="inline-block px-6 py-3 font-semibold rounded-lg bg-[var(--primary)] text-white border-2 border-[var(--primary)] hover:border-orange-500 hover:bg-orange-500 transition"
             >
               Add to Chrome
             </a>
@@ -34,7 +34,7 @@ export function Download() {
             <p className="mb-6 text-gray-600">Version 1.0.0</p>
             <a
               href="https://addons.mozilla.org/en-US/firefox/addon/opportunity-cost/"
-              className="inline-block px-6 py-3 font-semibold rounded-lg bg-orange-500 text-white border-2 border-orange-500 hover:bg-orange-600 transition"
+              className="inline-block px-6 py-3 font-semibold rounded-lg bg-[var(--primary)] text-white border-2 border-[var(--primary)] hover:border-orange-500 hover:bg-orange-500 transition"
             >
               Add to Firefox
             </a>

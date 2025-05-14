@@ -41,7 +41,7 @@ export function About() {
                 href="https://tftc.io"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-orange-500 hover:underline"
+                className="text-[var(--primary)] hover:underline"
               >
                 Truth For The Commoner (TFTC)
               </a>

@@ -41,13 +41,13 @@ export function Hero() {
           <div className="flex gap-4 flex-col sm:flex-row">
             <a
               href="#chrome"
-              className="inline-block px-6 py-3 font-semibold rounded-lg bg-orange-500 text-white border-2 border-orange-500 hover:bg-orange-600 transition text-center"
+              className="inline-block px-6 py-3 font-semibold rounded-lg bg-[var(--primary)] text-white border-2 border-[var(--primary)] hover:border-orange-500 hover:bg-orange-500 transition text-center"
             >
               Add to Chrome
             </a>
             <a
               href="#firefox"
-              className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-orange-500 text-orange-500 hover:bg-orange-100 transition text-center"
+              className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-orange-100 transition text-center"
             >
               Add to Firefox
             </a>

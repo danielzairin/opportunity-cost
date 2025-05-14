@@ -16,7 +16,7 @@ export function Features() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
           <div className="bg-white rounded-lg p-8 shadow-md transition hover:-translate-y-1 hover:shadow-lg feature-card">
             <div className="w-15 h-15 mb-5 flex items-center justify-center bg-orange-100 rounded-full">
-              <Bitcoin size={48} className="text-orange-500" />
+              <Bitcoin size={48} className="text-[var(--primary)]" />
             </div>
             <h3 className="text-xl font-bold mb-2">
               Real-time Price Conversion
@@ -28,7 +28,7 @@ export function Features() {
           </div>
           <div className="bg-white rounded-lg p-8 shadow-md transition hover:-translate-y-1 hover:shadow-lg feature-card">
             <div className="w-15 h-15 mb-5 flex items-center justify-center bg-orange-100 rounded-full">
-              <Columns className="text-orange-500 size-8" />
+              <Columns className="text-[var(--primary)] size-8" />
             </div>
             <h3 className="text-xl font-bold mb-2">Dual Display Mode</h3>
             <p className="text-gray-600">
@@ -38,7 +38,7 @@ export function Features() {
           </div>
           <div className="bg-white rounded-lg p-8 shadow-md transition hover:-translate-y-1 hover:shadow-lg feature-card">
             <div className="w-15 h-15 mb-5 flex items-center justify-center bg-orange-100 rounded-full">
-              <Shield className="text-orange-500 size-8" />
+              <Shield className="text-[var(--primary)] size-8" />
             </div>
             <h3 className="text-xl font-bold mb-2">Privacy Focused</h3>
             <p className="text-gray-600">
@@ -48,7 +48,7 @@ export function Features() {
           </div>
           <div className="bg-white rounded-lg p-8 shadow-md transition hover:-translate-y-1 hover:shadow-lg feature-card">
             <div className="w-15 h-15 mb-5 flex items-center justify-center bg-orange-100 rounded-full">
-              <BarChart2 className="text-orange-500 size-8" />
+              <BarChart2 className="text-[var(--primary)] size-8" />
             </div>
             <h3 className="text-xl font-bold mb-2">Conversion Statistics</h3>
             <p className="text-gray-600">
@@ -58,7 +58,7 @@ export function Features() {
           </div>
           <div className="bg-white rounded-lg p-8 shadow-md transition hover:-translate-y-1 hover:shadow-lg feature-card">
             <div className="w-15 h-15 mb-5 flex items-center justify-center bg-orange-100 rounded-full">
-              <Settings className="text-orange-500 size-8" />
+              <Settings className="text-[var(--primary)] size-8" />
             </div>
             <h3 className="text-xl font-bold mb-2">Customizable Preferences</h3>
             <p className="text-gray-600">
@@ -68,7 +68,7 @@ export function Features() {
           </div>
           <div className="bg-white rounded-lg p-8 shadow-md transition hover:-translate-y-1 hover:shadow-lg feature-card">
             <div className="w-15 h-15 mb-5 flex items-center justify-center bg-orange-100 rounded-full">
-              <RefreshCcw className="text-orange-500 size-8" />
+              <RefreshCcw className="text-[var(--primary)] size-8" />
             </div>
             <h3 className="text-xl font-bold mb-2">Auto-refreshing Prices</h3>
             <p className="text-gray-600">

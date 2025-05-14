@@ -24,7 +24,7 @@ export function Header() {
             <li className="ml-8">
               <Link
                 href="/#features"
-                className="text-gray-900 font-medium hover:text-orange-500 transition"
+                className="text-gray-900 font-medium hover:text-[var(--primary)] transition"
               >
                 Features
               </Link>
@@ -32,7 +32,7 @@ export function Header() {
             <li className="ml-8">
               <Link
                 href="/#download"
-                className="text-gray-900 font-medium hover:text-orange-500 transition"
+                className="text-gray-900 font-medium hover:text-[var(--primary)] transition"
               >
                 Download
               </Link>
@@ -40,7 +40,7 @@ export function Header() {
             <li className="ml-8">
               <Link
                 href="/#about"
-                className="text-gray-900 font-medium hover:text-orange-500 transition"
+                className="text-gray-900 font-medium hover:text-[var(--primary)] transition"
               >
                 About
               </Link>
@@ -48,7 +48,7 @@ export function Header() {
             <li className="ml-8">
               <Link
                 href="/#faq"
-                className="text-gray-900 font-medium hover:text-orange-500 transition"
+                className="text-gray-900 font-medium hover:text-[var(--primary)] transition"
               >
                 FAQ
               </Link>
