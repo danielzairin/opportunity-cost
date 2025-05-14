@@ -63,12 +63,12 @@ export default function PrivacyPolicyPage() {
           </h3>
           <ul className="list-disc ml-6 mb-2">
             <li>
-              Track and display conversion statistics in the Extension's options
-              page
+              Track and display conversion statistics in the Extension&apos;s
+              options page
             </li>
             <li>
-              Display historical Bitcoin price data in the Extension's options
-              page
+              Display historical Bitcoin price data in the Extension&apos;s
+              options page
             </li>
           </ul>
         </section>
@@ -111,10 +111,10 @@ export default function PrivacyPolicyPage() {
           </h2>
           <h3 className="font-semibold mt-4 mb-1">Managing Your Information</h3>
           <ul className="list-disc ml-6 mb-2">
-            <li>View all stored data in the Extension's options page</li>
+            <li>View all stored data in the Extension&apos;s options page</li>
             <li>
-              Clear all stored data using the "Clear All Data" button in the
-              options page
+              Clear all stored data using the &quot;Clear All Data&quot; button
+              in the options page
             </li>
             <li>Disable statistics tracking in the Extension settings</li>
           </ul>
@@ -140,7 +140,8 @@ export default function PrivacyPolicyPage() {
           <p>
             We may update this Privacy Policy from time to time. We will notify
             you of any changes by posting the new Privacy Policy on the
-            Extension's repository and updating the "Last Updated" date.
+            Extension&apos;s repository and updating the &quot;Last
+            Updated&quot; date.
           </p>
         </section>
         <section className="mb-6">
