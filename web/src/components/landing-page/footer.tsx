@@ -11,11 +11,11 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="flex flex-col items-start">
             <Image
-              src="/images/logo-small.svg"
+              src="/images/logo/svg/icon.svg"
               alt="Opportunity Cost Logo"
               width={32}
               height={32}
-              className="h-10 mb-4"
+              className="size-10 mb-4"
             />
             <p className="text-lg font-bold">Opportunity Cost</p>
           </div>
