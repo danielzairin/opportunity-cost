@@ -9,13 +9,15 @@ export function Header() {
       <div className="w-[90%] max-w-[1200px] mx-auto px-5 flex justify-between items-center">
         <Link href="/" className="flex items-center">
           <Image
-            src="/images/logo.svg"
+            src="/images/logo/svg/icon.svg"
             alt="Opportunity Cost Logo"
-            width={40}
-            height={40}
-            className="h-10 w-10 mr-3"
+            width={32}
+            height={32}
+            className="size-12 mr-3"
           />
-          <h1 className="text-xl font-bold mb-0">Opportunity Cost</h1>
+          <h1 className="text-xl font-bold tracking-tight mb-0">
+            Opportunity Cost
+          </h1>
         </Link>
         <nav className="hidden sm:block">
           <ul className="flex">
