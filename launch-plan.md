@@ -1,6 +1,3 @@
-Here’s the full `@todo.md` in plain markdown:
-
-```markdown
 # Opportunity Cost - Launch Plan ToDo
 
 ## 🎯 Goal
@@ -118,4 +115,3 @@ Ship MVP of Opportunity Cost Chrome + Firefox extension by **Monday (4 days)**. 
 ---
 
 Let’s ship it. 🧡
-```
