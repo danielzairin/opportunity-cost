@@ -18,7 +18,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": "./src",
+      "@": "/src",
     },
   },
   build: {
@@ -27,6 +27,14 @@ export default defineConfig({
       input: {
         main: "./index.html",
         options: "./options.html",
+        background: "./src/lib/background.js",
+        storage: "./src/lib/storage.ts",
+        content: "./src/lib/content.js",
+      },
+      output: {
+        entryFileNames: () => {
+          return "[name].js";
+        },
       },
     },
   },

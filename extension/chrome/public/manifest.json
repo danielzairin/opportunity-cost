@@ -8,10 +8,11 @@
   "action": {
     "default_title": "Opportunity Cost",
     "default_icon": {
-      "16": "icons/new/icon16.png",
-      "48": "icons/new/icon48.png",
-      "128": "icons/new/icon128.png"
-    }
+      "16": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    },
+    "default_popup": "index.html"
   },
   "background": {
     "service_worker": "background.js",

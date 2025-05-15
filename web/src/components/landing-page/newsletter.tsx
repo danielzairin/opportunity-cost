@@ -10,7 +10,7 @@ export function Newsletter() {
           Bitcoin news, market analysis, and Opportunity Cost updates.
         </p>
         <a
-          href="https://tftc.io/bitcoin-brief?utm_source=opportunitycost"
+          href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block px-6 py-3 font-semibold rounded-lg bg-white text-[var(--primary)] border-2 border-white hover:bg-transparent hover:text-white transition"
