@@ -448,7 +448,7 @@ const PriceDatabase = {
 
   // Get user preferences
   getPreferences: (): Promise<UserPreferences> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       PriceDatabase.db
         .get<UserPreferences>("userPreferences", "user-preferences")
         .then((prefs) => {

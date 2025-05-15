@@ -12,12 +12,29 @@ import { PriceDatabase } from "./storage.js";
 import type { UserPreferences } from "./storage.js";
 
 // Constants
-const API_BASE = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin";
+const API_BASE = "http://www.opportunitycost.app/api/bitcoin-price";
 const DEFAULT_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minute cache duration for aggressive caching
 const INITIAL_BACKOFF = 2000; // Initial backoff duration in ms (2 seconds)
 const MAX_BACKOFF = 5 * 60 * 1000; // Maximum backoff duration (5 minutes)
 const MAX_RETRIES = 5; // Maximum number of retry attempts
+
+// Supported currencies as a tuple and type
+type SupportedCurrency =
+  | "usd"
+  | "eur"
+  | "gbp"
+  | "jpy"
+  | "cny"
+  | "inr"
+  | "cad"
+  | "aud"
+  | "chf"
+  | "sgd";
+
+interface BitcoinPriceAPIResponse {
+  bitcoin: Record<SupportedCurrency, number>;
+}
 
 // Extension state
 let priceRefreshInterval: number | null = null;
@@ -89,24 +106,16 @@ function applyUserPreferences(): void {
   }
 }
 
-// Get API endpoint based on user's preferred currency
-function getApiEndpoint(): string {
-  const currency = userPreferences?.defaultCurrency || "usd";
-  return `${API_BASE}&vs_currencies=${currency}`;
-}
-
-// Fetch and store Bitcoin price with exponential backoff
+// Fetch and store Bitcoin price for all supported currencies
 async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
   if (!userPreferences) {
     await loadUserPreferences();
   }
 
   try {
-    const currency = userPreferences?.defaultCurrency || "usd";
-    const apiEndpoint = getApiEndpoint();
+    // Fetch current price for all currencies from new API
+    const response = await fetch(API_BASE);
 
-    // Fetch current price from API
-    const response = await fetch(apiEndpoint);
     if (!response.ok) {
       // Check if we hit rate limits (HTTP 429) or server errors (5xx)
       if (response.status === 429 || response.status >= 500) {
@@ -148,19 +157,28 @@ async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
     backoffTime = INITIAL_BACKOFF;
     retryCount = 0;
 
-    const data = await response.json();
-    const btcPrice = data?.bitcoin?.[currency];
-
-    if (!btcPrice) {
+    const data: BitcoinPriceAPIResponse = await response.json();
+    const prices = data?.bitcoin;
+    if (!prices || typeof prices !== "object") {
       console.warn("Invalid BTC price data received from API");
       return null;
     }
 
-    // Store price in database
-    await PriceDatabase.saveBitcoinPrice(currency, btcPrice);
-    console.log(`Updated BTC price (${currency}): ${btcPrice}`);
+    // Store each currency's price in the database
+    const savePromises = (
+      Object.entries(prices) as [SupportedCurrency, number][]
+    ).map(([currency, price]) => {
+      if (typeof price === "number") {
+        return PriceDatabase.saveBitcoinPrice(currency, price);
+      }
+      return Promise.resolve();
+    });
+    await Promise.all(savePromises);
 
-    return btcPrice;
+    // Return the price for the user's preferred currency
+    const preferredCurrency = (userPreferences?.defaultCurrency ||
+      "usd") as SupportedCurrency;
+    return prices[preferredCurrency] ?? null;
   } catch (error) {
     console.error("Error fetching or storing BTC price:", error);
 
@@ -313,7 +331,7 @@ chrome.runtime.onMessage.addListener(
                   );
                 } catch (err) {
                   // Catch and suppress any other errors
-                  // console.debug("Error sending message to tab:", err);
+                  console.debug("Error sending message to tab:", err);
                 }
               }
             });

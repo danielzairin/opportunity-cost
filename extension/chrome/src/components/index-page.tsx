@@ -130,6 +130,9 @@ function Converter() {
   const [price, setPrice] = useState<number | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
+  const [localDenomination, setLocalDenomination] = useState<"sats" | "btc">(
+    "sats"
+  );
 
   // Constants
   const SATS_IN_BTC = 100_000_000;
@@ -171,6 +174,7 @@ function Converter() {
 
         if (prefsResponse?.preferences) {
           setPreferences(prefsResponse.preferences);
+          // Don't set local denomination based on preferences
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -188,8 +192,8 @@ function Converter() {
 
     const inBtc = fiatValue / price;
 
-    // Format based on user preference (BTC or sats)
-    if (preferences?.denomination === "sats") {
+    // Format based on local denomination (BTC or sats)
+    if (localDenomination === "sats") {
       const inSats = Math.round(inBtc * SATS_IN_BTC);
       return inSats.toLocaleString() + " sats";
     } else {
@@ -205,19 +209,19 @@ function Converter() {
   };
 
   // Convert Bitcoin to fiat
-  const convertBtcToFiat = (btcValue: number): string => {
-    if (!price) return "";
+  // const convertBtcToFiat = (btcValue: number): string => {
+  //   if (!price) return "";
 
-    const inFiat = btcValue * price;
-    const currencySymbol = getCurrencySymbol(
-      preferences?.defaultCurrency || "usd"
-    );
+  //   const inFiat = btcValue * price;
+  //   const currencySymbol = getCurrencySymbol(
+  //     preferences?.defaultCurrency || "usd"
+  //   );
 
-    return `${currencySymbol}${inFiat.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
+  //   return `${currencySymbol}${inFiat.toLocaleString(undefined, {
+  //     minimumFractionDigits: 2,
+  //     maximumFractionDigits: 2,
+  //   })}`;
+  // };
 
   // Format currency symbol based on currency code
   const getCurrencySymbol = (currencyCode: string) => {
@@ -263,7 +267,7 @@ function Converter() {
         let numValue = parseFloat(value);
 
         // If in sats mode, convert sats to BTC first
-        if (preferences?.denomination === "sats") {
+        if (localDenomination === "sats") {
           numValue = numValue / SATS_IN_BTC;
         }
 
@@ -287,8 +291,40 @@ function Converter() {
     setBtcAmount("");
   };
 
+  // Toggle between BTC and sats
+  const toggleDenomination = () => {
+    const newDenomination = localDenomination === "btc" ? "sats" : "btc";
+    setLocalDenomination(newDenomination);
+
+    // Update the displayed conversion if we have a fiat amount
+    if (fiatAmount && !isReversed) {
+      try {
+        const numValue = parseFloat(fiatAmount);
+        if (!isNaN(numValue)) {
+          // Force recalculation of Bitcoin amount
+          const inBtc = numValue / (price || 1);
+          if (newDenomination === "sats") {
+            const inSats = Math.round(inBtc * SATS_IN_BTC);
+            setBtcAmount(inSats.toLocaleString() + " sats");
+          } else {
+            // Format BTC with appropriate decimals
+            if (inBtc < 0.000001) {
+              setBtcAmount(`${inBtc.toFixed(8)} BTC`);
+            } else if (inBtc < 0.0001) {
+              setBtcAmount(`${inBtc.toFixed(6)} BTC`);
+            } else {
+              setBtcAmount(`${inBtc.toFixed(5)} BTC`);
+            }
+          }
+        }
+      } catch {
+        // Keep existing value on error
+      }
+    }
+  };
+
   const currencyCode = preferences?.defaultCurrency?.toUpperCase() || "USD";
-  const denomination = preferences?.denomination === "sats" ? "sats" : "BTC";
+  const denomination = localDenomination === "sats" ? "sats" : "BTC";
 
   return (
     <section className="mb-4">
@@ -330,13 +366,26 @@ function Converter() {
             </div>
           </>
         )}
-        <button
-          className="text-xs text-blue-500 hover:underline self-end"
-          onClick={switchDirection}
-          disabled={loading}
-        >
-          Switch direction
-        </button>
+        <div className="flex justify-between">
+          {!isReversed && (
+            <button
+              className="text-xs text-gray-500 cursor-pointer hover:underline"
+              onClick={toggleDenomination}
+              disabled={loading}
+            >
+              {localDenomination === "btc" ? "Switch to sats" : "Switch to BTC"}
+            </button>
+          )}
+          <button
+            className={`text-xs text-blue-500 ml-auto cursor-pointer hover:underline ${
+              !isReversed ? "ml-auto" : ""
+            }`}
+            onClick={switchDirection}
+            disabled={loading}
+          >
+            Switch direction
+          </button>
+        </div>
       </div>
     </section>
   );
