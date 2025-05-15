@@ -225,8 +225,8 @@ export function OptionsPage() {
                 }
               >
                 <option value="dual-display">
-                  Dual Display ({denomination === "btc" ? "BTC" : "sats"} |
-                  Fiat)
+                  Dual Display (Fiat | {denomination === "btc" ? "BTC" : "sats"}
+                  )
                 </option>
                 <option value="bitcoin-only">
                   {denomination === "btc" ? "Bitcoin" : "Satoshis"} Only

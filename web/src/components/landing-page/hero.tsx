@@ -30,7 +30,6 @@ export function Hero() {
     <section className="pt-40 pb-20 bg-gradient-to-br from-white to-gray-100">
       <div className="w-[90%] max-w-[1200px] mx-auto px-5 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
-          <p>test: $700M</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             See the True Cost of Everything in Bitcoin
           </h1>
