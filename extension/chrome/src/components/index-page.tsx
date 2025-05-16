@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "@/index.css";
 import { PriceDatabase, type SiteRecord } from "../lib/storage";
-import { SUPPORTED_CURRENCIES } from "../lib/constants";
+import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from "../lib/constants";
 
 // --- Header ---
 function Header() {
@@ -31,7 +31,7 @@ function LivePrice() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [currency, setCurrency] = useState<string>("usd");
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [supportedCurrencies, setSupportedCurrencies] =
     useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
 
@@ -64,7 +64,7 @@ function LivePrice() {
         setSupportedCurrencies(
           response.supportedCurrencies || SUPPORTED_CURRENCIES
         );
-        setCurrency(response.currency || "usd");
+        setCurrency(response.currency || DEFAULT_CURRENCY);
         setLastUpdated(new Date());
       } else {
         throw new Error("Invalid price data received");
@@ -84,10 +84,6 @@ function LivePrice() {
   const getCurrencySymbol = (currencyCode: string) => {
     const found = supportedCurrencies.find((c) => c.value === currencyCode);
     return found ? found.symbol : "$";
-  };
-
-  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCurrency(e.target.value);
   };
 
   return (
@@ -114,30 +110,12 @@ function LivePrice() {
           {lastUpdated ? lastUpdated.toLocaleTimeString() : "--:--"}
         </span>
         <button
-          className="hover:underline"
+          className="hover:underline cursor-pointer"
           onClick={fetchPrices}
           disabled={loading}
         >
           {loading ? "Refreshing..." : "Refresh"}
         </button>
-      </div>
-      <div className="mt-2 flex items-center gap-2">
-        <label htmlFor="currency-select" className="text-xs text-gray-500">
-          Currency:
-        </label>
-        <select
-          id="currency-select"
-          className="text-xs border rounded px-1 py-0.5"
-          value={currency}
-          onChange={handleCurrencyChange}
-          disabled={loading}
-        >
-          {supportedCurrencies.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.name}
-            </option>
-          ))}
-        </select>
       </div>
     </section>
   );
@@ -147,13 +125,13 @@ function LivePrice() {
 function Converter() {
   const [fiatAmount, setFiatAmount] = useState<string>("");
   const [btcAmount, setBtcAmount] = useState<string>("");
-  const [isReversed, setIsReversed] = useState(false);
+  const [lastEdited, setLastEdited] = useState<"fiat" | "btc">("fiat");
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [localDenomination, setLocalDenomination] = useState<"sats" | "btc">(
     "sats"
   );
-  const [currency, setCurrency] = useState<string>("usd");
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [supportedCurrencies, setSupportedCurrencies] =
     useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
 
@@ -190,7 +168,7 @@ function Converter() {
           setSupportedCurrencies(
             response.supportedCurrencies || SUPPORTED_CURRENCIES
           );
-          setCurrency(response.currency || "usd");
+          setCurrency(response.currency || DEFAULT_CURRENCY);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -212,25 +190,40 @@ function Converter() {
     // Format based on local denomination (BTC or sats)
     if (localDenomination === "sats") {
       const inSats = Math.round(inBtc * SATS_IN_BTC);
-      return inSats.toLocaleString() + " sats";
+      return inSats.toString();
     } else {
       // Format BTC with appropriate decimals
       if (inBtc < 0.000001) {
-        return `${inBtc.toFixed(8)} BTC`;
+        return inBtc.toFixed(8);
       } else if (inBtc < 0.0001) {
-        return `${inBtc.toFixed(6)} BTC`;
+        return inBtc.toFixed(6);
       } else {
-        return `${inBtc.toFixed(5)} BTC`;
+        return inBtc.toFixed(5);
       }
     }
+  };
+
+  // Convert Bitcoin to fiat
+  const convertBtcToFiat = (btcValue: number): string => {
+    const price = prices[currency];
+    if (!price) return "";
+
+    // If value is in sats, convert to BTC first
+    const inBtc =
+      localDenomination === "sats" ? btcValue / SATS_IN_BTC : btcValue;
+
+    // Calculate and format fiat value
+    const fiatValue = inBtc * price;
+    return fiatValue.toFixed(2);
   };
 
   // Handle fiat input change
   const handleFiatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFiatAmount(value);
+    setLastEdited("fiat");
 
-    if (!isReversed && prices[currency]) {
+    if (prices[currency]) {
       try {
         const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
@@ -248,20 +241,13 @@ function Converter() {
   const handleBtcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setBtcAmount(value);
+    setLastEdited("btc");
 
-    if (isReversed && prices[currency]) {
+    if (prices[currency]) {
       try {
-        // Parse the input as BTC
-        let numValue = parseFloat(value);
-
-        // If in sats mode, convert sats to BTC first
-        if (localDenomination === "sats") {
-          numValue = numValue / SATS_IN_BTC;
-        }
-
+        const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
-          const fiatValue = (numValue * prices[currency]).toFixed(2);
-          setFiatAmount(fiatValue);
+          setFiatAmount(convertBtcToFiat(numValue));
         } else {
           setFiatAmount("");
         }
@@ -271,39 +257,60 @@ function Converter() {
     }
   };
 
-  // Switch conversion direction
-  const switchDirection = () => {
-    setIsReversed(!isReversed);
-    // Clear inputs on direction change
-    setFiatAmount("");
-    setBtcAmount("");
-  };
-
   // Toggle between BTC and sats
   const toggleDenomination = () => {
     const newDenomination = localDenomination === "btc" ? "sats" : "btc";
     setLocalDenomination(newDenomination);
 
-    // Update the displayed conversion if we have a fiat amount
-    if (fiatAmount && !isReversed && prices[currency]) {
+    // Recalculate the Bitcoin amount if we have a value
+    if (btcAmount) {
+      try {
+        const numValue = parseFloat(btcAmount);
+        if (!isNaN(numValue)) {
+          if (newDenomination === "sats" && localDenomination === "btc") {
+            // Convert from BTC to sats
+            setBtcAmount(String(Math.round(numValue * SATS_IN_BTC)));
+          } else if (
+            newDenomination === "btc" &&
+            localDenomination === "sats"
+          ) {
+            // Convert from sats to BTC
+            const inBtc = numValue / SATS_IN_BTC;
+            if (inBtc < 0.000001) {
+              setBtcAmount(inBtc.toFixed(8));
+            } else if (inBtc < 0.0001) {
+              setBtcAmount(inBtc.toFixed(6));
+            } else {
+              setBtcAmount(inBtc.toFixed(5));
+            }
+          }
+        }
+      } catch {
+        // Keep existing value on error
+      }
+    }
+  };
+
+  // Handle currency selection
+  const handleCurrencySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCurrency = e.target.value;
+    setCurrency(selectedCurrency);
+
+    // Recalculate based on last edited field
+    if (lastEdited === "fiat" && fiatAmount) {
       try {
         const numValue = parseFloat(fiatAmount);
         if (!isNaN(numValue)) {
-          // Force recalculation of Bitcoin amount
-          const inBtc = numValue / prices[currency];
-          if (newDenomination === "sats") {
-            const inSats = Math.round(inBtc * SATS_IN_BTC);
-            setBtcAmount(inSats.toLocaleString() + " sats");
-          } else {
-            // Format BTC with appropriate decimals
-            if (inBtc < 0.000001) {
-              setBtcAmount(`${inBtc.toFixed(8)} BTC`);
-            } else if (inBtc < 0.0001) {
-              setBtcAmount(`${inBtc.toFixed(6)} BTC`);
-            } else {
-              setBtcAmount(`${inBtc.toFixed(5)} BTC`);
-            }
-          }
+          setBtcAmount(convertFiatToBtc(numValue));
+        }
+      } catch {
+        // Keep existing value on error
+      }
+    } else if (lastEdited === "btc" && btcAmount) {
+      try {
+        const numValue = parseFloat(btcAmount);
+        if (!isNaN(numValue)) {
+          setFiatAmount(convertBtcToFiat(numValue));
         }
       } catch {
         // Keep existing value on error
@@ -317,85 +324,91 @@ function Converter() {
     return found ? found.symbol : "$";
   };
 
-  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCurrency(e.target.value);
-    // Clear inputs when changing currency
-    setFiatAmount("");
-    setBtcAmount("");
-  };
-
   const currencyCode = currency.toUpperCase();
-  const denomination = localDenomination === "sats" ? "sats" : "BTC";
+  const currencySymbol = getCurrencySymbol(currency);
+  const bitcoinUnit = localDenomination === "sats" ? "sats" : "BTC";
+
+  // List of available denominations
+  const denominations = [
+    { value: "sats", label: "Satoshis (sats)" },
+    { value: "btc", label: "Bitcoin (BTC)" },
+  ];
 
   return (
     <section className="mb-4">
-      <div className="flex flex-col gap-2">
-        {!isReversed ? (
-          <>
+      <div>
+        {/* Top Panel - Fiat Currency */}
+        <div className="bg-white border border-gray-200 bg-opacity-90 p-3 mb-1 rounded-xl">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-gray-800 text-md font-medium">Fiat</h2>
+            <select
+              className="text-xs text-right cursor-pointer"
+              value={currency}
+              onChange={handleCurrencySelect}
+              disabled={loading}
+            >
+              {supportedCurrencies.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.name} ({c.symbol})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="relative">
+            <span className="absolute left-0 top-0 text-gray-400 text-lg">
+              {currencySymbol}
+            </span>
             <input
               type="number"
-              className="w-full p-2 border rounded"
-              placeholder={`Enter amount (${currencyCode})`}
+              className="bg-transparent text-gray-800 text-lg w-full border-none focus:outline-none focus:ring-0 pl-4"
+              placeholder="0"
               value={fiatAmount}
               onChange={handleFiatChange}
               disabled={loading || !prices[currency]}
             />
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">=</span>
-              <span className="font-mono font-bold">{btcAmount}</span>
-            </div>
-          </>
-        ) : (
-          <>
+          </div>
+        </div>
+
+        {/* Arrow Button */}
+        <div className="flex justify-center relative">
+          <button className="absolute font-bold -mt-4 rounded-xl bg-gray-200 flex items-center justify-center size-7 border-4 border-white">
+            ↓
+          </button>
+        </div>
+
+        {/* Bottom Panel - Bitcoin */}
+        <div className="bg-gray-100 p-3 rounded-xl">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-md font-medium">Bitcoin</h2>
+            <select
+              className="text-xs text-right cursor-pointer"
+              value={localDenomination}
+              onChange={(e) => {
+                setLocalDenomination(e.target.value as "sats" | "btc");
+                toggleDenomination();
+              }}
+              disabled={loading}
+            >
+              {denominations.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="relative">
             <input
               type="number"
-              className="w-full p-2 border rounded"
-              placeholder={`Enter amount (${denomination})`}
+              className="bg-transparent text-lg w-full border-none focus:outline-none focus:ring-0 pr-10"
+              placeholder="0"
               value={btcAmount}
               onChange={handleBtcChange}
               disabled={loading || !prices[currency]}
             />
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">=</span>
-              <span className="font-mono font-bold">
-                {fiatAmount
-                  ? `${getCurrencySymbol(currency)}${fiatAmount}`
-                  : ""}
-              </span>
-            </div>
-          </>
-        )}
-        <div className="flex justify-between items-center gap-2">
-          {!isReversed && (
-            <button
-              className="text-xs text-gray-500 cursor-pointer hover:underline"
-              onClick={toggleDenomination}
-              disabled={loading}
-            >
-              {localDenomination === "btc" ? "Switch to sats" : "Switch to BTC"}
-            </button>
-          )}
-          <button
-            className={`text-xs text-blue-500 ml-auto cursor-pointer hover:underline ${
-              !isReversed ? "ml-auto" : ""
-            }`}
-            onClick={switchDirection}
-            disabled={loading}
-          >
-            Switch direction
-          </button>
-          <select
-            className="text-xs border rounded px-1 py-0.5 ml-2"
-            value={currency}
-            onChange={handleCurrencyChange}
-            disabled={loading}
-          >
-            {supportedCurrencies.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <span className="absolute right-0 top-0 text-gray-400 text-lg">
+              {bitcoinUnit}
+            </span>
+          </div>
         </div>
       </div>
     </section>
@@ -571,7 +584,7 @@ function QuickSettings() {
           <div className="text-xs text-gray-400">Loading settings...</div>
         ) : (
           <>
-            <label className="inline-flex items-center text-xs">
+            <label className="inline-flex items-center text-xs cursor-pointer">
               <input
                 type="checkbox"
                 className="mr-2"
@@ -581,7 +594,7 @@ function QuickSettings() {
               />
               Auto-refresh prices
             </label>
-            <label className="inline-flex items-center text-xs">
+            <label className="inline-flex items-center text-xs cursor-pointer">
               <input
                 type="checkbox"
                 className="mr-2"
@@ -643,7 +656,7 @@ export function IndexPage() {
       <Header />
       <LivePrice />
       <Converter />
-      <RecentConversions />
+      {/* <RecentConversions /> */}
       <QuickSettings />
       <CallToAction />
       <Footer />
