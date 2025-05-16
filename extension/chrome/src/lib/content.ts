@@ -22,7 +22,7 @@ async function main() {
 
     // User preferences (will be populated from database)
     let userPreferences: UserPreferences = {
-      id: "default",
+      id: "user-preferences",
       defaultCurrency: undefined, // Will be set after fetching from background
       displayMode: "dual-display", // Changed default from 'bitcoin-only' to 'dual-display'
       denomination: "btc", // Default to bitcoin (BTC) instead of satoshis
@@ -126,8 +126,6 @@ async function main() {
               denomination?: string;
               supportedCurrencies?: Array<{ value: string; symbol: string }>;
             }) => {
-              console.log("response", response);
-
               if (chrome.runtime.lastError) {
                 console.error(
                   "Runtime error getting Bitcoin prices:",
@@ -299,6 +297,13 @@ async function main() {
       }
     };
 
+    // Helper to apply bitcoin-only label styles
+    function applyBitcoinOnlyLabelStyles(label: HTMLElement) {
+      label.style.backgroundColor = "rgba(240, 138, 93, 0.2)";
+      label.style.padding = "0 4px";
+      label.style.borderRadius = "4px";
+    }
+
     // Function to replace fiat prices with satoshi values in a text node (only default currency)
     const replacePrice = (textNode: Text): void => {
       let content = textNode.textContent || "";
@@ -330,6 +335,52 @@ async function main() {
       if (!currency) return;
       const regex = currencyRegexes[currency.value];
       if (!regex) return;
+
+      // If in bitcoin-only mode, replace matched text with a styled span
+      if (userPreferences.displayMode === "bitcoin-only") {
+        let match;
+        let lastIndex = 0;
+        const parent = textNode.parentNode;
+        if (!parent) return;
+        const frag = document.createDocumentFragment();
+        regex.lastIndex = 0; // reset regex state
+        while ((match = regex.exec(content)) !== null) {
+          // Add text before the match
+          if (match.index > lastIndex) {
+            frag.appendChild(
+              document.createTextNode(content.slice(lastIndex, match.index))
+            );
+          }
+          // Parse the fiat value
+          const fiatValue = convertCurrencyValue(match[0]);
+          const btcPrice = btcPrices[currency.value];
+          if (!btcPrice) {
+            frag.appendChild(document.createTextNode(match[0]));
+            lastIndex = regex.lastIndex;
+            continue;
+          }
+          const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+          conversionCount++;
+          modified = true;
+          // Create styled span
+          const span = document.createElement("span");
+          span.className = "oc-btc-price";
+          span.textContent = formatBitcoinValue(satsValue);
+          applyBitcoinOnlyLabelStyles(span);
+          frag.appendChild(span);
+          lastIndex = regex.lastIndex;
+        }
+        // Add any remaining text after the last match
+        if (lastIndex < content.length) {
+          frag.appendChild(document.createTextNode(content.slice(lastIndex)));
+        }
+        if (modified) {
+          parent.replaceChild(frag, textNode);
+        }
+        return;
+      }
+
+      // Otherwise, do the original replacement (dual-display)
       content = content.replace(regex, (match: string) => {
         // Avoid double conversion in the same node
         if (content.includes(" sats") || content.includes(" BTC")) {
@@ -387,6 +438,9 @@ async function main() {
           const label = document.createElement("span");
           label.className = "oc-btc-price";
           label.textContent = formatted;
+          if (userPreferences.displayMode === "bitcoin-only") {
+            applyBitcoinOnlyLabelStyles(label);
+          }
 
           vis.appendChild(label);
 
