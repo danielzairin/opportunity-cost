@@ -1,5 +1,6 @@
 "use client";
-import { Chrome, FlameKindling } from "lucide-react";
+import { Chrome, FlameKindling, FileDown } from "lucide-react";
+import Link from "next/link";
 
 export function Download() {
   return (
@@ -38,6 +39,20 @@ export function Download() {
             >
               Add to Firefox
             </a>
+          </div>
+          <div
+            id="manual"
+            className="bg-gray-50 rounded-lg p-10 w-full md:w-[300px] text-center shadow-md transition hover:-translate-y-1 hover:shadow-lg browser-card flex flex-col items-center"
+          >
+            <FileDown size={48} className="text-gray-700 h-20 mb-5" />
+            <h3 className="text-xl font-bold mb-2">Manual Install</h3>
+            <p className="mb-6 text-gray-600">Latest Version</p>
+            <Link
+              href="/install"
+              className="inline-block px-6 py-3 font-semibold rounded-lg bg-[var(--primary)] text-white border-2 border-[var(--primary)] hover:border-orange-500 hover:bg-orange-500 transition"
+            >
+              Side Load Extension
+            </Link>
           </div>
         </div>
       </div>
