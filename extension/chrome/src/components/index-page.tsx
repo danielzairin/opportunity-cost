@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "@/index.css";
-import {
-  PriceDatabase,
-  type SiteRecord,
-  type UserPreferences,
-} from "../lib/storage";
+import { PriceDatabase, type SiteRecord } from "../lib/storage";
+import { SUPPORTED_CURRENCIES } from "../lib/constants";
 
 // --- Header ---
 function Header() {
@@ -30,19 +27,26 @@ function Header() {
 
 // --- Live Price ---
 function LivePrice() {
-  const [price, setPrice] = useState<number | null>(null);
+  const [prices, setPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [currency, setCurrency] = useState("usd");
+  const [currency, setCurrency] = useState<string>("usd");
+  const [supportedCurrencies, setSupportedCurrencies] =
+    useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
 
-  const fetchPrice = async () => {
+  const fetchPrices = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await new Promise<any>((resolve, reject) => {
+      const response = await new Promise<{
+        prices?: Record<string, number>;
+        currency?: string;
+        supportedCurrencies?: typeof SUPPORTED_CURRENCIES;
+        error?: string;
+      }>((resolve, reject) => {
         chrome.runtime.sendMessage(
-          { action: "getBitcoinPrice" },
+          { action: "getAllBitcoinPrices" },
           (response) => {
             if (chrome.runtime.lastError) {
               reject(new Error(chrome.runtime.lastError.message));
@@ -55,8 +59,11 @@ function LivePrice() {
         );
       });
 
-      if (response?.price) {
-        setPrice(response.price);
+      if (response?.prices) {
+        setPrices(response.prices);
+        setSupportedCurrencies(
+          response.supportedCurrencies || SUPPORTED_CURRENCIES
+        );
         setCurrency(response.currency || "usd");
         setLastUpdated(new Date());
       } else {
@@ -70,21 +77,17 @@ function LivePrice() {
   };
 
   useEffect(() => {
-    fetchPrice();
+    fetchPrices();
   }, []);
 
   // Format currency symbol based on currency code
   const getCurrencySymbol = (currencyCode: string) => {
-    switch (currencyCode.toLowerCase()) {
-      case "usd":
-        return "$";
-      case "eur":
-        return "€";
-      case "gbp":
-        return "£";
-      default:
-        return "$";
-    }
+    const found = supportedCurrencies.find((c) => c.value === currencyCode);
+    return found ? found.symbol : "$";
+  };
+
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrency(e.target.value);
   };
 
   return (
@@ -98,7 +101,7 @@ function LivePrice() {
         ) : (
           <span className="text-lg font-mono">
             {getCurrencySymbol(currency)}
-            {price?.toLocaleString(undefined, {
+            {prices[currency]?.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -112,11 +115,29 @@ function LivePrice() {
         </span>
         <button
           className="hover:underline"
-          onClick={fetchPrice}
+          onClick={fetchPrices}
           disabled={loading}
         >
           {loading ? "Refreshing..." : "Refresh"}
         </button>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <label htmlFor="currency-select" className="text-xs text-gray-500">
+          Currency:
+        </label>
+        <select
+          id="currency-select"
+          className="text-xs border rounded px-1 py-0.5"
+          value={currency}
+          onChange={handleCurrencyChange}
+          disabled={loading}
+        >
+          {supportedCurrencies.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.name}
+            </option>
+          ))}
+        </select>
       </div>
     </section>
   );
@@ -127,28 +148,36 @@ function Converter() {
   const [fiatAmount, setFiatAmount] = useState<string>("");
   const [btcAmount, setBtcAmount] = useState<string>("");
   const [isReversed, setIsReversed] = useState(false);
-  const [price, setPrice] = useState<number | null>(null);
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [prices, setPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [localDenomination, setLocalDenomination] = useState<"sats" | "btc">(
     "sats"
   );
+  const [currency, setCurrency] = useState<string>("usd");
+  const [supportedCurrencies, setSupportedCurrencies] =
+    useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
 
   // Constants
   const SATS_IN_BTC = 100_000_000;
 
   useEffect(() => {
-    // Fetch BTC price and preferences
+    // Fetch BTC prices and preferences
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Get price and preferences
-        const priceResponse = await new Promise<any>((resolve, reject) => {
+        const response = await new Promise<{
+          prices?: Record<string, number>;
+          currency?: string;
+          supportedCurrencies?: typeof SUPPORTED_CURRENCIES;
+          error?: string;
+        }>((resolve, reject) => {
           chrome.runtime.sendMessage(
-            { action: "getBitcoinPrice" },
+            { action: "getAllBitcoinPrices" },
             (response) => {
               if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
+                reject(new Error(chrome.runtime.lastError.message));
+              } else if (response?.error) {
+                reject(new Error(response.error));
               } else {
                 resolve(response);
               }
@@ -156,25 +185,12 @@ function Converter() {
           );
         });
 
-        setPrice(priceResponse?.price || null);
-
-        // Get user preferences
-        const prefsResponse = await new Promise<any>((resolve, reject) => {
-          chrome.runtime.sendMessage(
-            { action: "getPreferences" },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
-              } else {
-                resolve(response);
-              }
-            }
+        if (response?.prices) {
+          setPrices(response.prices);
+          setSupportedCurrencies(
+            response.supportedCurrencies || SUPPORTED_CURRENCIES
           );
-        });
-
-        if (prefsResponse?.preferences) {
-          setPreferences(prefsResponse.preferences);
-          // Don't set local denomination based on preferences
+          setCurrency(response.currency || "usd");
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -188,6 +204,7 @@ function Converter() {
 
   // Convert fiat to Bitcoin
   const convertFiatToBtc = (fiatValue: number): string => {
+    const price = prices[currency];
     if (!price) return "";
 
     const inBtc = fiatValue / price;
@@ -208,41 +225,12 @@ function Converter() {
     }
   };
 
-  // Convert Bitcoin to fiat
-  // const convertBtcToFiat = (btcValue: number): string => {
-  //   if (!price) return "";
-
-  //   const inFiat = btcValue * price;
-  //   const currencySymbol = getCurrencySymbol(
-  //     preferences?.defaultCurrency || "usd"
-  //   );
-
-  //   return `${currencySymbol}${inFiat.toLocaleString(undefined, {
-  //     minimumFractionDigits: 2,
-  //     maximumFractionDigits: 2,
-  //   })}`;
-  // };
-
-  // Format currency symbol based on currency code
-  const getCurrencySymbol = (currencyCode: string) => {
-    switch (currencyCode.toLowerCase()) {
-      case "usd":
-        return "$";
-      case "eur":
-        return "€";
-      case "gbp":
-        return "£";
-      default:
-        return "$";
-    }
-  };
-
   // Handle fiat input change
   const handleFiatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFiatAmount(value);
 
-    if (!isReversed && price) {
+    if (!isReversed && prices[currency]) {
       try {
         const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
@@ -261,7 +249,7 @@ function Converter() {
     const value = e.target.value;
     setBtcAmount(value);
 
-    if (isReversed && price) {
+    if (isReversed && prices[currency]) {
       try {
         // Parse the input as BTC
         let numValue = parseFloat(value);
@@ -272,7 +260,7 @@ function Converter() {
         }
 
         if (!isNaN(numValue)) {
-          const fiatValue = (numValue * price).toFixed(2);
+          const fiatValue = (numValue * prices[currency]).toFixed(2);
           setFiatAmount(fiatValue);
         } else {
           setFiatAmount("");
@@ -297,12 +285,12 @@ function Converter() {
     setLocalDenomination(newDenomination);
 
     // Update the displayed conversion if we have a fiat amount
-    if (fiatAmount && !isReversed) {
+    if (fiatAmount && !isReversed && prices[currency]) {
       try {
         const numValue = parseFloat(fiatAmount);
         if (!isNaN(numValue)) {
           // Force recalculation of Bitcoin amount
-          const inBtc = numValue / (price || 1);
+          const inBtc = numValue / prices[currency];
           if (newDenomination === "sats") {
             const inSats = Math.round(inBtc * SATS_IN_BTC);
             setBtcAmount(inSats.toLocaleString() + " sats");
@@ -323,7 +311,20 @@ function Converter() {
     }
   };
 
-  const currencyCode = preferences?.defaultCurrency?.toUpperCase() || "USD";
+  // Format currency symbol based on currency code
+  const getCurrencySymbol = (currencyCode: string) => {
+    const found = supportedCurrencies.find((c) => c.value === currencyCode);
+    return found ? found.symbol : "$";
+  };
+
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrency(e.target.value);
+    // Clear inputs when changing currency
+    setFiatAmount("");
+    setBtcAmount("");
+  };
+
+  const currencyCode = currency.toUpperCase();
   const denomination = localDenomination === "sats" ? "sats" : "BTC";
 
   return (
@@ -337,7 +338,7 @@ function Converter() {
               placeholder={`Enter amount (${currencyCode})`}
               value={fiatAmount}
               onChange={handleFiatChange}
-              disabled={loading || !price}
+              disabled={loading || !prices[currency]}
             />
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">=</span>
@@ -352,21 +353,19 @@ function Converter() {
               placeholder={`Enter amount (${denomination})`}
               value={btcAmount}
               onChange={handleBtcChange}
-              disabled={loading || !price}
+              disabled={loading || !prices[currency]}
             />
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">=</span>
               <span className="font-mono font-bold">
                 {fiatAmount
-                  ? `${getCurrencySymbol(
-                      preferences?.defaultCurrency || "usd"
-                    )}${fiatAmount}`
+                  ? `${getCurrencySymbol(currency)}${fiatAmount}`
                   : ""}
               </span>
             </div>
           </>
         )}
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center gap-2">
           {!isReversed && (
             <button
               className="text-xs text-gray-500 cursor-pointer hover:underline"
@@ -385,6 +384,18 @@ function Converter() {
           >
             Switch direction
           </button>
+          <select
+            className="text-xs border rounded px-1 py-0.5 ml-2"
+            value={currency}
+            onChange={handleCurrencyChange}
+            disabled={loading}
+          >
+            {supportedCurrencies.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     </section>

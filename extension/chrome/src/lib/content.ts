@@ -23,12 +23,24 @@ async function main() {
     // User preferences (will be populated from database)
     let userPreferences: UserPreferences = {
       id: "default",
-      defaultCurrency: "usd",
+      defaultCurrency: undefined, // Will be set after fetching from background
       displayMode: "dual-display", // Changed default from 'bitcoin-only' to 'dual-display'
       denomination: "btc", // Default to bitcoin (BTC) instead of satoshis
       autoRefresh: true,
       trackStats: true,
     };
+
+    // Supported currencies (will be populated from background)
+    let supportedCurrencies: Array<{ value: string; symbol: string }> = [];
+
+    // Regular expressions for currency patterns (will be built after fetching supportedCurrencies)
+    let currencyRegexes: CurrencyRegexes = {};
+
+    // Get all supported currency symbols
+    let currencySymbols: string[] = [];
+
+    // Create regex that matches any supported currency symbol
+    let currencyRegex: RegExp = new RegExp("");
 
     // Listen for preference update messages from background
     chrome.runtime.onMessage.addListener((message) => {
@@ -45,30 +57,25 @@ async function main() {
       return false;
     });
 
-    // Regular expressions for currency patterns
-    const currencyRegexes: CurrencyRegexes = {
-      usd: /\$[\w,.]+/g,
-      eur: /€[\w,.]+/g,
-      gbp: /£[\w,.]+/g,
-      // Add more currencies as needed
-    };
-
     /**
-     * Converts a dollar string value to a number
+     * Converts a currency string value to a number
      * Handles formats like $1,000.00, $3.92K, $1.12M, $50.24T
      */
-    function convertDollarValue(str: string): number {
+    function convertCurrencyValue(str: string): number {
       const multipliers: Record<string, number> = {
         k: 1e3,
         m: 1e6,
         b: 1e9,
         t: 1e12,
       };
+
+      // Remove currency symbol and clean the string
       const cleaned = str
         .trim()
         .toLowerCase()
-        .replace(/^\$/, "")
+        .replace(currencyRegex, "")
         .replace(/,/g, "");
+
       const match = cleaned.match(/^([\d.]+)([kmbt])?$/);
 
       if (!match) return NaN;
@@ -101,23 +108,29 @@ async function main() {
       }
     };
 
-    // Get Bitcoin price and user preferences from background script
-    async function getBitcoinPriceAndPreferences(): Promise<number> {
+    // Get Bitcoin prices, supported currencies, and user preferences from background script
+    async function getAllBitcoinPricesAndPreferences(): Promise<{
+      prices: Record<string, number>;
+      preferences: UserPreferences;
+      supportedCurrencies: Array<{ value: string; symbol: string }>;
+    }> {
       return new Promise((resolve, reject) => {
         try {
           chrome.runtime.sendMessage(
-            { action: "getBitcoinPrice" },
+            { action: "getAllBitcoinPrices" },
             (response: {
               error?: string;
-              price?: number;
+              prices?: Record<string, number>;
               displayMode?: string;
               currency?: string;
               denomination?: string;
+              supportedCurrencies?: Array<{ value: string; symbol: string }>;
             }) => {
-              // Check for runtime errors (like disconnected extension)
+              console.log("response", response);
+
               if (chrome.runtime.lastError) {
                 console.error(
-                  "Runtime error getting Bitcoin price:",
+                  "Runtime error getting Bitcoin prices:",
                   chrome.runtime.lastError
                 );
                 reject(
@@ -127,9 +140,8 @@ async function main() {
                 );
                 return;
               }
-
               if (response?.error) {
-                console.error("Error getting Bitcoin price:", response.error);
+                console.error("Error getting Bitcoin prices:", response.error);
                 reject(new Error(response.error));
               } else {
                 // Update user preferences if they're included in the response
@@ -149,13 +161,23 @@ async function main() {
                     | "sats";
                   console.log("Denomination set to:", response.denomination);
                 }
-
-                resolve(response?.price || 0);
+                if (response?.supportedCurrencies) {
+                  supportedCurrencies = response.supportedCurrencies;
+                  console.log("supportedCurrencies", supportedCurrencies);
+                }
+                resolve({
+                  prices: response?.prices || {},
+                  preferences: userPreferences,
+                  supportedCurrencies: supportedCurrencies,
+                });
               }
             }
           );
         } catch (error) {
-          console.error("Exception in getBitcoinPriceAndPreferences:", error);
+          console.error(
+            "Exception in getAllBitcoinPricesAndPreferences:",
+            error
+          );
           reject(error);
         }
       });
@@ -218,12 +240,38 @@ async function main() {
     // Make sure preferences are loaded before anything else
     await ensurePreferencesLoaded();
 
-    // Get the Bitcoin price and user preferences
-    const btcPrice = await getBitcoinPriceAndPreferences();
+    // Get all BTC prices, supported currencies, and user preferences
+    const { prices: btcPrices, supportedCurrencies: loadedCurrencies } =
+      await getAllBitcoinPricesAndPreferences();
 
-    if (!btcPrice) {
+    supportedCurrencies = loadedCurrencies;
+
+    function escapeRegex(s: string): string {
+      return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    }
+
+    currencyRegexes = supportedCurrencies.reduce((acc, currency) => {
+      const escapedSymbol = escapeRegex(currency.symbol);
+      acc[currency.value] = new RegExp(
+        `${escapedSymbol}\\s?[\\d,.]+(?:[kmbtKMBT])?`,
+        "gi"
+      );
+      return acc;
+    }, {} as CurrencyRegexes);
+    currencySymbols = supportedCurrencies.map((c) => c.symbol);
+    currencyRegex = new RegExp(
+      `[${currencySymbols.map((s) => `\\${s}`).join("")}]`,
+      "g"
+    );
+
+    if (
+      !btcPrices ||
+      Object.keys(btcPrices).length === 0 ||
+      !supportedCurrencies ||
+      supportedCurrencies.length === 0
+    ) {
       console.warn(
-        "Opportunity Cost: Failed to get BTC price. Prices will not be converted."
+        "Opportunity Cost: Failed to get BTC prices or supported currencies. Prices will not be converted."
       );
       return;
     }
@@ -251,65 +299,49 @@ async function main() {
       }
     };
 
-    // Function to replace fiat prices with satoshi values in a text node
+    // Function to replace fiat prices with satoshi values in a text node (only default currency)
     const replacePrice = (textNode: Text): void => {
       let content = textNode.textContent || "";
       let modified = false;
 
-      // Get the regex for the user's preferred currency
-      const currencyRegex =
-        currencyRegexes[
-          userPreferences.defaultCurrency as keyof typeof currencyRegexes
-        ] || currencyRegexes.usd;
-
       // Text nodes that should be ignored (containing specific patterns)
       const shouldIgnoreNode = (): boolean => {
-        // Ignore text nodes that already have "sats" or "BTC" in them (our own conversions)
         if (content.includes(" sats") || content.includes(" BTC")) {
           return true;
         }
-
-        // Ignore empty or very short text nodes
         if (content.trim().length < 2) {
           return true;
         }
-
-        // Check for text in complex pricing structures
         if (content.includes("List:") || content.includes("Save ")) {
           return true;
         }
-
         return false;
       };
-
-      // Skip processing if this node should be ignored
       if (shouldIgnoreNode()) {
         return;
       }
 
-      // Replace currency based on the current display mode
-      content = content.replace(currencyRegex, (match: string) => {
-        // Check if the matched text is part of a more complex string that might contain
-        // price comparison or multiple prices
-        const surroundingText = content;
-
-        // Skip if there are multiple dollar signs or prices in the text node
-        if ((surroundingText.match(/\$/g) || []).length > 1) {
-          return match; // Return the original match without modification
+      // Only process the default currency
+      const defaultCurrency = userPreferences.defaultCurrency;
+      if (!defaultCurrency) return;
+      const currency = supportedCurrencies.find(
+        (c) => c.value === defaultCurrency
+      );
+      if (!currency) return;
+      const regex = currencyRegexes[currency.value];
+      if (!regex) return;
+      content = content.replace(regex, (match: string) => {
+        // Avoid double conversion in the same node
+        if (content.includes(" sats") || content.includes(" BTC")) {
+          return match;
         }
-
-        modified = true;
-
-        // Parse the fiat value using our conversion function
-        const fiatValue = convertDollarValue(match);
-
-        // Calculate satoshi value
+        // Parse the fiat value
+        const fiatValue = convertCurrencyValue(match);
+        const btcPrice = btcPrices[currency.value];
+        if (!btcPrice) return match;
         const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
-
-        // Increment our conversion counter
         conversionCount++;
-
-        // Return formatted output based on display mode
+        modified = true;
         if (userPreferences.displayMode === "dual-display") {
           return `${match} | ${formatBitcoinValue(satsValue)}`;
         } else {
@@ -317,7 +349,6 @@ async function main() {
         }
       });
 
-      // Update the text node if modifications were made
       if (modified) {
         textNode.textContent = content;
       }
@@ -327,57 +358,53 @@ async function main() {
       document
         .querySelectorAll<HTMLSpanElement>('.a-price span[aria-hidden="true"]')
         .forEach((vis) => {
-          if (vis.dataset.btcProcessed) return; // only once
-          const raw = vis.textContent?.trim() ?? "";
-          if (!/^\$\d{1,3}(?:,\d{3})*(?:\.\d+)?$/.test(raw)) return;
-          // compute sats
-          const fiat = convertDollarValue(raw);
-          const sats = Math.round((fiat / btcPrice) * SATS_IN_BTC);
+          const offscreen =
+            vis.parentElement?.querySelector<HTMLSpanElement>(".a-offscreen");
+          const raw =
+            offscreen?.textContent?.split("|")[0]?.trim() ??
+            vis.textContent?.trim() ??
+            "";
+
+          // Guard clauses to prevent duplicate processing
+          if (vis.dataset.btcProcessed === "1") return;
+          if (offscreen?.textContent?.includes("BTC")) return;
+          if (vis.textContent?.includes("BTC")) return;
+          if (vis.querySelector(".a-price-btc")) return;
+
+          const fiat = convertCurrencyValue(raw);
+          if (isNaN(fiat)) return;
+
+          const sats = Math.round((fiat / btcPrices.usd) * SATS_IN_BTC);
+          const formatted = formatBitcoinValue(sats);
           const conv =
             userPreferences.displayMode === "dual-display"
-              ? `${raw} | ${formatBitcoinValue(sats)}`
-              : formatBitcoinValue(sats);
+              ? `${raw} | ${formatted}`
+              : formatted;
+
           if (userPreferences.displayMode === "bitcoin-only") {
-            // Remove dollar sign span
-            const symbolSpan = vis.querySelector(".a-price-symbol");
-            if (symbolSpan) symbolSpan.remove();
-            // Remove decimal point span
-            const holeSpan = vis.querySelector(".a-price-hole");
-            if (holeSpan) holeSpan.remove();
-            // Replace whole number span with Bitcoin value
-            const wholeSpan = vis.querySelector(".a-price-whole");
-            if (wholeSpan) {
-              wholeSpan.textContent = formatBitcoinValue(sats);
-            }
-            // Remove fraction span
-            const fractionSpan = vis.querySelector(".a-price-fraction");
-            if (fractionSpan) fractionSpan.remove();
+            vis.querySelector(".a-price-symbol")?.remove();
+            const whole = vis.querySelector(".a-price-whole");
+            if (whole) whole.textContent = formatted;
+            vis.querySelector(".a-price-fraction")?.remove();
           } else {
-            // Dual display mode - append Bitcoin value
             const badge = document.createElement("span");
             badge.className = "a-price-btc";
-            badge.textContent = ` | ${formatBitcoinValue(sats)}`;
-            const fractionSpan = vis.querySelector(".a-price-fraction");
-            if (fractionSpan) {
-              fractionSpan.textContent += ` | ${formatBitcoinValue(sats)}`;
-            } else {
-              vis.appendChild(badge);
-            }
+            badge.textContent = ` | ${formatted}`;
+            vis.appendChild(badge);
           }
-          // update the offscreen span so screen-readers get it too
-          const off =
-            vis.parentElement?.querySelector<HTMLSpanElement>(".a-offscreen");
-          if (off) off.textContent = conv;
+
+          if (offscreen && !offscreen.textContent?.includes("BTC")) {
+            offscreen.textContent = conv;
+          }
+
           vis.dataset.btcProcessed = "1";
           conversionCount++;
         });
     }
 
+    // Only process prices and set up observers after data is loaded and valid
     processAmazonPrices();
-    // Start processing the document body
     walkDOM(document.body);
-
-    // Log this page visit with conversion stats
     logPageVisit();
 
     // Set up a MutationObserver to handle dynamically added content

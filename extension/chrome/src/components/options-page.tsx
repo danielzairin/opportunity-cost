@@ -4,10 +4,11 @@ import {
   type PriceRecord,
   type SiteRecord,
 } from "../lib/storage";
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "../lib/constants";
 
 export function OptionsPage() {
   // State for form fields
-  const [defaultCurrency, setDefaultCurrency] = useState("usd");
+  const [defaultCurrency, setDefaultCurrency] = useState(DEFAULT_CURRENCY);
   const [displayMode, setDisplayMode] = useState<
     "bitcoin-only" | "dual-display"
   >("dual-display");
@@ -35,7 +36,7 @@ export function OptionsPage() {
       setSettingsError(null);
       try {
         const preferences = await PriceDatabase.getPreferences();
-        setDefaultCurrency(preferences.defaultCurrency || "usd");
+        setDefaultCurrency(preferences.defaultCurrency || DEFAULT_CURRENCY);
         setDisplayMode(preferences.displayMode || "dual-display");
         setDenomination(preferences.denomination || "btc");
         setAutoRefresh(preferences.autoRefresh !== false); // default true
@@ -174,16 +175,11 @@ export function OptionsPage() {
                 value={defaultCurrency}
                 onChange={(e) => setDefaultCurrency(e.target.value)}
               >
-                <option value="usd">US Dollar (USD)</option>
-                <option value="eur" disabled>
-                  Euro (EUR) - Coming Soon
-                </option>
-                <option value="gbp" disabled>
-                  British Pound (GBP) - Coming Soon
-                </option>
-                <option value="jpy" disabled>
-                  Japanese Yen (JPY) - Coming Soon
-                </option>
+                {SUPPORTED_CURRENCIES.map((currency) => (
+                  <option key={currency.value} value={currency.value}>
+                    {currency.name} ({currency.value.toUpperCase()})
+                  </option>
+                ))}
               </select>
             </div>
 

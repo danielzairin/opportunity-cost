@@ -30,6 +30,7 @@ export default defineConfig({
         background: "./src/lib/background.js",
         storage: "./src/lib/storage.ts",
         content: "./src/lib/content.js",
+        constants: "./src/lib/constants.ts",
       },
       output: {
         entryFileNames: () => {

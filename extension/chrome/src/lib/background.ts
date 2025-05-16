@@ -8,29 +8,39 @@
  * 4. User preferences management
  */
 
-import { PriceDatabase } from "./storage.js";
-import type { UserPreferences } from "./storage.js";
-
-// Constants
-const API_BASE = "http://www.opportunitycost.app/api/bitcoin-price";
-const DEFAULT_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes in milliseconds
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minute cache duration for aggressive caching
-const INITIAL_BACKOFF = 2000; // Initial backoff duration in ms (2 seconds)
-const MAX_BACKOFF = 5 * 60 * 1000; // Maximum backoff duration (5 minutes)
-const MAX_RETRIES = 5; // Maximum number of retry attempts
+import { PriceDatabase } from "./storage";
+import type { UserPreferences } from "./storage";
+import {
+  API_BASE,
+  DEFAULT_REFRESH_INTERVAL,
+  CACHE_DURATION,
+  INITIAL_BACKOFF,
+  MAX_BACKOFF,
+  MAX_RETRIES,
+  SUPPORTED_CURRENCIES,
+} from "./constants";
 
 // Supported currencies as a tuple and type
-type SupportedCurrency =
-  | "usd"
-  | "eur"
-  | "gbp"
-  | "jpy"
-  | "cny"
-  | "inr"
-  | "cad"
-  | "aud"
-  | "chf"
-  | "sgd";
+type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number]["value"];
+
+interface MessageRequest {
+  action: string;
+  url?: string;
+  conversionCount?: number;
+}
+
+interface MessageResponse {
+  success?: boolean;
+  trackingDisabled?: boolean;
+  price?: number | null;
+  prices?: Record<string, number>;
+  displayMode?: string;
+  currency?: string;
+  denomination?: string;
+  preferences?: UserPreferences;
+  error?: string;
+  supportedCurrencies?: Array<{ value: string; symbol: string }>;
+}
 
 interface BitcoinPriceAPIResponse {
   bitcoin: Record<SupportedCurrency, number>;
@@ -100,20 +110,23 @@ function applyUserPreferences(): void {
 
   if (userPreferences?.autoRefresh) {
     priceRefreshInterval = self.setInterval(
-      fetchAndStoreBitcoinPrice,
+      fetchAndStoreAllBitcoinPrices,
       DEFAULT_REFRESH_INTERVAL
     );
   }
 }
 
-// Fetch and store Bitcoin price for all supported currencies
-async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
+// Fetch and store Bitcoin prices for all supported currencies at once
+async function fetchAndStoreAllBitcoinPrices(): Promise<Record<
+  string,
+  number
+> | null> {
   if (!userPreferences) {
     await loadUserPreferences();
   }
 
   try {
-    // Fetch current price for all currencies from new API
+    // Fetch current prices for all currencies from API
     const response = await fetch(API_BASE);
 
     if (!response.ok) {
@@ -132,7 +145,7 @@ async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
             setTimeout(async () => {
               // Double the backoff time for next potential retry (exponential backoff)
               backoffTime = Math.min(backoffTime * 2, MAX_BACKOFF);
-              const result = await fetchAndStoreBitcoinPrice();
+              const result = await fetchAndStoreAllBitcoinPrices();
               resolve(result);
             }, backoffTime);
           });
@@ -147,7 +160,7 @@ async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
         }
       } else {
         console.warn(
-          `Failed to fetch BTC price from API: ${response.status} ${response.statusText}`
+          `Failed to fetch BTC prices from API: ${response.status} ${response.statusText}`
         );
         return null;
       }
@@ -175,12 +188,9 @@ async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
     });
     await Promise.all(savePromises);
 
-    // Return the price for the user's preferred currency
-    const preferredCurrency = (userPreferences?.defaultCurrency ||
-      "usd") as SupportedCurrency;
-    return prices[preferredCurrency] ?? null;
+    return prices;
   } catch (error) {
-    console.error("Error fetching or storing BTC price:", error);
+    console.error("Error fetching or storing BTC prices:", error);
 
     // Handle network errors with backoff as well
     if (retryCount < MAX_RETRIES) {
@@ -193,7 +203,7 @@ async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
         setTimeout(async () => {
           // Double the backoff time for next potential retry
           backoffTime = Math.min(backoffTime * 2, MAX_BACKOFF);
-          const result = await fetchAndStoreBitcoinPrice();
+          const result = await fetchAndStoreAllBitcoinPrices();
           resolve(result);
         }, backoffTime);
       });
@@ -209,47 +219,35 @@ async function fetchAndStoreBitcoinPrice(): Promise<number | null> {
   }
 }
 
-// Get Bitcoin price (from database if available, or fetch from API)
-async function getBitcoinPrice(): Promise<number | null> {
+// Get all Bitcoin prices (from database if available, or fetch from API)
+async function getAllBitcoinPrices(): Promise<Record<string, number> | null> {
   if (!userPreferences) {
     await loadUserPreferences();
   }
 
   try {
-    const currency = userPreferences?.defaultCurrency || "usd";
-
-    // Try to get the latest price from the database first
-    const storedPrice = await PriceDatabase.getLatestBitcoinPrice(currency);
-
-    // If we have a recent price (less than 5 minutes old), use it
-    if (storedPrice && Date.now() - storedPrice.timestamp < CACHE_DURATION) {
-      console.log(`Using cached BTC price (${currency}): ${storedPrice.price}`);
-      return storedPrice.price;
+    // Try to get the latest prices for all supported currencies from the database
+    const prices: Record<string, number> = {};
+    let allHaveRecent = true;
+    for (const currency of SUPPORTED_CURRENCIES) {
+      const storedPrice = await PriceDatabase.getLatestBitcoinPrice(
+        currency.value
+      );
+      if (storedPrice && Date.now() - storedPrice.timestamp < CACHE_DURATION) {
+        prices[currency.value] = storedPrice.price;
+      } else {
+        allHaveRecent = false;
+      }
     }
-
-    // Otherwise fetch a fresh price
-    return await fetchAndStoreBitcoinPrice();
+    if (allHaveRecent && Object.keys(prices).length > 0) {
+      return prices;
+    }
+    // Otherwise fetch fresh prices
+    return await fetchAndStoreAllBitcoinPrices();
   } catch (error) {
-    console.error("Error getting Bitcoin price:", error);
+    console.error("Error getting all Bitcoin prices:", error);
     return null;
   }
-}
-
-interface MessageRequest {
-  action: string;
-  url?: string;
-  conversionCount?: number;
-}
-
-interface MessageResponse {
-  success?: boolean;
-  trackingDisabled?: boolean;
-  price?: number | null;
-  displayMode?: string;
-  currency?: string;
-  denomination?: string;
-  preferences?: UserPreferences;
-  error?: string;
 }
 
 // Listen for messages from content scripts and options page
@@ -259,23 +257,25 @@ chrome.runtime.onMessage.addListener(
     _sender: chrome.runtime.MessageSender,
     sendResponse: (response?: MessageResponse) => void
   ) => {
-    if (message.action === "getBitcoinPrice") {
-      // Using an async function in a listener requires this promise handling pattern
-      getBitcoinPrice()
-        .then((price) => {
+    if (message.action === "getAllBitcoinPrices") {
+      getAllBitcoinPrices()
+        .then((prices) => {
+          if (!prices) {
+            sendResponse({ error: "Failed to get Bitcoin prices" });
+            return;
+          }
           sendResponse({
-            price: price,
+            prices,
             displayMode: userPreferences?.displayMode || "dual-display",
             currency: userPreferences?.defaultCurrency || "usd",
             denomination: userPreferences?.denomination || "btc",
+            supportedCurrencies: SUPPORTED_CURRENCIES,
           });
         })
         .catch((error: Error) => {
-          console.error("Error in getBitcoinPrice:", error);
+          console.error("Error in getAllBitcoinPrices:", error);
           sendResponse({ error: error.message });
         });
-
-      // Return true to indicate we'll respond asynchronously
       return true;
     } else if (message.action === "saveVisitedSite") {
       // Only save site data if tracking is enabled
@@ -396,7 +396,7 @@ async function initialize(): Promise<void> {
 
     // Then try to fetch Bitcoin price
     try {
-      await fetchAndStoreBitcoinPrice();
+      await fetchAndStoreAllBitcoinPrices();
     } catch (priceError) {
       console.error("Failed to fetch initial Bitcoin price:", priceError);
       // We'll retry later via the auto-refresh mechanism
