@@ -247,7 +247,7 @@ async function main() {
     supportedCurrencies = loadedCurrencies;
 
     function escapeRegex(s: string): string {
-      return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+      return s.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
     }
 
     currencyRegexes = supportedCurrencies.reduce((acc, currency) => {
@@ -358,46 +358,47 @@ async function main() {
       document
         .querySelectorAll<HTMLSpanElement>('.a-price span[aria-hidden="true"]')
         .forEach((vis) => {
-          const offscreen =
-            vis.parentElement?.querySelector<HTMLSpanElement>(".a-offscreen");
-          const raw =
-            offscreen?.textContent?.split("|")[0]?.trim() ??
-            vis.textContent?.trim() ??
-            "";
+          // Ensure the element doesn't contain any currency symbols
+          if (!vis || !vis.textContent || vis.children.length === 0) return;
 
-          // Guard clauses to prevent duplicate processing
-          if (vis.dataset.btcProcessed === "1") return;
-          if (offscreen?.textContent?.includes("BTC")) return;
-          if (vis.textContent?.includes("BTC")) return;
-          if (vis.querySelector(".a-price-btc")) return;
+          // Skip if already processed
+          if (vis.querySelector(".oc-btc-price")) return;
 
-          const fiat = convertCurrencyValue(raw);
-          if (isNaN(fiat)) return;
+          const parent = vis.closest(".a-price");
+          if (!parent) return;
+          const currency = supportedCurrencies.find(
+            (c) => c.value === userPreferences.defaultCurrency
+          );
+          if (!currency) return;
+          const btcPrice = btcPrices[currency.value];
+          if (!btcPrice) return;
 
-          const sats = Math.round((fiat / btcPrices.usd) * SATS_IN_BTC);
-          const formatted = formatBitcoinValue(sats);
-          const conv =
-            userPreferences.displayMode === "dual-display"
-              ? `${raw} | ${formatted}`
-              : formatted;
+          const fiatValue = convertCurrencyValue(vis.textContent);
+
+          const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+          const btcDisplay = formatBitcoinValue(sats);
+          const displayMode = userPreferences.displayMode;
+          const formatted =
+            displayMode === "dual-display" ? ` | ${btcDisplay}` : btcDisplay;
+          const screenReaderSpan = vis.querySelector(".a-offscreen");
+          if (screenReaderSpan) {
+            screenReaderSpan.textContent += formatted;
+          }
+          const label = document.createElement("span");
+          label.className = "oc-btc-price";
+          label.textContent = formatted;
+
+          vis.appendChild(label);
 
           if (userPreferences.displayMode === "bitcoin-only") {
-            vis.querySelector(".a-price-symbol")?.remove();
-            const whole = vis.querySelector(".a-price-whole");
-            if (whole) whole.textContent = formatted;
-            vis.querySelector(".a-price-fraction")?.remove();
-          } else {
-            const badge = document.createElement("span");
-            badge.className = "a-price-btc";
-            badge.textContent = ` | ${formatted}`;
-            vis.appendChild(badge);
+            const priceSymbol = vis.querySelector(".a-price-symbol");
+            const priceWhole = vis.querySelector(".a-price-whole");
+            const priceFraction = vis.querySelector(".a-price-fraction");
+            if (priceSymbol) priceSymbol.remove();
+            if (priceWhole) priceWhole.remove();
+            if (priceFraction) priceFraction.remove();
           }
 
-          if (offscreen && !offscreen.textContent?.includes("BTC")) {
-            offscreen.textContent = conv;
-          }
-
-          vis.dataset.btcProcessed = "1";
           conversionCount++;
         });
     }
