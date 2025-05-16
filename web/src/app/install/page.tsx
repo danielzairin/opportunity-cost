@@ -72,9 +72,14 @@ export default function InstallPage() {
                 </h3>
                 <p>
                   In Chrome, navigate to{" "}
-                  <code className="bg-gray-100 px-2 py-1 rounded">
-                    chrome://extensions
-                  </code>{" "}
+                  <a
+                    href="chrome://extensions"
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <code className="bg-gray-100 px-2 py-1 rounded">
+                      chrome://extensions
+                    </code>
+                  </a>{" "}
                   in your address bar.
                 </p>
               </li>

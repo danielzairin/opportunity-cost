@@ -13,8 +13,8 @@ export function OptionsPage() {
     "bitcoin-only" | "dual-display"
   >("dual-display");
   const [denomination, setDenomination] = useState<"btc" | "sats">("btc");
-  const [autoRefresh, setAutoRefresh] = useState(true);
   const [trackStats, setTrackStats] = useState(true);
+  const [highlightBitcoinOnly, setHighlightBitcoinOnly] = useState(false);
   const [saveMessage, setSaveMessage] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [settingsError, setSettingsError] = useState<string | null>(null);
@@ -39,8 +39,8 @@ export function OptionsPage() {
         setDefaultCurrency(preferences.defaultCurrency || DEFAULT_CURRENCY);
         setDisplayMode(preferences.displayMode || "dual-display");
         setDenomination(preferences.denomination || "btc");
-        setAutoRefresh(preferences.autoRefresh !== false); // default true
         setTrackStats(preferences.trackStats !== false); // default true
+        setHighlightBitcoinOnly(preferences.highlightBitcoinOnly === true); // default false
       } catch {
         setSettingsError("Error loading settings");
       } finally {
@@ -105,8 +105,8 @@ export function OptionsPage() {
         defaultCurrency,
         displayMode,
         denomination,
-        autoRefresh,
         trackStats,
+        highlightBitcoinOnly,
       });
       // Notify background script that preferences have been updated
       chrome.runtime.sendMessage({ action: "preferencesUpdated" });
@@ -133,7 +133,6 @@ export function OptionsPage() {
         defaultCurrency: "usd",
         displayMode: "dual-display",
         denomination: "btc",
-        autoRefresh: true,
         trackStats: true,
         lastUpdated: Date.now(),
       });
@@ -168,6 +167,9 @@ export function OptionsPage() {
               >
                 Default Currency:
               </label>
+              <p className="text-sm text-gray-600 mb-2">
+                The currency that will be converted to Bitcoin.
+              </p>
               <select
                 id="default-currency"
                 name="defaultCurrency"
@@ -234,20 +236,6 @@ export function OptionsPage() {
               <label className="inline-flex items-center font-bold">
                 <input
                   type="checkbox"
-                  id="auto-refresh"
-                  name="autoRefresh"
-                  className="mr-2"
-                  checked={autoRefresh}
-                  onChange={(e) => setAutoRefresh(e.target.checked)}
-                />
-                Auto-refresh prices every 15 minutes
-              </label>
-            </div>
-
-            <div className="mb-4">
-              <label className="inline-flex items-center font-bold">
-                <input
-                  type="checkbox"
                   id="track-stats"
                   name="trackStats"
                   className="mr-2"
@@ -258,9 +246,26 @@ export function OptionsPage() {
               </label>
             </div>
 
+            <div className="mb-4">
+              <label className="inline-flex items-center font-bold">
+                <input
+                  type="checkbox"
+                  id="highlight-bitcoin-only"
+                  name="highlightBitcoinOnly"
+                  className="mr-2"
+                  checked={highlightBitcoinOnly}
+                  onChange={(e) => setHighlightBitcoinOnly(e.target.checked)}
+                />
+                Highlight Bitcoin values
+              </label>
+              <p className="text-sm text-gray-600 mb-2 ml-5">
+                Highlight Bitcoin values in "Bitcoin Only" mode
+              </p>
+            </div>
+
             <button
               type="submit"
-              className="bg-orange-500 hover:bg-orange-600 cursor-pointer text-white font-bold py-2 px-4 rounded mt-2"
+              className="bg-primary hover:bg-orange-800/80 text-white font-bold py-2 px-4 rounded mt-2"
             >
               Save Settings
             </button>
@@ -286,14 +291,14 @@ export function OptionsPage() {
           href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded inline-block"
+          className="bg-foreground hover:bg-gray-800 text-background font-bold py-3 px-6 rounded inline-block"
         >
           Subscribe to Bitcoin Brief
         </a>
       </div>
 
       <div className="bg-white rounded-lg p-6 my-6 shadow">
-        <h2 className="text-xl font-semibold mb-4">Price History</h2>
+        <h2 className="text-xl font-semibold mb-4">Bitcoin Price History</h2>
         {loadingHistory ? (
           <div className="text-gray-400">Loading price history data...</div>
         ) : historyError ? (
@@ -406,7 +411,7 @@ export function OptionsPage() {
         </div>
         <button
           onClick={handleClearData}
-          className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mt-4"
+          className="bg-foreground hover:bg-gray-700 text-background font-bold py-2 px-4 rounded mt-4"
         >
           Clear All Data
         </button>

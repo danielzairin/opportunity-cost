@@ -34,12 +34,9 @@ interface MessageResponse {
   trackingDisabled?: boolean;
   price?: number | null;
   prices?: Record<string, number>;
-  displayMode?: string;
-  currency?: string;
-  denomination?: string;
-  preferences?: UserPreferences;
   error?: string;
   supportedCurrencies?: Array<{ value: string; symbol: string }>;
+  preferences?: UserPreferences;
 }
 
 interface BitcoinPriceAPIResponse {
@@ -80,8 +77,8 @@ async function loadUserPreferences(): Promise<UserPreferences> {
       defaultCurrency: "usd",
       displayMode: "dual-display",
       denomination: "btc", // Default to BTC instead of sats
-      autoRefresh: true,
       trackStats: true,
+      highlightBitcoinOnly: false, // Default to no highlighting
       lastUpdated: Date.now(),
     };
 
@@ -102,18 +99,17 @@ async function loadUserPreferences(): Promise<UserPreferences> {
 
 // Apply user preferences to extension behavior
 function applyUserPreferences(): void {
-  // Set up auto-refresh based on preferences
+  // Always set up auto-refresh
   if (priceRefreshInterval) {
     self.clearInterval(priceRefreshInterval);
     priceRefreshInterval = null;
   }
 
-  if (userPreferences?.autoRefresh) {
-    priceRefreshInterval = self.setInterval(
-      fetchAndStoreAllBitcoinPrices,
-      DEFAULT_REFRESH_INTERVAL
-    );
-  }
+  // Always refresh prices automatically
+  priceRefreshInterval = self.setInterval(
+    fetchAndStoreAllBitcoinPrices,
+    DEFAULT_REFRESH_INTERVAL
+  );
 }
 
 // Fetch and store Bitcoin prices for all supported currencies at once
@@ -257,20 +253,78 @@ chrome.runtime.onMessage.addListener(
     _sender: chrome.runtime.MessageSender,
     sendResponse: (response?: MessageResponse) => void
   ) => {
-    if (message.action === "getAllBitcoinPrices") {
+    // Get Bitcoin prices only
+    if (message.action === "getBitcoinPrices") {
       getAllBitcoinPrices()
         .then((prices) => {
           if (!prices) {
             sendResponse({ error: "Failed to get Bitcoin prices" });
             return;
           }
-          sendResponse({
-            prices,
-            displayMode: userPreferences?.displayMode || "dual-display",
-            currency: userPreferences?.defaultCurrency || "usd",
-            denomination: userPreferences?.denomination || "btc",
-            supportedCurrencies: SUPPORTED_CURRENCIES,
+          sendResponse({ prices });
+        })
+        .catch((error: Error) => {
+          console.error("Error in getBitcoinPrices:", error);
+          sendResponse({ error: error.message });
+        });
+      return true;
+    }
+    // Get supported currencies only
+    else if (message.action === "getSupportedCurrencies") {
+      sendResponse({ supportedCurrencies: SUPPORTED_CURRENCIES });
+      return false; // No async operation
+    }
+    // Get complete user preferences
+    else if (message.action === "getPreferences") {
+      // Send current preferences to content script
+      if (userPreferences) {
+        sendResponse({ preferences: userPreferences });
+      } else {
+        loadUserPreferences()
+          .then((prefs) => {
+            sendResponse({ preferences: prefs });
+          })
+          .catch((error: Error) => {
+            console.error("Error loading preferences:", error);
+            sendResponse({ error: error.message });
           });
+      }
+      return true;
+    }
+    // Legacy handler for backward compatibility
+    else if (message.action === "getAllBitcoinPrices") {
+      getAllBitcoinPrices()
+        .then((prices) => {
+          if (!prices) {
+            sendResponse({ error: "Failed to get Bitcoin prices" });
+            return;
+          }
+
+          // Load preferences if needed
+          if (!userPreferences) {
+            loadUserPreferences()
+              .then((prefs) => {
+                sendResponse({
+                  prices,
+                  supportedCurrencies: SUPPORTED_CURRENCIES,
+                  preferences: prefs,
+                });
+              })
+              .catch((error: Error) => {
+                console.error("Error loading preferences:", error);
+                sendResponse({
+                  prices,
+                  supportedCurrencies: SUPPORTED_CURRENCIES,
+                  error: "Error loading preferences: " + error.message,
+                });
+              });
+          } else {
+            sendResponse({
+              prices,
+              supportedCurrencies: SUPPORTED_CURRENCIES,
+              preferences: userPreferences,
+            });
+          }
         })
         .catch((error: Error) => {
           console.error("Error in getAllBitcoinPrices:", error);
@@ -344,22 +398,6 @@ chrome.runtime.onMessage.addListener(
         });
 
       return true;
-    } else if (message.action === "getPreferences") {
-      // Send current preferences to content script
-      if (userPreferences) {
-        sendResponse({ preferences: userPreferences });
-      } else {
-        loadUserPreferences()
-          .then((prefs) => {
-            sendResponse({ preferences: prefs });
-          })
-          .catch((error: Error) => {
-            console.error("Error loading preferences:", error);
-            sendResponse({ error: error.message });
-          });
-      }
-
-      return true;
     }
 
     return false;
@@ -388,8 +426,8 @@ async function initialize(): Promise<void> {
         defaultCurrency: "usd",
         displayMode: "dual-display",
         denomination: "btc",
-        autoRefresh: true,
         trackStats: true,
+        highlightBitcoinOnly: false,
         lastUpdated: Date.now(),
       };
     }

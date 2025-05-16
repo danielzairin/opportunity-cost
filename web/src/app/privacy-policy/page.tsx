@@ -1,5 +1,11 @@
 import React from "react";
 import { Header } from "@/components/landing-page/header";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Privacy Policy for Opportunity Cost Browser Extension",
+};
 
 export default function PrivacyPolicyPage() {
   return (

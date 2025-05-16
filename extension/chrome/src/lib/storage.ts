@@ -27,8 +27,8 @@ export interface UserPreferences {
   defaultCurrency?: string;
   displayMode?: "bitcoin-only" | "dual-display";
   denomination?: "btc" | "sats";
-  autoRefresh?: boolean;
   trackStats?: boolean;
+  highlightBitcoinOnly?: boolean;
   lastUpdated?: number;
 }
 
@@ -462,7 +462,6 @@ const PriceDatabase = {
               defaultCurrency: "usd",
               displayMode: "dual-display",
               denomination: "btc",
-              autoRefresh: true,
               trackStats: true,
               lastUpdated: Date.now(),
             };
@@ -487,7 +486,6 @@ const PriceDatabase = {
             defaultCurrency: "usd",
             displayMode: "dual-display",
             denomination: "btc",
-            autoRefresh: true,
             trackStats: true,
             lastUpdated: Date.now(),
           };

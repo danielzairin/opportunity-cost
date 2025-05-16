@@ -8,10 +8,6 @@
 
 import type { UserPreferences } from "./storage";
 
-interface CurrencyRegexes {
-  [key: string]: RegExp;
-}
-
 async function main() {
   try {
     // Constants
@@ -26,15 +22,12 @@ async function main() {
       defaultCurrency: undefined, // Will be set after fetching from background
       displayMode: "dual-display", // Changed default from 'bitcoin-only' to 'dual-display'
       denomination: "btc", // Default to bitcoin (BTC) instead of satoshis
-      autoRefresh: true,
       trackStats: true,
+      highlightBitcoinOnly: false, // Default to no highlighting
     };
 
     // Supported currencies (will be populated from background)
     let supportedCurrencies: Array<{ value: string; symbol: string }> = [];
-
-    // Regular expressions for currency patterns (will be built after fetching supportedCurrencies)
-    let currencyRegexes: CurrencyRegexes = {};
 
     // Get all supported currency symbols
     let currencySymbols: string[] = [];
@@ -61,7 +54,10 @@ async function main() {
      * Converts a currency string value to a number
      * Handles formats like $1,000.00, $3.92K, $1.12M, $50.24T
      */
-    function convertCurrencyValue(str: string): number {
+    function convertCurrencyValue(
+      str: string,
+      currencySymbol?: string
+    ): number {
       const multipliers: Record<string, number> = {
         k: 1e3,
         m: 1e6,
@@ -73,7 +69,12 @@ async function main() {
       const cleaned = str
         .trim()
         .toLowerCase()
-        .replace(currencyRegex, "")
+        .replace(
+          currencySymbol
+            ? new RegExp(`\\${currencySymbol}`, "g")
+            : currencyRegex,
+          ""
+        )
         .replace(/,/g, "");
 
       const match = cleaned.match(/^([\d.]+)([kmbt])?$/);
@@ -108,24 +109,13 @@ async function main() {
       }
     };
 
-    // Get Bitcoin prices, supported currencies, and user preferences from background script
-    async function getAllBitcoinPricesAndPreferences(): Promise<{
-      prices: Record<string, number>;
-      preferences: UserPreferences;
-      supportedCurrencies: Array<{ value: string; symbol: string }>;
-    }> {
+    // Get Bitcoin prices from background script
+    async function getBitcoinPrices(): Promise<Record<string, number>> {
       return new Promise((resolve, reject) => {
         try {
           chrome.runtime.sendMessage(
-            { action: "getAllBitcoinPrices" },
-            (response: {
-              error?: string;
-              prices?: Record<string, number>;
-              displayMode?: string;
-              currency?: string;
-              denomination?: string;
-              supportedCurrencies?: Array<{ value: string; symbol: string }>;
-            }) => {
+            { action: "getBitcoinPrices" },
+            (response: { error?: string; prices?: Record<string, number> }) => {
               if (chrome.runtime.lastError) {
                 console.error(
                   "Runtime error getting Bitcoin prices:",
@@ -142,47 +132,61 @@ async function main() {
                 console.error("Error getting Bitcoin prices:", response.error);
                 reject(new Error(response.error));
               } else {
-                // Update user preferences if they're included in the response
-                if (response?.displayMode) {
-                  userPreferences.displayMode = response.displayMode as
-                    | "bitcoin-only"
-                    | "dual-display";
-                  console.log("Display mode set to:", response.displayMode);
-                }
-                if (response?.currency) {
-                  userPreferences.defaultCurrency = response.currency;
-                  console.log("Currency set to:", response.currency);
-                }
-                if (response?.denomination) {
-                  userPreferences.denomination = response.denomination as
-                    | "btc"
-                    | "sats";
-                  console.log("Denomination set to:", response.denomination);
-                }
-                if (response?.supportedCurrencies) {
-                  supportedCurrencies = response.supportedCurrencies;
-                  console.log("supportedCurrencies", supportedCurrencies);
-                }
-                resolve({
-                  prices: response?.prices || {},
-                  preferences: userPreferences,
-                  supportedCurrencies: supportedCurrencies,
-                });
+                resolve(response?.prices || {});
               }
             }
           );
         } catch (error) {
-          console.error(
-            "Exception in getAllBitcoinPricesAndPreferences:",
-            error
+          console.error("Exception in getBitcoinPrices:", error);
+          reject(error);
+        }
+      });
+    }
+
+    // Get supported currencies from background script
+    async function getSupportedCurrencies(): Promise<
+      Array<{ value: string; symbol: string }>
+    > {
+      return new Promise((resolve, reject) => {
+        try {
+          chrome.runtime.sendMessage(
+            { action: "getSupportedCurrencies" },
+            (response: {
+              error?: string;
+              supportedCurrencies?: Array<{ value: string; symbol: string }>;
+            }) => {
+              if (chrome.runtime.lastError) {
+                console.error(
+                  "Runtime error getting supported currencies:",
+                  chrome.runtime.lastError
+                );
+                reject(
+                  new Error(
+                    chrome.runtime.lastError.message || "Extension disconnected"
+                  )
+                );
+                return;
+              }
+              if (response?.error) {
+                console.error(
+                  "Error getting supported currencies:",
+                  response.error
+                );
+                reject(new Error(response.error));
+              } else {
+                resolve(response?.supportedCurrencies || []);
+              }
+            }
           );
+        } catch (error) {
+          console.error("Exception in getSupportedCurrencies:", error);
           reject(error);
         }
       });
     }
 
     // Make sure we have the latest preferences before doing anything else
-    async function ensurePreferencesLoaded(): Promise<UserPreferences> {
+    async function getUserPreferences(): Promise<UserPreferences> {
       return new Promise((resolve) => {
         try {
           chrome.runtime.sendMessage(
@@ -216,7 +220,7 @@ async function main() {
             }
           );
         } catch (error) {
-          console.error("Exception in ensurePreferencesLoaded:", error);
+          console.error("Exception in getUserPreferences:", error);
           resolve(userPreferences); // Fall back to defaults
         }
       });
@@ -235,27 +239,52 @@ async function main() {
       }
     }
 
-    // Make sure preferences are loaded before anything else
-    await ensurePreferencesLoaded();
+    // Initialize data by loading preferences, currencies, and prices
+    async function initializeData(): Promise<{
+      preferences: UserPreferences;
+      currencies: Array<{ value: string; symbol: string }>;
+      prices: Record<string, number>;
+    }> {
+      try {
+        // First load user preferences
+        const preferences = await getUserPreferences();
 
-    // Get all BTC prices, supported currencies, and user preferences
-    const { prices: btcPrices, supportedCurrencies: loadedCurrencies } =
-      await getAllBitcoinPricesAndPreferences();
+        // Then load supported currencies
+        const currencies = await getSupportedCurrencies();
 
-    supportedCurrencies = loadedCurrencies;
+        // Finally load Bitcoin prices
+        const prices = await getBitcoinPrices();
+
+        return { preferences, currencies, prices };
+      } catch (error) {
+        console.error("Error initializing data:", error);
+        // Return defaults for any data we couldn't load
+        return {
+          preferences: userPreferences,
+          currencies: [],
+          prices: {},
+        };
+      }
+    }
+
+    // Initialize all data before proceeding
+    const { currencies, prices: btcPrices } = await initializeData();
+
+    // Set up supportedCurrencies from loaded data
+    supportedCurrencies = currencies;
 
     function escapeRegex(s: string): string {
       return s.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
     }
 
-    currencyRegexes = supportedCurrencies.reduce((acc, currency) => {
-      const escapedSymbol = escapeRegex(currency.symbol);
-      acc[currency.value] = new RegExp(
-        `${escapedSymbol}\\s?[\\d,.]+(?:[kmbtKMBT])?`,
-        "gi"
-      );
-      return acc;
-    }, {} as CurrencyRegexes);
+    // currencyRegexes = supportedCurrencies.reduce((acc, currency) => {
+    //   const escapedSymbol = escapeRegex(currency.symbol);
+    //   acc[currency.value] = new RegExp(
+    //     `${escapedSymbol}\\s?[\\d,.]+(?:[kmbtKMBT])?`,
+    //     "gi"
+    //   );
+    //   return acc;
+    // }, {} as CurrencyRegexes);
     currencySymbols = supportedCurrencies.map((c) => c.symbol);
     currencyRegex = new RegExp(
       `[${currencySymbols.map((s) => `\\${s}`).join("")}]`,
@@ -299,9 +328,12 @@ async function main() {
 
     // Helper to apply bitcoin-only label styles
     function applyBitcoinOnlyLabelStyles(label: HTMLElement) {
-      label.style.backgroundColor = "rgba(240, 138, 93, 0.2)";
-      label.style.padding = "0 4px";
-      label.style.borderRadius = "4px";
+      // Only apply highlighting if the user has enabled that option
+      if (userPreferences.highlightBitcoinOnly) {
+        label.style.backgroundColor = "rgba(240, 138, 93, 0.2)";
+        label.style.padding = "0 4px";
+        label.style.borderRadius = "4px";
+      }
     }
 
     // Function to replace fiat prices with satoshi values in a text node (only default currency)
@@ -333,8 +365,16 @@ async function main() {
         (c) => c.value === defaultCurrency
       );
       if (!currency) return;
-      const regex = currencyRegexes[currency.value];
-      if (!regex) return;
+
+      // Use the exact symbol of the default currency
+      const currencySymbol = currency.symbol;
+      if (!currencySymbol) return;
+
+      // Create a specific regex for just this currency symbol
+      const regex = new RegExp(
+        `${escapeRegex(currencySymbol)}\\s?[\\d,.]+(?:[kmbtKMBT])?`,
+        "gi"
+      );
 
       // If in bitcoin-only mode, replace matched text with a styled span
       if (userPreferences.displayMode === "bitcoin-only") {
@@ -352,7 +392,7 @@ async function main() {
             );
           }
           // Parse the fiat value
-          const fiatValue = convertCurrencyValue(match[0]);
+          const fiatValue = convertCurrencyValue(match[0], currencySymbol);
           const btcPrice = btcPrices[currency.value];
           if (!btcPrice) {
             frag.appendChild(document.createTextNode(match[0]));
@@ -387,7 +427,7 @@ async function main() {
           return match;
         }
         // Parse the fiat value
-        const fiatValue = convertCurrencyValue(match);
+        const fiatValue = convertCurrencyValue(match, currencySymbol);
         const btcPrice = btcPrices[currency.value];
         if (!btcPrice) return match;
         const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
@@ -417,14 +457,23 @@ async function main() {
 
           const parent = vis.closest(".a-price");
           if (!parent) return;
+
+          // Only process the default currency
           const currency = supportedCurrencies.find(
             (c) => c.value === userPreferences.defaultCurrency
           );
           if (!currency) return;
+
+          // Check if the price starts with the user's default currency symbol
+          if (!vis.textContent.trim().startsWith(currency.symbol)) return;
+
           const btcPrice = btcPrices[currency.value];
           if (!btcPrice) return;
 
-          const fiatValue = convertCurrencyValue(vis.textContent);
+          const fiatValue = convertCurrencyValue(
+            vis.textContent,
+            currency.symbol
+          );
 
           const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
           const btcDisplay = formatBitcoinValue(sats);

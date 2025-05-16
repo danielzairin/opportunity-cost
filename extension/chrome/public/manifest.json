@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "manifest_version": 3,
   "permissions": ["activeTab", "scripting", "storage", "contextMenus"],
-  "host_permissions": ["https://api.coingecko.com/*"],
+  "host_permissions": ["https://www.opportunitycost.com/api/*"],
   "action": {
     "default_title": "Opportunity Cost",
     "default_icon": {

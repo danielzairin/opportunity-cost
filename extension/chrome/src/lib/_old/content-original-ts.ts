@@ -53,7 +53,6 @@ interface CurrencyRegexes {
       defaultCurrency: "usd",
       displayMode: "dual-display", // Changed default from 'sats-only' to 'dual-display'
       denomination: "btc", // Default to bitcoin (BTC) instead of satoshis
-      autoRefresh: true,
       trackStats: true,
     };
 
