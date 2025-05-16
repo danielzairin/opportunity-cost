@@ -28,7 +28,7 @@ export interface UserPreferences {
   displayMode?: "bitcoin-only" | "dual-display";
   denomination?: "btc" | "sats";
   trackStats?: boolean;
-  highlightBitcoinOnly?: boolean;
+  highlightBitcoinValue?: boolean;
   lastUpdated?: number;
 }
 

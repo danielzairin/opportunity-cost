@@ -14,7 +14,7 @@ export function OptionsPage() {
   >("dual-display");
   const [denomination, setDenomination] = useState<"btc" | "sats">("btc");
   const [trackStats, setTrackStats] = useState(true);
-  const [highlightBitcoinOnly, setHighlightBitcoinOnly] = useState(false);
+  const [highlightBitcoinValue, sethighlightBitcoinValue] = useState(false);
   const [saveMessage, setSaveMessage] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [settingsError, setSettingsError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function OptionsPage() {
         setDisplayMode(preferences.displayMode || "dual-display");
         setDenomination(preferences.denomination || "btc");
         setTrackStats(preferences.trackStats !== false); // default true
-        setHighlightBitcoinOnly(preferences.highlightBitcoinOnly === true); // default false
+        sethighlightBitcoinValue(preferences.highlightBitcoinValue === true); // default false
       } catch {
         setSettingsError("Error loading settings");
       } finally {
@@ -106,7 +106,7 @@ export function OptionsPage() {
         displayMode,
         denomination,
         trackStats,
-        highlightBitcoinOnly,
+        highlightBitcoinValue,
       });
       // Notify background script that preferences have been updated
       chrome.runtime.sendMessage({ action: "preferencesUpdated" });
@@ -250,16 +250,20 @@ export function OptionsPage() {
               <label className="inline-flex items-center font-bold">
                 <input
                   type="checkbox"
-                  id="highlight-bitcoin-only"
-                  name="highlightBitcoinOnly"
+                  id="highlight-bitcoin-value"
+                  name="highlightBitcoinValue"
                   className="mr-2"
-                  checked={highlightBitcoinOnly}
-                  onChange={(e) => setHighlightBitcoinOnly(e.target.checked)}
+                  checked={highlightBitcoinValue}
+                  onChange={(e) => sethighlightBitcoinValue(e.target.checked)}
                 />
                 Highlight Bitcoin values
               </label>
               <p className="text-sm text-gray-600 mb-2 ml-5">
-                Highlight Bitcoin values in "Bitcoin Only" mode
+                Highlight Bitcoin values (e.g. $100 |{" "}
+                <span className="bg-primary/25 p-0.5 rounded">
+                  100 {denomination === "btc" ? "BTC" : "sats"}
+                </span>
+                )
               </p>
             </div>
 

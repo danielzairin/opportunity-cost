@@ -78,7 +78,7 @@ async function loadUserPreferences(): Promise<UserPreferences> {
       displayMode: "dual-display",
       denomination: "btc", // Default to BTC instead of sats
       trackStats: true,
-      highlightBitcoinOnly: false, // Default to no highlighting
+      highlightBitcoinValue: false, // Default to no highlighting
       lastUpdated: Date.now(),
     };
 
@@ -427,7 +427,7 @@ async function initialize(): Promise<void> {
         displayMode: "dual-display",
         denomination: "btc",
         trackStats: true,
-        highlightBitcoinOnly: false,
+        highlightBitcoinValue: false,
         lastUpdated: Date.now(),
       };
     }
