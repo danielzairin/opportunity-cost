@@ -190,8 +190,7 @@ export function OptionsPage() {
                 Bitcoin Denomination:
               </label>
               <p className="text-sm text-gray-600 mb-2">
-                Choose how Bitcoin amounts are displayed. Example: (100 sats |
-                $1) or (1 BTC | $100k)
+                Choose how to display Bitcoin values (sats or BTC).
               </p>
               <select
                 id="denomination"
@@ -259,11 +258,7 @@ export function OptionsPage() {
                 Highlight Bitcoin values
               </label>
               <p className="text-sm text-gray-600 mb-2 ml-5">
-                Highlight Bitcoin values (e.g. $100 |{" "}
-                <span className="bg-primary/25 p-0.5 rounded">
-                  100 {denomination === "btc" ? "BTC" : "sats"}
-                </span>
-                )
+                Adds a colored background to Bitcoin values.
               </p>
             </div>
 
@@ -423,14 +418,33 @@ export function OptionsPage() {
 
       <div className="mt-10 text-center text-gray-500 text-sm">
         <p>
-          Opportunity Cost Extension &copy; 2025 | Powered by{" "}
+          &copy; 2025 Opportunity Cost &middot; Powered by{" "}
           <a
-            href="https://tftc.io"
+            href="https://tftc.io?utm_source=opportunity-cost-extension"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-700 hover:underline"
           >
-            Truth For The Commoner (TFTC)
+            TFTC
+          </a>
+        </p>
+        <p>
+          <a
+            href="https://www.opportunitycost.app/privacy-policy?utm_source=opportunity-cost-extension"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Privacy
+          </a>{" "}
+          &middot;{" "}
+          <a
+            href="https://opportunitycost.userjot.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Feedback
           </a>
         </p>
       </div>

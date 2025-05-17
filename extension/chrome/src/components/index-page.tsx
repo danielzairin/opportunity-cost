@@ -3,6 +3,10 @@ import "@/index.css";
 import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from "../lib/constants";
 import { cn } from "@/lib/utils";
 import Cleave from "cleave.js/react";
+import { PriceDatabase } from "../lib/storage";
+
+// Custom event name for display mode changes
+const DISPLAY_MODE_CHANGE_EVENT = "display-mode-change";
 
 // --- Header ---
 function Header() {
@@ -184,6 +188,44 @@ function Converter() {
       }, 100);
     }
   }, [loading, prices, currency]);
+
+  // Load initial display mode and listen for changes
+  useEffect(() => {
+    // Load user preferences for display mode and denomination
+    const loadPreferences = async () => {
+      try {
+        const preferences = await PriceDatabase.getPreferences();
+        // setDisplayMode(preferences.displayMode || "dual-display");
+        setLocalDenomination(preferences.denomination || "sats");
+      } catch (error) {
+        console.error("Error loading display mode:", error);
+      }
+    };
+
+    // Event handler for display mode changes from Settings component
+    const handleDisplayModeChange = (event: CustomEvent) => {
+      if (event.detail.denomination) {
+        setLocalDenomination(event.detail.denomination);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener(
+      DISPLAY_MODE_CHANGE_EVENT,
+      handleDisplayModeChange as EventListener
+    );
+
+    // Load initial preferences
+    loadPreferences();
+
+    // Clean up event listener
+    return () => {
+      document.removeEventListener(
+        DISPLAY_MODE_CHANGE_EVENT,
+        handleDisplayModeChange as EventListener
+      );
+    };
+  }, []);
 
   useEffect(() => {
     // Fetch BTC prices and preferences
@@ -413,7 +455,7 @@ function Converter() {
 
         <div
           className={cn(
-            "bg-white border cursor-text border-gray-300 bg-opacity-90 px-3 py-2 mb-1 rounded-xl",
+            "bg-white border cursor-text border-gray-300 bg-opacity-90 px-3 py-2 mb-1 rounded-xl transition-opacity",
             focusedPanel === "fiat" && "border-gray-500"
           )}
           onClick={(e) => {
@@ -535,6 +577,7 @@ function Converter() {
               Bitcoin
             </label>
             <select
+              id="denomination-select"
               className="text-xs text-right"
               value={localDenomination}
               onClick={(e) => e.stopPropagation()}
@@ -582,6 +625,126 @@ function Converter() {
             </label>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// --- Settings ---
+function Settings() {
+  const [displayMode, setDisplayMode] = useState<
+    "bitcoin-only" | "dual-display"
+  >("dual-display");
+  const [highlightBitcoinValue, setHighlightBitcoinValue] = useState(false);
+  const [prefsLoading, setPrefsLoading] = useState(true);
+
+  useEffect(() => {
+    // Load user preferences
+    const loadPreferences = async () => {
+      setPrefsLoading(true);
+      try {
+        const preferences = await PriceDatabase.getPreferences();
+        setDisplayMode(preferences.displayMode || "dual-display");
+        setHighlightBitcoinValue(preferences.highlightBitcoinValue || false);
+      } catch (error) {
+        console.error("Error loading preferences:", error);
+      } finally {
+        setPrefsLoading(false);
+      }
+    };
+
+    loadPreferences();
+  }, []);
+
+  // Toggle Bitcoin-only mode
+  const toggleBitcoinOnlyMode = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newMode = e.target.checked ? "bitcoin-only" : "dual-display";
+    setDisplayMode(newMode);
+
+    try {
+      // Save the preference directly
+      await PriceDatabase.savePreferences({
+        displayMode: newMode,
+      });
+
+      // Notify background script that preferences have been updated
+      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+
+      // Dispatch custom event to notify other components
+      document.dispatchEvent(
+        new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
+          detail: {
+            displayMode: newMode,
+            denomination:
+              (
+                document.querySelector(
+                  "#denomination-select"
+                ) as HTMLSelectElement
+              )?.value || "sats",
+          },
+        })
+      );
+    } catch (error) {
+      console.error("Error saving display mode preference:", error);
+    }
+  };
+
+  // Toggle highlighting Bitcoin values
+  const toggleHighlightBitcoinValue = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newHighlightValue = e.target.checked;
+    setHighlightBitcoinValue(newHighlightValue);
+
+    try {
+      // Save the preference directly
+      await PriceDatabase.savePreferences({
+        highlightBitcoinValue: newHighlightValue,
+      });
+
+      // Notify background script that preferences have been updated
+      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+    } catch (error) {
+      console.error("Error saving highlight preference:", error);
+    }
+  };
+
+  return (
+    <section className="mb-4">
+      <div className="flex flex-col gap-2">
+        <label
+          className={cn(
+            "flex items-center cursor-pointer text-xs text-gray-600",
+            prefsLoading && "opacity-50"
+          )}
+        >
+          <input
+            type="checkbox"
+            className="form-checkbox h-3 w-3 text-primary rounded mr-1"
+            checked={displayMode === "bitcoin-only"}
+            onChange={toggleBitcoinOnlyMode}
+            disabled={prefsLoading}
+          />
+          <span>Bitcoin-only mode</span>
+        </label>
+
+        <label
+          className={cn(
+            "flex items-center cursor-pointer text-xs text-gray-600",
+            prefsLoading && "opacity-50"
+          )}
+        >
+          <input
+            type="checkbox"
+            className="form-checkbox h-3 w-3 text-primary rounded mr-1"
+            checked={highlightBitcoinValue}
+            onChange={toggleHighlightBitcoinValue}
+            disabled={prefsLoading}
+          />
+          <span>Highlight Bitcoin values</span>
+        </label>
       </div>
     </section>
   );
@@ -707,25 +870,33 @@ function Footer() {
     <footer className="text-center text-[10px] text-gray-400">
       <div className="flex flex-col">
         <span>
-          &copy; 2025 Opportunity Cost &middot;{" "}
+          &copy; 2025 Opportunity Cost &middot; Powered by{" "}
           <a
-            href="https://www.opportunitycost.app/privacy-policy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Privacy
-          </a>
-        </span>
-        <span>
-          Powered by{" "}
-          <a
-            href="https://tftc.io"
+            href="https://tftc.io?utm_source=opportunity-cost-extension"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline font-medium text-gray-500"
           >
             TFTC
+          </a>
+        </span>
+        <span>
+          <a
+            href="https://www.opportunitycost.app/privacy-policy?utm_source=opportunity-cost-extension"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Privacy
+          </a>{" "}
+          &middot;{" "}
+          <a
+            href="https://opportunitycost.userjot.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Feedback
           </a>
         </span>
       </div>
@@ -740,6 +911,7 @@ export function IndexPage() {
       <Header />
       <LivePrice />
       <Converter />
+      <Settings />
       {/* <RecentConversions /> */}
       <CallToAction />
       <Footer />

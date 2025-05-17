@@ -67,7 +67,7 @@ export const metadata: Metadata = {
         alt: "Opportunity Cost Extension – See Prices in Bitcoin",
       },
     ],
-    creator: "@tfcbrand",
+    creator: "@tftc21",
   },
   themeColor: "#f7931a",
 };

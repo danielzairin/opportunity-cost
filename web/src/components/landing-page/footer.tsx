@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Twitter, Github } from "lucide-react";
+import { Twitter, Github, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 export function Footer() {
@@ -54,6 +54,16 @@ export function Footer() {
                   FAQ
                 </Link>
               </li>
+              <li className="mb-2">
+                <a
+                  href="https://opportunitycost.userjot.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white transition"
+                >
+                  Feedback
+                </a>
+              </li>
             </ul>
           </div>
           <div>
@@ -95,6 +105,15 @@ export function Footer() {
                 className="hover:text-white transition"
               >
                 <Github size={24} />
+              </a>
+              <a
+                href="https://opportunitycost.userjot.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition"
+                title="Give Feedback"
+              >
+                <MessageCircle size={24} />
               </a>
             </div>
           </div>

@@ -437,13 +437,36 @@ const PriceDatabase = {
   savePreferences: (
     preferences: Partial<UserPreferences>
   ): Promise<IDBValidKey> => {
-    const prefsRecord: UserPreferences = {
-      id: "user-preferences",
-      ...preferences,
-      lastUpdated: Date.now(),
-    };
+    return new Promise((resolve, reject) => {
+      // First get existing preferences
+      PriceDatabase.db
+        .get<UserPreferences>("userPreferences", "user-preferences")
+        .then((existingPrefs) => {
+          const basePrefs = existingPrefs || {
+            id: "user-preferences",
+            defaultCurrency: "usd",
+            displayMode: "dual-display",
+            denomination: "btc",
+            trackStats: true,
+          };
 
-    return PriceDatabase.db.put("userPreferences", prefsRecord);
+          // Merge existing with new preferences
+          const prefsRecord: UserPreferences = {
+            ...basePrefs,
+            ...preferences,
+            id: "user-preferences", // Ensure ID is always set
+            lastUpdated: Date.now(),
+          };
+
+          return PriceDatabase.db.put("userPreferences", prefsRecord);
+        })
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   },
 
   // Get user preferences
