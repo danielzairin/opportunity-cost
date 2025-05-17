@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import "@/index.css";
-import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY } from "../lib/constants";
+import {
+  SUPPORTED_CURRENCIES,
+  DEFAULT_CURRENCY,
+  APP_URL,
+} from "../lib/constants";
 import { cn } from "@/lib/utils";
 import Cleave from "cleave.js/react";
 import { PriceDatabase } from "../lib/storage";
@@ -12,16 +16,15 @@ const DISPLAY_MODE_CHANGE_EVENT = "display-mode-change";
 function Header() {
   return (
     <header className="flex items-center justify-between mb-2">
-      <div className="flex items-center">
+      <a href={APP_URL} target="_blank" className="flex items-center">
         <img src="icons/logo.svg" alt="TFTC Logo" className="h-8 mr-2" />
         <span className="font-bold text-lg text-foreground">
           Opportunity Cost
         </span>
-      </div>
+      </a>
       <a
         href="options.html"
         target="_blank"
-        rel="noopener noreferrer"
         className="text-xs text-gray-500 hover:underline"
       >
         Settings
@@ -92,7 +95,7 @@ function LivePrice() {
   };
 
   return (
-    <section className="mb-3">
+    <section className="mb-2">
       <div className="flex items-center justify-between">
         <span className="font-semibold">BTC Price:</span>
         {loading ? (
@@ -100,7 +103,7 @@ function LivePrice() {
         ) : error ? (
           <span className="text-sm text-red-500">Error: {error}</span>
         ) : (
-          <span className="text-lg font-mono">
+          <span className="text-xl font-mono">
             {getCurrencySymbol(currency)}
             {prices[currency]?.toLocaleString(undefined, {
               minimumFractionDigits: 2,
@@ -109,7 +112,7 @@ function LivePrice() {
           </span>
         )}
       </div>
-      <div className="flex items-center justify-end text-xs text-gray-400 mt-1">
+      <div className="flex items-center justify-end text-[10px] text-gray-400">
         <span>
           Last updated:{" "}
           {lastUpdated
@@ -851,7 +854,7 @@ function Settings() {
 // --- Call To Action ---
 function CallToAction() {
   return (
-    <section className="text-center mb-2">
+    <section className="text-left mb-2">
       <a
         href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
         target="_blank"
@@ -867,7 +870,7 @@ function CallToAction() {
 // --- Footer ---
 function Footer() {
   return (
-    <footer className="text-center text-[10px] text-gray-400">
+    <footer className="text-left text-[10px] text-gray-400">
       <div className="flex flex-col">
         <span>
           &copy; 2025 Opportunity Cost &middot; Powered by{" "}
