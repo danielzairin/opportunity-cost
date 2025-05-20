@@ -51,21 +51,28 @@ async function main() {
     });
 
     /**
-     * Converts a currency string value to a number
-     * Handles formats like $1,000.00, $3.92K, $1.12M, $50.24T
+     * Converts a currency string value to a number.
+     * Handles:
+     *   $1,000.00 $3.92K $1.12M $50.24T
+     *   $100 thousand $42 Million $7.3 Billion $2 trillion
      */
     function convertCurrencyValue(
       str: string,
       currencySymbol?: string
     ): number {
+      // abbreviations + full words (all case-insensitive)
       const multipliers: Record<string, number> = {
         k: 1e3,
+        thousand: 1e3,
         m: 1e6,
+        million: 1e6,
         b: 1e9,
+        bn: 1e9, // optional, but handy
+        billion: 1e9,
         t: 1e12,
+        trillion: 1e12,
       };
 
-      // Remove currency symbol and clean the string
       const cleaned = str
         .trim()
         .toLowerCase()
@@ -77,7 +84,10 @@ async function main() {
         )
         .replace(/,/g, "");
 
-      const match = cleaned.match(/^([\d.]+)([kmbt])?$/);
+      // capture number + optional magnitude word/letter
+      const match = cleaned.match(
+        /^([\d.]+)\s*(k|m|b|bn|t|thousand|million|billion|trillion)?$/
+      );
 
       if (!match) return NaN;
 
@@ -85,28 +95,37 @@ async function main() {
       const num = parseFloat(numStr);
 
       if (!suffix) return num;
-      return multipliers[suffix] ? num * multipliers[suffix] : num;
+      return multipliers[suffix] ?? num; // fall-back if somehow unknown
     }
+
+    const fmt = (num: number, maxDecimals: number) =>
+      num.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: maxDecimals,
+      });
 
     // Format bitcoin value based on user's denomination preference
     const formatBitcoinValue = (satoshis: number): string => {
       if (userPreferences.denomination === "btc") {
-        // Convert satoshis to bitcoin (1 BTC = 100,000,000 sats)
-        const btcValue = satoshis / SATS_IN_BTC;
-        // Format BTC with appropriate decimals (8 max)
-        if (btcValue < 0.000001) {
-          return `${btcValue.toFixed(8)} BTC`;
-        } else if (btcValue < 0.0001) {
-          return `${btcValue.toFixed(6)} BTC`;
-        } else if (btcValue < 0.01) {
-          return `${btcValue.toFixed(5)} BTC`;
-        } else {
-          return `${btcValue.toFixed(4)} BTC`;
+        const btc = satoshis / SATS_IN_BTC;
+
+        if (btc >= 1) {
+          // ≥ 1 BTC  →  show at most 2 decimals
+          return `${fmt(btc, 2)} BTC`; // e.g. “1,234.56 BTC”
         }
-      } else {
-        // Default to satoshis
-        return `${satoshis.toLocaleString()} sats`;
+
+        // < 1 BTC  →  keep finer-grained precision (commas still applied)
+        if (btc >= 0.01) return `${fmt(btc, 4)} BTC`; // 0.1234 BTC
+        if (btc >= 0.0001) return `${fmt(btc, 5)} BTC`; // 0.01234 BTC
+        if (btc >= 0.000001) return `${fmt(btc, 6)} BTC`; // 0.000012 BTC
+        return `${btc.toLocaleString(undefined, {
+          minimumFractionDigits: 8,
+          maximumFractionDigits: 8,
+        })} BTC`;
       }
+
+      // denomination === "sats"
+      return `${fmt(satoshis, 0)} sats`; // commas, no decimals
     };
 
     // Get Bitcoin prices from background script
@@ -358,8 +377,9 @@ async function main() {
       if (!currency || !currency.symbol) return;
 
       const currencySymbol = currency.symbol;
+      const magnitude = "(?:thousand|million|billion|trillion|[kmbtKMBT])";
       const regex = new RegExp(
-        `${escapeRegex(currencySymbol)}\\s?[\\d,.]+(?:[kmbtKMBT])?`,
+        `${escapeRegex(currencySymbol)}\\s?[\\d.,]+(?:\\s*${magnitude})?\\b`,
         "gi"
       );
       regex.lastIndex = 0;
