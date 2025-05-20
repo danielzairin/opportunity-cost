@@ -297,21 +297,38 @@ async function main() {
 
     // Function to walk through the DOM and process text nodes
     const walkDOM = (node: Node): void => {
-      // Skip script and style elements - we don't need to process their text content
+      // Skip script/style/noscript elements
       if (node.nodeType === Node.ELEMENT_NODE) {
-        const tagName = (node as Element).tagName.toLowerCase();
+        const element = node as HTMLElement;
+        const tagName = element.tagName.toLowerCase();
+
         if (["script", "style", "noscript"].includes(tagName)) {
+          return;
+        }
+
+        // Skip anything that's contentEditable
+        if (element.isContentEditable) {
           return;
         }
       }
 
-      // Process text nodes - this is what contains the prices
+      // Process text nodes
       if (node.nodeType === Node.TEXT_NODE) {
+        // Avoid contentEditable parents
+        if (
+          node.parentElement &&
+          node.parentElement.closest(
+            "[contenteditable=true], [contenteditable='']"
+          )
+        ) {
+          return;
+        }
+
         replacePrice(node as Text);
       }
-      // Recursively process child nodes
+
+      // Recurse into children
       else if (node.nodeType === Node.ELEMENT_NODE) {
-        // Process children
         for (let i = 0; i < node.childNodes.length; i++) {
           walkDOM(node.childNodes[i]);
         }
