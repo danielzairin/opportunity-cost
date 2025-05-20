@@ -331,137 +331,72 @@ async function main() {
     // Function to replace fiat prices with satoshi values in a text node (only default currency)
     const replacePrice = (textNode: Text): void => {
       const content = textNode.textContent || "";
-      let modified = false;
+      const parent = textNode.parentNode as HTMLElement | null;
+      if (!parent || parent.dataset.ocProcessed === "true") return;
 
-      // Text nodes that should be ignored (containing specific patterns)
-      const shouldIgnoreNode = (): boolean => {
-        if (content.includes(" sats") || content.includes(" BTC")) {
-          return true;
-        }
-        if (content.trim().length < 2) {
-          return true;
-        }
-        if (content.includes("List:") || content.includes("Save ")) {
-          return true;
-        }
-        return false;
-      };
-      if (shouldIgnoreNode()) {
-        return;
-      }
-
-      // Only process the default currency
       const defaultCurrency = userPreferences.defaultCurrency;
-      if (!defaultCurrency) return;
       const currency = supportedCurrencies.find(
         (c) => c.value === defaultCurrency
       );
-      if (!currency) return;
+      if (!currency || !currency.symbol) return;
 
-      // Use the exact symbol of the default currency
       const currencySymbol = currency.symbol;
-      if (!currencySymbol) return;
-
-      // Create a specific regex for just this currency symbol
       const regex = new RegExp(
         `${escapeRegex(currencySymbol)}\\s?[\\d,.]+(?:[kmbtKMBT])?`,
         "gi"
       );
+      regex.lastIndex = 0;
 
-      // If in bitcoin-only mode, replace matched text with a styled span
-      if (userPreferences.displayMode === "bitcoin-only") {
-        let match;
-        let lastIndex = 0;
-        const parent = textNode.parentNode;
-        if (!parent) return;
-        const frag = document.createDocumentFragment();
-        regex.lastIndex = 0; // reset regex state
-        while ((match = regex.exec(content)) !== null) {
-          // Add text before the match
-          if (match.index > lastIndex) {
-            frag.appendChild(
-              document.createTextNode(content.slice(lastIndex, match.index))
-            );
-          }
-          // Parse the fiat value
-          const fiatValue = convertCurrencyValue(match[0], currencySymbol);
-          const btcPrice = btcPrices[currency.value];
-          if (!btcPrice) {
-            frag.appendChild(document.createTextNode(match[0]));
-            lastIndex = regex.lastIndex;
-            continue;
-          }
-          const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
-          conversionCount++;
-          modified = true;
-          // Create styled span
-          const span = document.createElement("span");
-          span.className = "oc-btc-price";
-          span.textContent = formatBitcoinValue(satsValue);
-          applyBitcoinLabelStyles(span);
-          frag.appendChild(span);
-          lastIndex = regex.lastIndex;
-        }
-        // Add any remaining text after the last match
-        if (lastIndex < content.length) {
-          frag.appendChild(document.createTextNode(content.slice(lastIndex)));
-        }
-        if (modified) {
-          parent.replaceChild(frag, textNode);
-        }
-        return;
-      }
-
-      const parent = textNode.parentNode as Element | null;
-      if (!parent) return;
-
-      // Otherwise, do the original replacement (dual-display)
       let match;
-      regex.lastIndex = 0; // reset regex state
+      let lastIndex = 0;
+      let modified = false;
+      const frag = document.createDocumentFragment();
 
       while ((match = regex.exec(content)) !== null) {
-        // Parse the fiat value
+        const matchStart = match.index;
+
+        // Add text before the match
+        if (matchStart > lastIndex) {
+          frag.appendChild(
+            document.createTextNode(content.slice(lastIndex, matchStart))
+          );
+        }
+
         const fiatValue = convertCurrencyValue(match[0], currencySymbol);
         const btcPrice = btcPrices[currency.value];
-        if (!btcPrice) continue;
-
-        // Avoid double conversion in the same node
-        if (content.includes(" sats") || content.includes(" BTC")) {
+        if (!btcPrice) {
+          frag.appendChild(document.createTextNode(match[0]));
+          lastIndex = regex.lastIndex;
           continue;
         }
 
         const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
-        conversionCount++;
-        modified = true;
+        const bitcoinValueSpan = document.createElement("span");
+        bitcoinValueSpan.className = "oc-btc-price";
+        bitcoinValueSpan.textContent = formatBitcoinValue(satsValue);
+        applyBitcoinLabelStyles(bitcoinValueSpan);
 
-        // Create a span for the Bitcoin value
-        const span = document.createElement("span");
-        span.className = "oc-btc-price";
-
-        if (userPreferences.displayMode === "dual-display") {
-          // Create a separate span for just the Bitcoin amount
-          const bitcoinValueSpan = document.createElement("span");
-          bitcoinValueSpan.textContent = formatBitcoinValue(satsValue);
-
-          // Apply Bitcoin-specific styles to the inner span only
-          applyBitcoinLabelStyles(bitcoinValueSpan);
-
-          // Set the outer span with the separator
-          span.textContent = " | ";
-          span.appendChild(bitcoinValueSpan);
+        if (userPreferences.displayMode === "bitcoin-only") {
+          // Just insert BTC equivalent (no fiat text)
+          frag.appendChild(bitcoinValueSpan);
         } else {
-          // Create a separate span for just the Bitcoin amount
-          const bitcoinValueSpan = document.createElement("span");
-          bitcoinValueSpan.textContent = formatBitcoinValue(satsValue);
-
-          // Apply Bitcoin-specific styles to the inner span only
-          applyBitcoinLabelStyles(bitcoinValueSpan);
-
-          span.appendChild(bitcoinValueSpan);
+          // Dual display: keep fiat + BTC
+          frag.appendChild(document.createTextNode(match[0]));
+          frag.appendChild(document.createTextNode(" | "));
+          frag.appendChild(bitcoinValueSpan);
         }
 
-        // Append the span to the parent node
-        parent.appendChild(span);
+        lastIndex = regex.lastIndex;
+        modified = true;
+      }
+
+      if (lastIndex < content.length) {
+        frag.appendChild(document.createTextNode(content.slice(lastIndex)));
+      }
+
+      if (modified) {
+        parent.replaceChild(frag, textNode);
+        parent.dataset.ocProcessed = "true"; // ✅ prevent double-processing
       }
     };
 
