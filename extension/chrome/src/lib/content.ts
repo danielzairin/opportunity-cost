@@ -21,7 +21,7 @@ async function main() {
       id: "user-preferences",
       defaultCurrency: undefined, // Will be set after fetching from background
       displayMode: "dual-display", // Changed default from 'bitcoin-only' to 'dual-display'
-      denomination: "btc", // Default to bitcoin (BTC) instead of satoshis
+      denomination: "dynamic", // Default to dynamic (BTC or sats based on value)
       trackStats: true,
       highlightBitcoinValue: false, // Default to no highlighting
       enabled: true, // Enable the extension by default
@@ -58,12 +58,12 @@ async function main() {
         .replace(/€/g, "")
         .trim();
 
-      // ① “1.234,56”  →  “1234.56”
+      // ① "1.234,56"  →  "1234.56"
       if (v.match(/\.\d{3},\d{2}$/)) {
         return v.replace(/\./g, "").replace(",", ".");
       }
 
-      // ② “99,99”  →  “99.99”
+      // ② "99,99"  →  "99.99"
       if (v.includes(",") && !v.includes(".")) {
         return v.replace(",", ".");
       }
@@ -107,7 +107,7 @@ async function main() {
       const num = parseFloat(numStr);
       const multiplier = suffix ? (multipliers[suffix] ?? 1) : 1;
 
-      return num * multiplier; // <-- multiply, don’t replace
+      return num * multiplier; // <-- multiply, don't replace
     }
 
     const fmt = (num: number, maxDecimals: number) =>
@@ -118,12 +118,17 @@ async function main() {
 
     // Format bitcoin value based on user's denomination preference
     const formatBitcoinValue = (satoshis: number): string => {
+      if (userPreferences.denomination === "dynamic") {
+        const btc = satoshis / SATS_IN_BTC;
+        return btc < 0.01 ? `${fmt(satoshis, 0)} sats` : `${fmt(btc, 2)} BTC`;
+      }
+
       if (userPreferences.denomination === "btc") {
         const btc = satoshis / SATS_IN_BTC;
 
         if (btc >= 1) {
           // ≥ 1 BTC  →  show at most 2 decimals
-          return `${fmt(btc, 2)} BTC`; // e.g. “1,234.56 BTC”
+          return `${fmt(btc, 2)} BTC`; // e.g. "1,234.56 BTC"
         }
 
         // < 1 BTC  →  keep finer-grained precision (commas still applied)
@@ -499,7 +504,7 @@ async function main() {
         applyBitcoinLabelStyles(btcSpan);
 
         if (userPreferences.displayMode === "dual-display") {
-          // “$55.00 | 0.00051 BTC”
+          // "$55.00 | 0.00051 BTC"
           (amount.querySelector("bdi") ?? amount).append(" | ", btcSpan);
         } else {
           // bitcoin-only: wipe fiat parts, keep just BTC

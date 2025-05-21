@@ -26,7 +26,7 @@ export interface UserPreferences {
   id: string;
   defaultCurrency?: string;
   displayMode?: "bitcoin-only" | "dual-display";
-  denomination?: "btc" | "sats";
+  denomination?: "btc" | "sats" | "dynamic";
   trackStats?: boolean;
   highlightBitcoinValue?: boolean;
   enabled?: boolean; // Flag to enable/disable extension globally
@@ -450,11 +450,12 @@ const PriceDatabase = {
               id: "user-preferences",
               defaultCurrency: "usd",
               displayMode: "dual-display",
-              denomination: "btc",
+              denomination: "dynamic",
               trackStats: true,
-              enabled: true, // Enable the extension by default
-              darkMode: false, // Light mode by default
-              themeMode: "system", // Default theme mode
+              highlightBitcoinValue: false,
+              enabled: true,
+              darkMode: false,
+              themeMode: "system",
               lastUpdated: Date.now(),
             };
 
@@ -477,11 +478,12 @@ const PriceDatabase = {
             id: "user-preferences",
             defaultCurrency: "usd",
             displayMode: "dual-display",
-            denomination: "btc",
+            denomination: "dynamic",
             trackStats: true,
-            enabled: true, // Enable the extension by default
-            darkMode: false, // Light mode by default
-            themeMode: "system", // Default theme mode
+            highlightBitcoinValue: false,
+            enabled: true,
+            darkMode: false,
+            themeMode: "system",
             lastUpdated: Date.now(),
           };
           resolve(defaultPrefs);

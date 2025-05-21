@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { PriceDatabase, type PriceRecord, type SiteRecord } from "../lib/storage";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "../lib/constants";
 import { Button } from "./ui/button";
+import { Tooltip, TooltipContent } from "./ui/tooltip";
 
 // Theme types for more flexibility
 type ThemeMode = "system" | "light" | "dark";
@@ -10,7 +11,7 @@ export function OptionsPage() {
   // State for form fields
   const [defaultCurrency, setDefaultCurrency] = useState(DEFAULT_CURRENCY);
   const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
-  const [denomination, setDenomination] = useState<"btc" | "sats">("btc");
+  const [denomination, setDenomination] = useState<"btc" | "sats" | "dynamic">("btc");
   const [trackStats, setTrackStats] = useState(true);
   const [highlightBitcoinValue, sethighlightBitcoinValue] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
@@ -237,10 +238,11 @@ export function OptionsPage() {
                 name="denomination"
                 className="w-full rounded border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 value={denomination}
-                onChange={(e) => setDenomination(e.target.value as "btc" | "sats")}
+                onChange={(e) => setDenomination(e.target.value as "btc" | "sats" | "dynamic")}
               >
                 <option value="sats">Satoshis (sats)</option>
                 <option value="btc">Bitcoin (BTC)</option>
+                <option value="dynamic">Dynamic BTC/Sats</option>
               </select>
             </div>
 
@@ -487,6 +489,11 @@ export function OptionsPage() {
           </a>
         </p>
       </div>
+
+      {/* Add tooltip for dynamic option */}
+      <Tooltip delayDuration={700}>
+        <TooltipContent>Dynamic mode switches between BTC and sats based on the value.</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

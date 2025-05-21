@@ -16,7 +16,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
-import { Ellipsis, ExternalLink, Bitcoin, PaintbrushVertical, Link, Check, Sun, Moon, Monitor } from "lucide-react";
+import { Ellipsis, Bitcoin, PaintbrushVertical, Link, Check, Sun, Moon, Monitor, Settings2, Info } from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
@@ -43,7 +43,7 @@ function Header() {
       </a>
 
       <TooltipProvider>
-        <Tooltip delayDuration={700}>
+        <Tooltip delayDuration={500}>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
@@ -211,7 +211,7 @@ function Converter() {
   const [lastEdited, setLastEdited] = useState<"fiat" | "btc">("fiat");
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [localDenomination, setLocalDenomination] = useState<"sats" | "btc">("sats");
+  const [localDenomination, setLocalDenomination] = useState<"sats" | "btc" | "dynamic">("sats");
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [supportedCurrencies, setSupportedCurrencies] = useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -510,6 +510,7 @@ function Converter() {
   const denominations = [
     { value: "sats", label: "Satoshis (sats)" },
     { value: "btc", label: "Bitcoin (BTC)" },
+    { value: "dynamic", label: "Dynamic BTC/Sats" },
   ];
 
   return (
@@ -692,11 +693,11 @@ function Converter() {
 // --- Settings ---
 function Settings() {
   const [showSettings, setShowSettings] = useState(false);
-  const [denomination, setDenomination] = useState<"sats" | "btc">("sats");
+  const [denomination, setDenomination] = useState<"sats" | "btc" | "dynamic">("dynamic");
   const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
   const [highlightBitcoinValue, setHighlightBitcoinValue] = useState(false);
   const [prefsLoading, setPrefsLoading] = useState(true);
-  const [copyLinkText, setCopyLinkText] = useState("Copy Share Link");
+  // const [copyLinkText, setCopyLinkText] = useState("Copy website link");
   const copyTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -725,22 +726,22 @@ function Settings() {
   }, []);
 
   // Handle copy link function
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(APP_URL);
-    setCopyLinkText("Copied!");
+  // const handleCopyLink = () => {
+  //   navigator.clipboard.writeText(APP_URL);
+  //   setCopyLinkText("Copied!");
 
-    // Clear any existing timeout
-    if (copyTimeoutRef.current) {
-      clearTimeout(copyTimeoutRef.current);
-    }
+  //   // Clear any existing timeout
+  //   if (copyTimeoutRef.current) {
+  //     clearTimeout(copyTimeoutRef.current);
+  //   }
 
-    // Set new timeout
-    copyTimeoutRef.current = window.setTimeout(() => {
-      setCopyLinkText("Copy Share Link");
-      setShowSettings(false);
-      copyTimeoutRef.current = null;
-    }, 1000);
-  };
+  //   // Set new timeout
+  //   copyTimeoutRef.current = window.setTimeout(() => {
+  //     setCopyLinkText("Copy Share Link");
+  //     setShowSettings(false);
+  //     copyTimeoutRef.current = null;
+  //   }, 1000);
+  // };
 
   // Toggle Bitcoin-only mode
   const toggleBitcoinOnlyMode = async () => {
@@ -788,7 +789,7 @@ function Settings() {
   };
 
   return (
-    <Tooltip delayDuration={700}>
+    <Tooltip delayDuration={500}>
       <TooltipContent>Settings</TooltipContent>
       <DropdownMenu open={showSettings} onOpenChange={setShowSettings}>
         <DropdownMenuTrigger asChild>
@@ -846,12 +847,25 @@ function Settings() {
             >
               BTC
             </DropdownMenuRadioItem>
+            <Tooltip delayDuration={500}>
+              <TooltipContent>Shows BTC for prices &ge;0.01 BTC, sats otherwise.</TooltipContent>
+              <DropdownMenuRadioItem
+                onSelect={(e) => e.preventDefault()}
+                value="dynamic"
+                className="data-[state=checked]:text-oc-primary gap-0"
+              >
+                Dynamic BTC/Sats
+                <TooltipTrigger className="ml-auto">
+                  <Info className="ml-auto size-3" />
+                </TooltipTrigger>
+              </DropdownMenuRadioItem>
+            </Tooltip>
           </DropdownMenuRadioGroup>
 
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            <DropdownMenuItem
+            {/* <DropdownMenuItem
               onSelect={(e) => e.preventDefault()}
               className="flex items-center"
               onClick={handleCopyLink}
@@ -860,12 +874,12 @@ function Settings() {
               <Link className="ml-auto h-4 w-4" />
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator /> */}
 
             <DropdownMenuItem asChild className="flex items-center justify-between">
               <a href="options.html" target="_blank" rel="noopener noreferrer">
                 Settings
-                <ExternalLink className="ml-auto h-4 w-4" />
+                <Settings2 className="ml-auto h-4 w-4" />
               </a>
             </DropdownMenuItem>
           </DropdownMenuGroup>
