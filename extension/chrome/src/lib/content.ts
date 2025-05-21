@@ -51,6 +51,27 @@ async function main() {
       return false;
     });
 
+    function normalizeLocaleNumber(raw: string): string {
+      // strip ISO code / symbol first
+      const v = raw
+        .replace(/\bEUR\b/gi, "")
+        .replace(/€/g, "")
+        .trim();
+
+      // ① “1.234,56”  →  “1234.56”
+      if (v.match(/\.\d{3},\d{2}$/)) {
+        return v.replace(/\./g, "").replace(",", ".");
+      }
+
+      // ② “99,99”  →  “99.99”
+      if (v.includes(",") && !v.includes(".")) {
+        return v.replace(",", ".");
+      }
+
+      // ③ fallback – just remove thousands commas
+      return v.replace(/,/g, "");
+    }
+
     /**
      * Converts a currency string value to a number.
      * Handles:
@@ -73,11 +94,9 @@ async function main() {
         quadrillion: 1e15,
       };
 
-      const cleaned = str
-        .trim()
-        .toLowerCase()
-        .replace(currencySymbol ? new RegExp(`\\${currencySymbol}`, "g") : currencyRegex, "")
-        .replace(/,/g, "");
+      const cleaned = normalizeLocaleNumber(
+        str.replace(currencySymbol ? new RegExp(`\\${currencySymbol}`, "g") : currencyRegex, ""),
+      );
 
       // capture number + optional magnitude word/letter
       const match = cleaned.match(/^([\d.]+)\s*(k|m|b|bn|t|q|thousand|million|billion|trillion|quadrillion)?$/);
@@ -332,8 +351,10 @@ async function main() {
       if (!currency || !currency.symbol) return;
 
       const currencySymbol = currency.symbol;
+      const iso = currency.value.toUpperCase(); // e.g., EUR
+      const sym = escapeRegex(currencySymbol); // e.g., €
       const magnitude = "(?:thousand|million|billion|trillion|quadrillion|[kmbtqKMBTQ])";
-      const regex = new RegExp(`${escapeRegex(currencySymbol)}\\s?[\\d.,]+(?:\\s*${magnitude})?\\b`, "gi");
+      const regex = new RegExp(`(?:${sym}\\s?[\\d.,]+|[\\d.,]+\\s?(?:${sym}|${iso}))\\s*(?:${magnitude})?\\b`, "gi");
       regex.lastIndex = 0;
 
       let match;
@@ -403,7 +424,7 @@ async function main() {
         if (!currency) return;
 
         // Check if the price starts with the user's default currency symbol
-        if (!vis.textContent.trim().startsWith(currency.symbol)) return;
+        if (!vis.textContent!.includes(currency.symbol)) return;
 
         const btcPrice = btcPrices[currency.value];
         if (!btcPrice) return;
