@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:watch": "tsc -b && vite build --watch",
+    "build:watch": "tsc -b && vite build",
+    "package": "npm run build && zip -r dist/oc-chrome.zip dist/build/*",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -12,157 +12,110 @@ export default function PrivacyPolicyPage() {
     <>
       <Header />
       <main className="max-w-2xl mt-20 mx-auto px-4 py-16 text-gray-900 bg-white">
-        <h1 className="text-3xl font-bold mb-2">
-          Privacy Policy for Opportunity Cost Browser Extension
-        </h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Last Updated: April 30, 2025
-        </p>
+        <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
+        <p className="text-sm text-gray-500 mb-6">Last Updated: May 21, 2025</p>
         <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Introduction</h2>
+          <h2 className="text-xl font-semibold mb-2">Our Privacy Commitment</h2>
           <p>
-            Welcome to the Opportunity Cost Browser Extension {`("Extension")`}.
-            This Privacy Policy explains what information we collect, how we use
-            it, and what rights you have in relation to your information when
-            you use our Extension.
+            Opportunity Cost respects your privacy. Our browser extension
+            operates entirely on your device and does not collect, transmit, or
+            store any of your personal information or browsing history on our
+            servers. This Privacy Policy explains how your data is handled when
+            using our Extension.
           </p>
         </section>
         <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Information We Collect</h2>
+          <h2 className="text-xl font-semibold mb-2">
+            What Stays On Your Device
+          </h2>
           <h3 className="font-semibold mt-4 mb-1">
-            User Settings and Preferences
+            Local Settings & Preferences
           </h3>
           <ul className="list-disc ml-6 mb-2">
-            <li>Default currency settings</li>
-            <li>Display mode preferences (dual-display or satoshis only)</li>
-            <li>Auto-refresh settings</li>
-            <li>Statistics tracking preferences</li>
+            <li>Currency preferences and display settings</li>
+            <li>Theme settings (light, dark, or system)</li>
+            <li>Bitcoin denomination preference (sats or BTC)</li>
+            <li>User interface customizations</li>
           </ul>
-          <h3 className="font-semibold mt-4 mb-1">Usage Statistics</h3>
+          <h3 className="font-semibold mt-4 mb-1">Optional Local Statistics</h3>
           <ul className="list-disc ml-6 mb-2">
             <li>
-              Websites where price conversions occur (domain names only, not
-              complete URLs)
+              Domain names of sites where conversions occurred (if enabled)
             </li>
-            <li>Number of price conversions performed</li>
-            <li>Timestamps of when conversions were performed</li>
+            <li>Count of price conversions (no price data is stored)</li>
+            <li>Bitcoin price historical data (for your reference only)</li>
           </ul>
-          <h3 className="font-semibold mt-4 mb-1">Bitcoin Price Data</h3>
-          <ul className="list-disc ml-6 mb-2">
-            <li>Retrieves current Bitcoin price data from the CoinGecko API</li>
-            <li>Stores historical Bitcoin price data locally on your device</li>
-          </ul>
-        </section>
-        <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">How We Use Information</h2>
-          <h3 className="font-semibold mt-4 mb-1">Core Functionality</h3>
-          <ul className="list-disc ml-6 mb-2">
-            <li>
-              Convert fiat currency prices to Bitcoin satoshis on webpages you
-              visit
-            </li>
-            <li>Display price information according to your preferences</li>
-            <li>Cache Bitcoin price data to minimize API calls</li>
-          </ul>
-          <h3 className="font-semibold mt-4 mb-1">
-            Statistical and Analytical Purposes
-          </h3>
-          <ul className="list-disc ml-6 mb-2">
-            <li>
-              Track and display conversion statistics in the Extension&apos;s
-              options page
-            </li>
-            <li>
-              Display historical Bitcoin price data in the Extension&apos;s
-              options page
-            </li>
-          </ul>
-        </section>
-        <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">
-            Data Storage and Sharing
-          </h2>
-          <h3 className="font-semibold mt-4 mb-1">Local Storage</h3>
-          <ul className="list-disc ml-6 mb-2">
-            <li>Chrome Storage API (for Chrome)</li>
-            <li>Firefox Storage API (for Firefox)</li>
-            <li>IndexedDB (for larger datasets like price history)</li>
-          </ul>
-          <h3 className="font-semibold mt-4 mb-1">Third-Party Services</h3>
-          <ul className="list-disc ml-6 mb-2">
-            <li>
-              The Extension connects to the CoinGecko API to retrieve Bitcoin
-              price data
-            </li>
-            <li>
-              No personal information is shared with CoinGecko or any other
-              third parties
-            </li>
-          </ul>
-          <h3 className="font-semibold mt-4 mb-1">External Links</h3>
-          <ul className="list-disc ml-6 mb-2">
-            <li>
-              When clicking the Extension icon, you will be directed to the
-              Opportunity Cost app website
-            </li>
-            <li>
-              This website has its own privacy policy that governs your use of
-              that service
-            </li>
-          </ul>
-        </section>
-        <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">
-            Your Rights and Choices
-          </h2>
-          <h3 className="font-semibold mt-4 mb-1">Managing Your Information</h3>
-          <ul className="list-disc ml-6 mb-2">
-            <li>View all stored data in the Extension&apos;s options page</li>
-            <li>
-              Clear all stored data using the &quot;Clear All Data&quot; button
-              in the options page
-            </li>
-            <li>Disable statistics tracking in the Extension settings</li>
-          </ul>
-          <h3 className="font-semibold mt-4 mb-1">Uninstallation</h3>
-          <p>
-            If you uninstall the Extension, all locally stored data will be
-            permanently removed from your device.
-          </p>
-        </section>
-        <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Security</h2>
-          <p>
-            We implement reasonable security measures to protect your
-            information. However, no method of transmission over the Internet or
-            electronic storage is 100% secure, so we cannot guarantee absolute
-            security.
+          <p className="mt-2 text-sm italic">
+            All this information is stored exclusively on your device using
+            browser storage mechanisms and is never transmitted to our servers.
           </p>
         </section>
         <section className="mb-6">
           <h2 className="text-xl font-semibold mb-2">
-            Changes to This Privacy Policy
+            How The Extension Works
           </h2>
+          <ul className="list-disc ml-6 mb-2">
+            <li>
+              <span className="font-semibold">Bitcoin Price Data:</span> The
+              extension fetches current Bitcoin prices from our API. No personal
+              data is sent during these requests.
+            </li>
+            <li>
+              <span className="font-semibold">Page Processing:</span> All
+              webpage scanning for prices happens entirely on your device and no
+              content from websites you visit is ever sent to our servers.
+            </li>
+            <li>
+              <span className="font-semibold">Local Storage:</span> The
+              extension uses your browser&apos;s built-in storage APIs (Chrome
+              Storage API, Firefox Storage API, or IndexedDB) to store settings
+              and optional statistics.
+            </li>
+          </ul>
+        </section>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">
+            Your Control Over Your Data
+          </h2>
+          <ul className="list-disc ml-6 mb-2">
+            <li>
+              <span className="font-semibold">View Local Data:</span> All stored
+              information is visible in the extension&apos;s Options page
+            </li>
+            <li>
+              <span className="font-semibold">Disable Statistics:</span> You can
+              disable statistics gathering entirely in the extension settings
+            </li>
+            <li>
+              <span className="font-semibold">Clear Data:</span> Use the
+              &quot;Clear All Data&quot; button in the Options page to remove
+              all locally stored information
+            </li>
+            <li>
+              <span className="font-semibold">Uninstall:</span> Removing the
+              extension will permanently delete all local data
+            </li>
+          </ul>
+        </section>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Changes to This Policy</h2>
           <p>
-            We may update this Privacy Policy from time to time. We will notify
-            you of any changes by posting the new Privacy Policy on the
-            Extension&apos;s repository and updating the &quot;Last
-            Updated&quot; date.
+            We may update this Privacy Policy occasionally to reflect product
+            improvements or legal requirements. Any changes will be posted on
+            our website and in the extension&apos;s Options page, with an
+            updated &quot;Last Updated&quot; date.
           </p>
         </section>
         <section className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Contact Us</h2>
-          <ul className="list-disc ml-6 mb-2">
+          <p>
+            If you have questions about our privacy practices or this policy,
+            please contact us:
+          </p>
+          <ul className="list-disc ml-6 mt-2 mb-2">
             <li>Email: contact@opportunitycost.app</li>
             <li>Website: https://opportunitycost.app</li>
           </ul>
-        </section>
-        <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Consent</h2>
-          <p>
-            By using our Extension, you consent to our Privacy Policy and agree
-            to its terms.
-          </p>
         </section>
       </main>
     </>
