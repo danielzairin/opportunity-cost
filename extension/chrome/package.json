@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:watch": "tsc -b && vite build --watch",
-    "package": "npm run build && zip -r dist/oc-chrome.zip dist/build/*",
+    "package": "npm run build && cd dist/build && zip -r ../oc-chrome.zip .",
     "lint": "eslint .",
     "preview": "vite preview"
   },
