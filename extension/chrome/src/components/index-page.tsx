@@ -8,6 +8,25 @@ import {
 import { cn } from "@/lib/utils";
 import Cleave from "cleave.js/react";
 import { PriceDatabase } from "../lib/storage";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu";
+import {
+  Ellipsis,
+  ExternalLink,
+  Bitcoin,
+  PaintbrushVertical,
+} from "lucide-react";
+import { Button } from "./ui/button";
 
 // Custom event name for display mode changes
 const DISPLAY_MODE_CHANGE_EVENT = "display-mode-change";
@@ -15,20 +34,28 @@ const DISPLAY_MODE_CHANGE_EVENT = "display-mode-change";
 // --- Header ---
 function Header() {
   return (
-    <header className="flex items-center justify-between mb-2">
+    <header className="flex justify-between items-center mb-2">
       <a href={APP_URL} target="_blank" className="flex items-center">
         <img src="icons/logo.svg" alt="TFTC Logo" className="h-8 mr-2" />
         <span className="font-bold text-lg text-foreground">
           Opportunity Cost
         </span>
       </a>
-      <a
-        href="options.html"
-        target="_blank"
-        className="text-xs text-gray-500 hover:underline"
-      >
-        Settings
-      </a>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="p-0 size-10 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Settings"
+          >
+            <Ellipsis className="size-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-48" align="end">
+          <Settings />
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }
@@ -635,6 +662,7 @@ function Converter() {
 
 // --- Settings ---
 function Settings() {
+  const [denomination, setDenomination] = useState<"sats" | "btc">("sats");
   const [displayMode, setDisplayMode] = useState<
     "bitcoin-only" | "dual-display"
   >("dual-display");
@@ -649,44 +677,27 @@ function Settings() {
         const preferences = await PriceDatabase.getPreferences();
         setDisplayMode(preferences.displayMode || "dual-display");
         setHighlightBitcoinValue(preferences.highlightBitcoinValue || false);
+        setDenomination(preferences.denomination || "sats");
       } catch (error) {
         console.error("Error loading preferences:", error);
       } finally {
         setPrefsLoading(false);
       }
     };
-
     loadPreferences();
   }, []);
 
   // Toggle Bitcoin-only mode
-  const toggleBitcoinOnlyMode = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const newMode = e.target.checked ? "bitcoin-only" : "dual-display";
+  const toggleBitcoinOnlyMode = async () => {
+    const newMode =
+      displayMode === "bitcoin-only" ? "dual-display" : "bitcoin-only";
     setDisplayMode(newMode);
-
     try {
-      // Save the preference directly
-      await PriceDatabase.savePreferences({
-        displayMode: newMode,
-      });
-
-      // Notify background script that preferences have been updated
+      await PriceDatabase.savePreferences({ displayMode: newMode });
       chrome.runtime.sendMessage({ action: "preferencesUpdated" });
-
-      // Dispatch custom event to notify other components
       document.dispatchEvent(
         new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
-          detail: {
-            displayMode: newMode,
-            denomination:
-              (
-                document.querySelector(
-                  "#denomination-select"
-                ) as HTMLSelectElement
-              )?.value || "sats",
-          },
+          detail: { displayMode: newMode, denomination },
         })
       );
     } catch (error) {
@@ -695,61 +706,107 @@ function Settings() {
   };
 
   // Toggle highlighting Bitcoin values
-  const toggleHighlightBitcoinValue = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const newHighlightValue = e.target.checked;
+  const toggleHighlightBitcoinValue = async () => {
+    const newHighlightValue = !highlightBitcoinValue;
     setHighlightBitcoinValue(newHighlightValue);
-
     try {
-      // Save the preference directly
       await PriceDatabase.savePreferences({
         highlightBitcoinValue: newHighlightValue,
       });
-
-      // Notify background script that preferences have been updated
       chrome.runtime.sendMessage({ action: "preferencesUpdated" });
     } catch (error) {
       console.error("Error saving highlight preference:", error);
     }
   };
 
-  return (
-    <section className="mb-4">
-      <div className="flex flex-col gap-2">
-        <label
-          className={cn(
-            "flex items-center cursor-pointer text-xs text-gray-600",
-            prefsLoading && "opacity-50"
-          )}
-        >
-          <input
-            type="checkbox"
-            className="form-checkbox h-3 w-3 text-primary rounded mr-1"
-            checked={displayMode === "bitcoin-only"}
-            onChange={toggleBitcoinOnlyMode}
-            disabled={prefsLoading}
-          />
-          <span>Bitcoin-only mode</span>
-        </label>
+  // Handle denomination change
+  const handleDenominationChange = async (newDenomination: "sats" | "btc") => {
+    setDenomination(newDenomination);
+    try {
+      await PriceDatabase.savePreferences({ denomination: newDenomination });
+      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+      document.dispatchEvent(
+        new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
+          detail: { displayMode, denomination: newDenomination },
+        })
+      );
+    } catch (error) {
+      console.error("Error saving denomination preference:", error);
+    }
+  };
 
-        <label
-          className={cn(
-            "flex items-center cursor-pointer text-xs text-gray-600",
-            prefsLoading && "opacity-50"
-          )}
+  return (
+    <>
+      <DropdownMenuGroup>
+        <DropdownMenuItem asChild className="flex items-center justify-between">
+          <a href="options.html" target="_blank" rel="noopener noreferrer">
+            Settings
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
+
+      <DropdownMenuSeparator />
+
+      <DropdownMenuGroup>
+        <DropdownMenuCheckboxItem
+          onSelect={(e) => e.preventDefault()}
+          // showCheckmark={false}
+          checked={displayMode === "bitcoin-only"}
+          onCheckedChange={toggleBitcoinOnlyMode}
+          disabled={prefsLoading}
         >
-          <input
-            type="checkbox"
-            className="form-checkbox h-3 w-3 text-primary rounded mr-1"
-            checked={highlightBitcoinValue}
-            onChange={toggleHighlightBitcoinValue}
-            disabled={prefsLoading}
-          />
-          <span>Highlight Bitcoin values</span>
-        </label>
-      </div>
-    </section>
+          <span className="flex items-center">
+            <Bitcoin
+              className={cn(
+                "w-4 h-4 mr-2",
+                displayMode === "bitcoin-only" && "text-oc-primary"
+              )}
+            />
+            <span className="text-primary">Bitcoin Mode</span>
+          </span>
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          onSelect={(e) => e.preventDefault()}
+          checked={highlightBitcoinValue}
+          onCheckedChange={toggleHighlightBitcoinValue}
+          disabled={prefsLoading}
+        >
+          <span className="flex items-center">
+            <PaintbrushVertical
+              className={cn(
+                "w-4 h-4 mr-2",
+                highlightBitcoinValue && "text-oc-primary"
+              )}
+            />
+            <span className="text-primary">Highlight Bitcoin</span>
+          </span>
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Denomination</DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={denomination}
+          onValueChange={(value) =>
+            handleDenominationChange(value as "sats" | "btc")
+          }
+        >
+          <DropdownMenuRadioItem
+            onSelect={(e) => e.preventDefault()}
+            value="sats"
+            className="data-[state=checked]:text-oc-primary"
+          >
+            Sats
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem
+            onSelect={(e) => e.preventDefault()}
+            value="btc"
+            className="data-[state=checked]:text-oc-primary"
+          >
+            BTC
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuGroup>
+    </>
   );
 }
 
@@ -855,14 +912,15 @@ function Settings() {
 function CallToAction() {
   return (
     <section className="text-left mb-2">
-      <a
-        href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block bg-primary hover:bg-orange-800/80 text-white text-xs font-bold py-1 px-3 rounded"
-      >
-        Subscribe to Bitcoin Brief
-      </a>
+      <Button variant="primary" size="sm" asChild>
+        <a
+          href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Subscribe to Bitcoin Brief
+        </a>
+      </Button>
     </section>
   );
 }
@@ -914,7 +972,7 @@ export function IndexPage() {
       <Header />
       <LivePrice />
       <Converter />
-      <Settings />
+      {/* <Settings /> */}
       {/* <RecentConversions /> */}
       <CallToAction />
       <Footer />
