@@ -452,8 +452,46 @@ async function main() {
       });
     }
 
+    /** WooCommerce <span class="woocommerce-Price-amount amount">…</span> */
+    function processWooCommercePrices(): void {
+      document.querySelectorAll<HTMLSpanElement>(".woocommerce-Price-amount.amount").forEach((amount) => {
+        if (amount.dataset.ocProcessed === "true" || amount.querySelector(".oc-btc-price")) return;
+
+        const currency = supportedCurrencies.find((c) => c.value === userPreferences.defaultCurrency);
+        if (!currency) return;
+
+        const btcPrice = btcPrices[currency.value];
+        if (!btcPrice) return;
+
+        const fiatValue = convertCurrencyValue(amount.textContent ?? "", currency.symbol);
+        if (isNaN(fiatValue)) return;
+
+        const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+        const btcDisplay = formatBitcoinValue(sats);
+
+        // Build the BTC span (this alone is highlighted)
+        const btcSpan = document.createElement("span");
+        btcSpan.className = "oc-btc-price";
+        btcSpan.textContent = btcDisplay;
+        applyBitcoinLabelStyles(btcSpan);
+
+        if (userPreferences.displayMode === "dual-display") {
+          // “$55.00 | 0.00051 BTC”
+          (amount.querySelector("bdi") ?? amount).append(" | ", btcSpan);
+        } else {
+          // bitcoin-only: wipe fiat parts, keep just BTC
+          amount.textContent = ""; // clear existing content
+          amount.appendChild(btcSpan);
+        }
+
+        amount.dataset.ocProcessed = "true";
+        conversionCount++;
+      });
+    }
+
     // Only process prices and set up observers after data is loaded and valid
     processAmazonPrices();
+    processWooCommercePrices();
     walkDOM(document.body);
     logPageVisit();
 
@@ -462,6 +500,7 @@ async function main() {
       let newConversions = 0;
       const processChanges = (): void => {
         processAmazonPrices();
+        processWooCommercePrices();
         mutations.forEach((mutation: MutationRecord) => {
           if (mutation.type === "childList") {
             mutation.addedNodes.forEach((node: Node) => walkDOM(node));
