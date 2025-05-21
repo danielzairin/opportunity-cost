@@ -28,7 +28,7 @@ export default function InstallPage() {
               Click the button below to download the Opportunity Cost extension:
             </p>
             <Link
-              href="/extension/oc-extension-v1.0.1.zip"
+              href="/extension/oc-extension-v1.0.2.zip"
               className="inline-flex items-center px-4 py-2 bg-[var(--primary)] text-white rounded-md hover:opacity-90 transition-opacity"
               download
             >
