@@ -69,6 +69,8 @@ async function main() {
         billion: 1e9,
         t: 1e12,
         trillion: 1e12,
+        q: 1e15,
+        quadrillion: 1e15,
       };
 
       const cleaned = str
@@ -78,7 +80,7 @@ async function main() {
         .replace(/,/g, "");
 
       // capture number + optional magnitude word/letter
-      const match = cleaned.match(/^([\d.]+)\s*(k|m|b|bn|t|thousand|million|billion|trillion)?$/);
+      const match = cleaned.match(/^([\d.]+)\s*(k|m|b|bn|t|q|thousand|million|billion|trillion|quadrillion)?$/);
 
       if (!match) return NaN;
 
@@ -330,7 +332,7 @@ async function main() {
       if (!currency || !currency.symbol) return;
 
       const currencySymbol = currency.symbol;
-      const magnitude = "(?:thousand|million|billion|trillion|[kmbtKMBT])";
+      const magnitude = "(?:thousand|million|billion|trillion|quadrillion|[kmbtqKMBTQ])";
       const regex = new RegExp(`${escapeRegex(currencySymbol)}\\s?[\\d.,]+(?:\\s*${magnitude})?\\b`, "gi");
       regex.lastIndex = 0;
 

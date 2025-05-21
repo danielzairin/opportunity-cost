@@ -862,10 +862,10 @@ function Settings() {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem asChild className="flex items-center">
+            <DropdownMenuItem asChild className="flex items-center justify-between">
               <a href="options.html" target="_blank" rel="noopener noreferrer">
                 Settings
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="ml-auto h-4 w-4" />
               </a>
             </DropdownMenuItem>
           </DropdownMenuGroup>
