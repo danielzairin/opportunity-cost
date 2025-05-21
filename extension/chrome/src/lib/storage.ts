@@ -29,6 +29,7 @@ export interface UserPreferences {
   denomination?: "btc" | "sats";
   trackStats?: boolean;
   highlightBitcoinValue?: boolean;
+  enabled?: boolean; // Flag to enable/disable extension globally
   lastUpdated?: number;
 }
 
@@ -156,10 +157,7 @@ class IndexedDBStorage {
       };
 
       request.onerror = (event: Event) => {
-        console.error(
-          "IndexedDB open error:",
-          (event.target as IDBOpenDBRequest).error
-        );
+        console.error("IndexedDB open error:", (event.target as IDBOpenDBRequest).error);
         reject((event.target as IDBOpenDBRequest).error);
       };
     });
@@ -183,10 +181,7 @@ class IndexedDBStorage {
 
         request.onsuccess = () => resolve(request.result);
         request.onerror = (event: Event) => {
-          console.error(
-            `Error adding item to ${storeName}:`,
-            (event.target as IDBRequest).error
-          );
+          console.error(`Error adding item to ${storeName}:`, (event.target as IDBRequest).error);
           reject((event.target as IDBRequest).error);
         };
       });
@@ -203,10 +198,7 @@ class IndexedDBStorage {
 
         request.onsuccess = () => resolve(request.result);
         request.onerror = (event: Event) => {
-          console.error(
-            `Error putting item to ${storeName}:`,
-            (event.target as IDBRequest).error
-          );
+          console.error(`Error putting item to ${storeName}:`, (event.target as IDBRequest).error);
           reject((event.target as IDBRequest).error);
         };
       });
@@ -223,10 +215,7 @@ class IndexedDBStorage {
 
         request.onsuccess = () => resolve(request.result as T);
         request.onerror = (event: Event) => {
-          console.error(
-            `Error getting item from ${storeName}:`,
-            (event.target as IDBRequest).error
-          );
+          console.error(`Error getting item from ${storeName}:`, (event.target as IDBRequest).error);
           reject((event.target as IDBRequest).error);
         };
       });
@@ -243,10 +232,7 @@ class IndexedDBStorage {
 
         request.onsuccess = () => resolve(request.result as T[]);
         request.onerror = (event: Event) => {
-          console.error(
-            `Error getting all items from ${storeName}:`,
-            (event.target as IDBRequest).error
-          );
+          console.error(`Error getting all items from ${storeName}:`, (event.target as IDBRequest).error);
           reject((event.target as IDBRequest).error);
         };
       });
@@ -263,10 +249,7 @@ class IndexedDBStorage {
 
         request.onsuccess = () => resolve();
         request.onerror = (event: Event) => {
-          console.error(
-            `Error deleting item from ${storeName}:`,
-            (event.target as IDBRequest).error
-          );
+          console.error(`Error deleting item from ${storeName}:`, (event.target as IDBRequest).error);
           reject((event.target as IDBRequest).error);
         };
       });
@@ -292,11 +275,7 @@ class IndexedDBStorage {
   }
 
   // Query items using an index
-  getByIndex<T>(
-    storeName: string,
-    indexName: string,
-    value: IDBValidKey
-  ): Promise<T[]> {
+  getByIndex<T>(storeName: string, indexName: string, value: IDBValidKey): Promise<T[]> {
     return this.open().then((db) => {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction(storeName, "readonly");
@@ -307,10 +286,7 @@ class IndexedDBStorage {
         request.onsuccess = () => resolve(request.result as T[]);
         request.onerror = (event: Event) => {
           const target = event.target as IDBRequest;
-          console.error(
-            `Error querying ${storeName} by ${indexName}:`,
-            target?.error
-          );
+          console.error(`Error querying ${storeName} by ${indexName}:`, target?.error);
           reject(target?.error);
         };
       });
@@ -371,11 +347,7 @@ const PriceDatabase = {
   },
 
   // Get price history for a currency within a date range
-  getPriceHistory: (
-    currency: string,
-    startTime: number,
-    endTime: number
-  ): Promise<PriceRecord[]> => {
+  getPriceHistory: (currency: string, startTime: number, endTime: number): Promise<PriceRecord[]> => {
     return PriceDatabase.db.open().then((db) => {
       return new Promise<PriceRecord[]>((resolve, reject) => {
         const transaction = db.transaction("priceHistory", "readonly");
@@ -392,10 +364,7 @@ const PriceDatabase = {
           const cursor = (event.target as IDBRequest).result;
           if (cursor) {
             const record = cursor.value as PriceRecord;
-            if (
-              (!startTime || record.timestamp >= startTime) &&
-              (!endTime || record.timestamp <= endTime)
-            ) {
+            if ((!startTime || record.timestamp >= startTime) && (!endTime || record.timestamp <= endTime)) {
               results.push(record);
             }
             cursor.continue();
@@ -414,10 +383,7 @@ const PriceDatabase = {
   },
 
   // Save a visited site record
-  saveVisitedSite: (
-    url: string,
-    conversionCount: number
-  ): Promise<IDBValidKey> => {
+  saveVisitedSite: (url: string, conversionCount: number): Promise<IDBValidKey> => {
     const siteRecord: SiteRecord = {
       url: url,
       timestamp: Date.now(),
@@ -434,9 +400,7 @@ const PriceDatabase = {
   },
 
   // Save user preferences
-  savePreferences: (
-    preferences: Partial<UserPreferences>
-  ): Promise<IDBValidKey> => {
+  savePreferences: (preferences: Partial<UserPreferences>): Promise<IDBValidKey> => {
     return new Promise((resolve, reject) => {
       // First get existing preferences
       PriceDatabase.db
@@ -486,6 +450,7 @@ const PriceDatabase = {
               displayMode: "dual-display",
               denomination: "btc",
               trackStats: true,
+              enabled: true, // Enable the extension by default
               lastUpdated: Date.now(),
             };
 
@@ -510,6 +475,7 @@ const PriceDatabase = {
             displayMode: "dual-display",
             denomination: "btc",
             trackStats: true,
+            enabled: true, // Enable the extension by default
             lastUpdated: Date.now(),
           };
           resolve(defaultPrefs);

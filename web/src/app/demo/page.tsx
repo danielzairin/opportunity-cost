@@ -8,114 +8,113 @@ export default function DemoPage() {
       <main className="flex flex-col items-center bg-gray-50 min-h-screen pt-32 pb-16">
         <section className="w-[90%] max-w-[900px] mx-auto mb-16">
           <h1 className="text-4xl font-bold text-center mb-8">
-            Demo: Placeholder Prices
+            Demo: Financial Figures
           </h1>
           <p className="text-lg text-gray-700 text-center mb-10">
-            This page contains a variety of placeholder prices in USD. Use it to
+            This page contains a variety of financial figures in USD. Use it to
             test the Opportunity Cost extension’s ability to detect and convert
-            prices to Bitcoin satoshis. Prices appear in different formats,
-            contexts, and HTML elements.
+            financial data to Bitcoin satoshis. Figures appear in different
+            formats, contexts, and HTML elements.
           </p>
 
-          <Section title="Headings with Prices">
-            <h3>Special Offer: $19.99</h3>
-            <h4>Annual Plan: $100/year</h4>
-            <h5>Monthly Subscription: $12/mo</h5>
-            <h6>Flash Sale: $0.99!</h6>
+          <Section title="Government Budgets">
+            <h3>Defense Budget: $750 billion</h3>
+            <h4>Education Funding: $100 billion/year</h4>
+            <h5>Healthcare Spending: $3.8 trillion</h5>
+            <h6>Infrastructure Investment: $1.2 trillion!</h6>
           </Section>
 
-          <Section title="Paragraphs with Prices">
+          <Section title="Economic Indicators">
             <p className="mb-4">
-              Get this amazing product for just $49.99! Or subscribe for only
-              $5/mo. Our premium plan is $199 per year. Limited time deal:
-              $0.10. Super saver: $1,299.99. Try our service for $2.99. Upgrade
-              for $1000.00. Donate $0.01 to support us!{" "}
-              <b>Win the lottery: $500 million.</b>{" "}
-              <b>Super Bowl Ad: $7,000,000.</b>
+              The GDP growth rate is projected at 3.5%. Inflation is currently
+              at 2.1%. The unemployment rate stands at 5.5%. The national debt
+              is $28 trillion. The federal reserve interest rate is 0.25%. The
+              trade deficit is $678 billion. The stock market index is at 35,000
+              points.
             </p>
             <p>
-              Some more prices: $3.50, $7.77, $123,456.78, $8.88, $42, $420,
-              $69.69, $1000, $999, $15.95, $4.20, $6.66, $11.11, $1234, $5678,
-              $9.99, $25, $50, $75, $100, $250, $500, $750, $1000, $5000,
-              $10000, $25000, $50000, $100000, $250000, $500000, $1000000,{" "}
-              <b>$34,000,000,000,000 (US National Debt)</b>,{" "}
-              <b>$100 trillion (Global GDP)</b>.
+              More figures: $1.5 trillion stimulus, $2.3 trillion
+              infrastructure, $900 billion relief package, $500 billion defense,
+              $300 billion education, $200 billion healthcare, $100 billion
+              renewable energy, $50 billion technology grants, $25 billion small
+              business loans, $10 billion disaster relief, $5 billion
+              cybersecurity, $1 billion space exploration.
             </p>
           </Section>
 
-          <Section title="Unordered List of Prices">
+          <Section title="Unordered List of Financial Programs">
             <ul className="list-disc ml-8 space-y-1">
               {[
-                "Basic: $5.00",
-                "Standard: $10.00",
-                "Premium: $20.00",
-                "Enterprise: $100.00",
-                "Trial: $0.50",
-                "Micro: $0.05",
-                "Mini: $0.25",
-                "Starter: $0.75",
-                "Pro: $1.00",
-                "Elite: $2.50",
-                "First-Class Flight: $12,000",
-                "Lamborghini: $250,000",
-                "Kickstarter Pledge: $1,000",
+                "Social Security: $1 trillion",
+                "Medicare: $800 billion",
+                "Medicaid: $600 billion",
+                "Veterans Affairs: $200 billion",
+                "NASA: $25 billion",
+                "FEMA: $15 billion",
+                "CDC: $10 billion",
+                "EPA: $8 billion",
+                "IRS: $12 billion",
+                "FBI: $9 billion",
+                "CIA: $15 billion",
+                "NSA: $10 billion",
+                "USDA: $150 billion",
               ].map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
           </Section>
 
-          <Section title="Ordered List of Prices">
+          <Section title="Ordered List of Tax Revenues">
             <ol className="list-decimal ml-8 space-y-1">
               {[
-                "$1.00",
-                "$2.00",
-                "$3.00",
-                "$4.00",
-                "$5.00",
-                "$10.00",
-                "$20.00",
-                "$50.00",
-                "$100.00",
-                "$1000.00",
-                "Charity Donation: $50,000",
-                "SpaceX Launch: $62,000,000",
+                "$3 trillion",
+                "$2.5 trillion",
+                "$2 trillion",
+                "$1.5 trillion",
+                "$1 trillion",
+                "$500 billion",
+                "$250 billion",
+                "$100 billion",
+                "$50 billion",
+                "$10 billion",
+                "Corporate Tax: $300 billion",
+                "Income Tax: $1.5 trillion",
               ].map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ol>
           </Section>
 
-          <Section title="Table of Prices">
+          <Section title="Table of Government Expenditures">
             <table className="w-full text-left border mt-4 mb-8 text-sm">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border px-4 py-2">Item</th>
-                  <th className="border px-4 py-2">Price</th>
-                  <th className="border px-4 py-2">Subscription</th>
+                  <th className="border px-4 py-2">Department</th>
+                  <th className="border px-4 py-2">Expenditure</th>
+                  <th className="border px-4 py-2">Annual Growth</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ["Widget", "$15.00", "$1/mo"],
-                  ["Gadget", "$99.99", "$10/mo"],
-                  ["Pro Plan", "$500.00", "$50/mo"],
-                  ["Enterprise", "$10,000.00", "$1000/mo"],
-                  ["Legacy", "$0.99", "$10/year"],
-                  ["Luxury Watch", "$75,000", "$1,200/year"],
-                  ["Mars Ticket", "$500,000,000", "N/A"],
-                ].map(([item, price, sub]) => (
+                  ["Defense", "$750 billion", "2%"],
+                  ["Education", "$100 billion", "3%"],
+                  ["Healthcare", "$3.8 trillion", "5%"],
+                  ["Infrastructure", "$1.2 trillion", "4%"],
+                  ["Energy", "$150 billion", "6%"],
+                  ["Transportation", "$100 billion", "3%"],
+                  ["Agriculture", "$150 billion", "2%"],
+                ].map(([item, price, growth]) => (
                   <tr key={item}>
                     <td className="border px-4 py-2">{item}</td>
                     <td className="border px-4 py-2">{price}</td>
-                    <td className="border px-4 py-2">{sub}</td>
+                    <td className="border px-4 py-2">{growth}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </Section>
 
-          <Section title="Miscellaneous Prices">
+          <Section title="Miscellaneous Financial Data">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               {[
                 "$0.01",
@@ -162,7 +161,7 @@ export default function DemoPage() {
             </div>
           </Section>
 
-          <Section title="Long List of Prices">
+          <Section title="Long List of Financial Figures">
             <div className="flex flex-wrap gap-2">
               {[
                 "$1.00",
@@ -184,62 +183,62 @@ export default function DemoPage() {
 
         <section className="w-[90%] max-w-[900px] mx-auto mb-16 mt-10">
           <h2 className="text-2xl font-semibold mb-4 text-center">
-            Diverse & Creative Price Scenarios
+            Government & Economic Scenarios
           </h2>
           <p className="text-gray-700 text-center mb-6">
             These examples showcase the extension’s ability to handle large
-            numbers, salaries, subscriptions, travel, donations, and creative
-            scenarios.
+            government budgets, economic indicators, and financial scenarios.
           </p>
           {[
             {
-              heading: "Large Numbers",
+              heading: "National Budgets",
               items: [
                 "US National Debt: $34,000,000,000,000",
                 "Global GDP: $100 trillion",
-                "Startup Valuation: $1,200,000,000",
-                "Lottery Jackpot: $500 million",
-                "Super Bowl Ad: $7,000,000",
+                "Federal Reserve Balance Sheet: $8 trillion",
+                "Defense Budget: $750 billion",
+                "Education Funding: $100 billion",
+                "Healthcare Spending: $3.8 trillion",
+                "Infrastructure Investment: $1.2 trillion",
               ],
             },
             {
-              heading: "Salaries & Wages",
+              heading: "Economic Indicators",
               items: [
-                "Software Engineer Salary: $120,000/year",
-                "Minimum Wage: $15/hour",
-                "Freelancer Rate: $2,500/week",
-                "Executive Bonus: $5,000,000",
+                "GDP Growth Rate: 3.5%",
+                "Inflation Rate: 2.1%",
+                "Unemployment Rate: 5.5%",
+                "Interest Rate: 0.25%",
               ],
             },
             {
-              heading: "Subscriptions & Recurring Payments",
+              heading: "Tax Revenues",
               items: [
-                "Netflix: $15/month",
-                "Spotify: $9.99/mo",
-                "Car Insurance: $1,200/year",
-                "Gym Membership: $50/month",
+                "Income Tax: $1.5 trillion",
+                "Corporate Tax: $300 billion",
+                "Sales Tax: $500 billion",
+                "Property Tax: $200 billion",
               ],
             },
             {
-              heading: "Travel & Luxury Purchases",
+              heading: "Government Programs",
               items: [
-                "First-Class Flight: $12,000",
-                "Lamborghini: $250,000",
-                "Luxury Watch: $75,000",
-                "Yacht: $1,000,000",
-                "Ticket to Mars: $500,000,000",
+                "Social Security: $1 trillion",
+                "Medicare: $800 billion",
+                "Medicaid: $600 billion",
+                "Veterans Affairs: $200 billion",
               ],
             },
             {
-              heading: "Donations & Crowdfunding",
+              heading: "Public Investments",
               items: [
-                "Charity Donation: $50,000",
-                "Kickstarter Pledge: $1,000",
-                "Disaster Relief Fund: $10,000,000",
+                "Renewable Energy: $150 billion",
+                "Technology Grants: $50 billion",
+                "Small Business Loans: $25 billion",
               ],
             },
             {
-              heading: "Creative & Everyday Examples",
+              heading: "Miscellaneous Financial Data",
               items: [
                 "Cup of Coffee: $4.50",
                 "Avocado Toast: $8.00",
@@ -270,7 +269,7 @@ export default function DemoPage() {
             </div>
           ))}
           <p className="mt-8 text-gray-600 text-center">
-            These prices appear in different formats and contexts to help you
+            These figures appear in different formats and contexts to help you
             test the full power of the Opportunity Cost extension.
           </p>
         </section>

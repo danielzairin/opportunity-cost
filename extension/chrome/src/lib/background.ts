@@ -79,6 +79,7 @@ async function loadUserPreferences(): Promise<UserPreferences> {
       denomination: "btc", // Default to BTC instead of sats
       trackStats: true,
       highlightBitcoinValue: false, // Default to no highlighting
+      enabled: true, // Enable the extension by default
       lastUpdated: Date.now(),
     };
 
@@ -106,17 +107,11 @@ function applyUserPreferences(): void {
   }
 
   // Always refresh prices automatically
-  priceRefreshInterval = self.setInterval(
-    fetchAndStoreAllBitcoinPrices,
-    DEFAULT_REFRESH_INTERVAL
-  );
+  priceRefreshInterval = self.setInterval(fetchAndStoreAllBitcoinPrices, DEFAULT_REFRESH_INTERVAL);
 }
 
 // Fetch and store Bitcoin prices for all supported currencies at once
-async function fetchAndStoreAllBitcoinPrices(): Promise<Record<
-  string,
-  number
-> | null> {
+async function fetchAndStoreAllBitcoinPrices(): Promise<Record<string, number> | null> {
   if (!userPreferences) {
     await loadUserPreferences();
   }
@@ -130,9 +125,7 @@ async function fetchAndStoreAllBitcoinPrices(): Promise<Record<
       if (response.status === 429 || response.status >= 500) {
         if (retryCount < MAX_RETRIES) {
           console.warn(
-            `API request failed with status ${response.status}. Retrying in ${
-              backoffTime / 1000
-            } seconds...`
+            `API request failed with status ${response.status}. Retrying in ${backoffTime / 1000} seconds...`,
           );
           retryCount++;
 
@@ -146,18 +139,14 @@ async function fetchAndStoreAllBitcoinPrices(): Promise<Record<
             }, backoffTime);
           });
         } else {
-          console.error(
-            `Maximum retries (${MAX_RETRIES}) reached. Using cached data if available.`
-          );
+          console.error(`Maximum retries (${MAX_RETRIES}) reached. Using cached data if available.`);
           // Reset backoff for next time
           backoffTime = INITIAL_BACKOFF;
           retryCount = 0;
           return null;
         }
       } else {
-        console.warn(
-          `Failed to fetch BTC prices from API: ${response.status} ${response.statusText}`
-        );
+        console.warn(`Failed to fetch BTC prices from API: ${response.status} ${response.statusText}`);
         return null;
       }
     }
@@ -174,9 +163,7 @@ async function fetchAndStoreAllBitcoinPrices(): Promise<Record<
     }
 
     // Store each currency's price in the database
-    const savePromises = (
-      Object.entries(prices) as [SupportedCurrency, number][]
-    ).map(([currency, price]) => {
+    const savePromises = (Object.entries(prices) as [SupportedCurrency, number][]).map(([currency, price]) => {
       if (typeof price === "number") {
         return PriceDatabase.saveBitcoinPrice(currency, price);
       }
@@ -190,9 +177,7 @@ async function fetchAndStoreAllBitcoinPrices(): Promise<Record<
 
     // Handle network errors with backoff as well
     if (retryCount < MAX_RETRIES) {
-      console.warn(
-        `Network error. Retrying in ${backoffTime / 1000} seconds...`
-      );
+      console.warn(`Network error. Retrying in ${backoffTime / 1000} seconds...`);
       retryCount++;
 
       return new Promise((resolve) => {
@@ -204,9 +189,7 @@ async function fetchAndStoreAllBitcoinPrices(): Promise<Record<
         }, backoffTime);
       });
     } else {
-      console.error(
-        `Maximum retries (${MAX_RETRIES}) reached after network errors.`
-      );
+      console.error(`Maximum retries (${MAX_RETRIES}) reached after network errors.`);
       // Reset backoff for next time
       backoffTime = INITIAL_BACKOFF;
       retryCount = 0;
@@ -226,9 +209,7 @@ async function getAllBitcoinPrices(): Promise<Record<string, number> | null> {
     const prices: Record<string, number> = {};
     let allHaveRecent = true;
     for (const currency of SUPPORTED_CURRENCIES) {
-      const storedPrice = await PriceDatabase.getLatestBitcoinPrice(
-        currency.value
-      );
+      const storedPrice = await PriceDatabase.getLatestBitcoinPrice(currency.value);
       if (storedPrice && Date.now() - storedPrice.timestamp < CACHE_DURATION) {
         prices[currency.value] = storedPrice.price;
       } else {
@@ -251,7 +232,7 @@ chrome.runtime.onMessage.addListener(
   (
     message: MessageRequest,
     _sender: chrome.runtime.MessageSender,
-    sendResponse: (response?: MessageResponse) => void
+    sendResponse: (response?: MessageResponse) => void,
   ) => {
     // Get Bitcoin prices only
     if (message.action === "getBitcoinPrices") {
@@ -334,10 +315,7 @@ chrome.runtime.onMessage.addListener(
     } else if (message.action === "saveVisitedSite") {
       // Only save site data if tracking is enabled
       if (userPreferences?.trackStats !== false) {
-        PriceDatabase.saveVisitedSite(
-          message.url || "",
-          message.conversionCount || 0
-        )
+        PriceDatabase.saveVisitedSite(message.url || "", message.conversionCount || 0)
           .then(() => {
             sendResponse({ success: true });
           })
@@ -381,7 +359,7 @@ chrome.runtime.onMessage.addListener(
                         // We can log it for debugging but it's expected that some tabs won't respond
                         // console.debug("Tab messaging error:", chrome.runtime.lastError.message);
                       }
-                    }
+                    },
                   );
                 } catch (err) {
                   // Catch and suppress any other errors
@@ -401,7 +379,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     return false;
-  }
+  },
 );
 
 // Initialize when the extension starts
@@ -409,9 +387,7 @@ async function initialize(): Promise<void> {
   try {
     // Check if we're in a valid context
     if (typeof self === "undefined") {
-      console.error(
-        "Extension is running in an invalid context, 'self' is not defined"
-      );
+      console.error("Extension is running in an invalid context, 'self' is not defined");
       return;
     }
 
