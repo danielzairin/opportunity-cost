@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import {
-  PriceDatabase,
-  type PriceRecord,
-  type SiteRecord,
-} from "../lib/storage";
+import { PriceDatabase, type PriceRecord, type SiteRecord } from "../lib/storage";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "../lib/constants";
+import { Button } from "./ui/button";
+
+// Theme types for more flexibility
+type ThemeMode = "system" | "light" | "dark";
 
 export function OptionsPage() {
   // State for form fields
   const [defaultCurrency, setDefaultCurrency] = useState(DEFAULT_CURRENCY);
-  const [displayMode, setDisplayMode] = useState<
-    "bitcoin-only" | "dual-display"
-  >("dual-display");
+  const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
   const [denomination, setDenomination] = useState<"btc" | "sats">("btc");
   const [trackStats, setTrackStats] = useState(true);
   const [highlightBitcoinValue, sethighlightBitcoinValue] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+  const [darkMode, setDarkMode] = useState(false);
   const [saveMessage, setSaveMessage] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [settingsError, setSettingsError] = useState<string | null>(null);
@@ -29,6 +29,44 @@ export function OptionsPage() {
   const [loadingSites, setLoadingSites] = useState(true);
   const [sitesError, setSitesError] = useState<string | null>(null);
 
+  // Function to detect system theme preference
+  const getSystemThemePreference = (): boolean => {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+
+  // Function to apply theme based on preference
+  const applyTheme = (mode: ThemeMode, systemIsDark?: boolean) => {
+    const isDark =
+      mode === "dark" ||
+      (mode === "system" && (systemIsDark !== undefined ? systemIsDark : getSystemThemePreference()));
+
+    setDarkMode(isDark);
+
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (themeMode === "system") {
+        applyTheme("system", e.matches);
+      }
+    };
+
+    // Modern browsers
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, [themeMode]);
+
   // Load settings on mount
   useEffect(() => {
     async function loadSettings() {
@@ -41,6 +79,13 @@ export function OptionsPage() {
         setDenomination(preferences.denomination || "btc");
         setTrackStats(preferences.trackStats !== false); // default true
         sethighlightBitcoinValue(preferences.highlightBitcoinValue === true); // default false
+
+        // Load theme preference
+        const savedTheme = preferences.themeMode || "system";
+        setThemeMode(savedTheme as ThemeMode);
+
+        // Apply theme based on preference
+        applyTheme(savedTheme as ThemeMode);
       } catch {
         setSettingsError("Error loading settings");
       } finally {
@@ -58,15 +103,9 @@ export function OptionsPage() {
       try {
         const endTime = Date.now();
         const startTime = endTime - 7 * 24 * 60 * 60 * 1000; // 7 days
-        const history = await PriceDatabase.getPriceHistory(
-          "usd",
-          startTime,
-          endTime
-        );
+        const history = await PriceDatabase.getPriceHistory("usd", startTime, endTime);
         // Sort by timestamp descending, show up to 10
-        history.sort(
-          (a: PriceRecord, b: PriceRecord) => b.timestamp - a.timestamp
-        );
+        history.sort((a: PriceRecord, b: PriceRecord) => b.timestamp - a.timestamp);
         setPriceHistory(history.slice(0, 10));
       } catch {
         setHistoryError("Error loading price history");
@@ -84,9 +123,7 @@ export function OptionsPage() {
       setSitesError(null);
       try {
         const visited = await PriceDatabase.getVisitedSites();
-        visited.sort(
-          (a: SiteRecord, b: SiteRecord) => b.timestamp - a.timestamp
-        );
+        visited.sort((a: SiteRecord, b: SiteRecord) => b.timestamp - a.timestamp);
         setSites(visited);
       } catch {
         setSitesError("Error loading visited sites");
@@ -96,6 +133,12 @@ export function OptionsPage() {
     }
     loadVisitedSites();
   }, []);
+
+  // Handle theme change
+  const handleThemeChange = (newTheme: ThemeMode) => {
+    setThemeMode(newTheme);
+    applyTheme(newTheme);
+  };
 
   // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,6 +150,8 @@ export function OptionsPage() {
         denomination,
         trackStats,
         highlightBitcoinValue,
+        darkMode,
+        themeMode,
       });
       // Notify background script that preferences have been updated
       chrome.runtime.sendMessage({ action: "preferencesUpdated" });
@@ -119,12 +164,7 @@ export function OptionsPage() {
 
   // Handle clear data
   const handleClearData = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to clear all saved data? This action cannot be undone."
-      )
-    )
-      return;
+    if (!window.confirm("Are you sure you want to clear all saved data? This action cannot be undone.")) return;
     try {
       await PriceDatabase.db.clear("priceHistory");
       await PriceDatabase.db.clear("visitedSites");
@@ -134,6 +174,7 @@ export function OptionsPage() {
         displayMode: "dual-display",
         denomination: "btc",
         trackStats: true,
+        themeMode,
         lastUpdated: Date.now(),
       });
       // Reload all data
@@ -144,36 +185,35 @@ export function OptionsPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 text-gray-800 bg-gray-50 min-h-screen">
-      <div className="flex items-center justify-between mb-6">
+    <div
+      className={`mx-auto max-w-3xl p-6 text-gray-800 dark:text-gray-200 ${darkMode ? "dark bg-gray-900" : "bg-gray-50"} min-h-screen`}
+    >
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center">
-          <img src="icons/logo.svg" alt="TFTC Logo" className="h-10 mr-4" />
-          <h1 className="text-xl font-bold text-gray-900">Opportunity Cost</h1>
+          <img src="icons/logo.svg" alt="TFTC Logo" className="mr-4 h-10" />
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Opportunity Cost</h1>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-6 mb-6 shadow">
-        <h2 className="text-xl font-semibold mb-4">Settings</h2>
+      <div className="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">Settings</h2>
         {loadingSettings ? (
-          <div className="text-gray-400">Loading settings...</div>
+          <div className="text-gray-400 dark:text-gray-500">Loading settings...</div>
         ) : settingsError ? (
           <div className="text-red-500">{settingsError}</div>
         ) : (
           <form id="settings-form" onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label
-                htmlFor="default-currency"
-                className="block mb-2 font-bold"
-              >
+              <label htmlFor="default-currency" className="mb-2 block font-bold dark:text-gray-300">
                 Default Currency:
               </label>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                 The currency that will be converted to Bitcoin.
               </p>
               <select
                 id="default-currency"
                 name="defaultCurrency"
-                className="w-full p-2 rounded border border-gray-300"
+                className="w-full rounded border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 value={defaultCurrency}
                 onChange={(e) => setDefaultCurrency(e.target.value)}
               >
@@ -186,20 +226,18 @@ export function OptionsPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="denomination" className="block mb-2 font-bold">
+              <label htmlFor="denomination" className="mb-2 block font-bold dark:text-gray-300">
                 Bitcoin Denomination:
               </label>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                 Choose how to display Bitcoin values (sats or BTC).
               </p>
               <select
                 id="denomination"
                 name="denomination"
-                className="w-full p-2 rounded border border-gray-300"
+                className="w-full rounded border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 value={denomination}
-                onChange={(e) =>
-                  setDenomination(e.target.value as "btc" | "sats")
-                }
+                onChange={(e) => setDenomination(e.target.value as "btc" | "sats")}
               >
                 <option value="sats">Satoshis (sats)</option>
                 <option value="btc">Bitcoin (BTC)</option>
@@ -207,32 +245,43 @@ export function OptionsPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="display-mode" className="block mb-2 font-bold">
+              <label htmlFor="display-mode" className="mb-2 block font-bold dark:text-gray-300">
                 Display Mode:
               </label>
               <select
                 id="display-mode"
                 name="displayMode"
-                className="w-full p-2 rounded border border-gray-300"
+                className="w-full rounded border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 value={displayMode}
-                onChange={(e) =>
-                  setDisplayMode(
-                    e.target.value as "bitcoin-only" | "dual-display"
-                  )
-                }
+                onChange={(e) => setDisplayMode(e.target.value as "bitcoin-only" | "dual-display")}
               >
-                <option value="dual-display">
-                  Dual Display (Fiat | {denomination === "btc" ? "BTC" : "sats"}
-                  )
-                </option>
-                <option value="bitcoin-only">
-                  {denomination === "btc" ? "Bitcoin" : "Satoshis"} Only
-                </option>
+                <option value="dual-display">Dual Display (Fiat | {denomination === "btc" ? "BTC" : "sats"})</option>
+                <option value="bitcoin-only">{denomination === "btc" ? "Bitcoin" : "Satoshis"} Only</option>
               </select>
             </div>
 
             <div className="mb-4">
-              <label className="inline-flex items-center font-bold">
+              <label htmlFor="theme-mode" className="mb-2 block font-bold dark:text-gray-300">
+                Theme:
+              </label>
+              <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                Choose between light, dark, or system theme.
+              </p>
+              <select
+                id="theme-mode"
+                name="themeMode"
+                className="w-full rounded border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                value={themeMode}
+                onChange={(e) => handleThemeChange(e.target.value as ThemeMode)}
+              >
+                <option value="system">System Default</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="inline-flex items-center font-bold dark:text-gray-300">
                 <input
                   type="checkbox"
                   id="track-stats"
@@ -246,7 +295,7 @@ export function OptionsPage() {
             </div>
 
             <div className="mb-4">
-              <label className="inline-flex items-center font-bold">
+              <label className="inline-flex items-center font-bold dark:text-gray-300">
                 <input
                   type="checkbox"
                   id="highlight-bitcoin-value"
@@ -257,63 +306,57 @@ export function OptionsPage() {
                 />
                 Highlight Bitcoin values
               </label>
-              <p className="text-sm text-gray-600 mb-2 ml-5">
+              <p className="mb-2 ml-5 text-sm text-gray-600 dark:text-gray-400">
                 Adds a colored background to Bitcoin values.
               </p>
             </div>
 
-            <button
-              type="submit"
-              className="bg-primary hover:bg-orange-800/80 text-white font-bold py-2 px-4 rounded mt-2"
-            >
+            <Button type="submit" variant="default">
               Save Settings
-            </button>
-            {saveMessage && (
-              <span className="text-green-600 font-bold ml-4">
-                Settings saved!
-              </span>
-            )}
+            </Button>
+            {saveMessage && <span className="ml-4 font-bold text-green-600 dark:text-green-400">Settings saved!</span>}
           </form>
         )}
       </div>
 
-      <div className="bg-gray-100 border border-gray-200 rounded-lg p-6 mt-8 text-center">
-        <h3 className="text-lg font-semibold mb-2">
-          Stay Updated with Bitcoin News
-        </h3>
-        <p className="mb-4">
-          Subscribe to the Bitcoin Brief newsletter from TFTC to get the latest
-          Bitcoin updates, market analysis, and insights delivered to your
-          inbox.
+      <div className="mt-8 rounded-lg border border-gray-200 bg-gray-100 p-6 text-center dark:border-gray-600 dark:bg-gray-700">
+        <h3 className="mb-2 text-lg font-semibold dark:text-white">Stay Updated with Bitcoin News</h3>
+        <p className="mb-4 dark:text-gray-300">
+          Subscribe to the Bitcoin Brief newsletter from TFTC to get the latest Bitcoin updates, market analysis, and
+          insights delivered to your inbox.
         </p>
-        <a
-          href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-foreground hover:bg-gray-800 text-background font-bold py-3 px-6 rounded inline-block"
-        >
-          Subscribe to Bitcoin Brief
-        </a>
+        <Button variant="default" asChild>
+          <a
+            href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Subscribe to Bitcoin Brief
+          </a>
+        </Button>
       </div>
 
-      <div className="bg-white rounded-lg p-6 my-6 shadow">
-        <h2 className="text-xl font-semibold mb-4">Bitcoin Price History</h2>
+      <div className="my-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">Bitcoin Price History</h2>
         {loadingHistory ? (
-          <div className="text-gray-400">Loading price history data...</div>
+          <div className="text-gray-400 dark:text-gray-500">Loading price history data...</div>
         ) : historyError ? (
           <div className="text-red-500">{historyError}</div>
         ) : priceHistory.length === 0 ? (
-          <div className="empty-state">
-            No price history data available yet. The extension will collect data
-            as you browse.
+          <div className="empty-state dark:text-gray-400">
+            No price history data available yet. The extension will collect data as you browse.
           </div>
         ) : (
-          <table className="min-w-full border border-gray-200">
+          <table className="min-w-full border border-gray-200 dark:border-gray-600">
             <thead>
               <tr>
-                <th className="bg-gray-100 px-4 py-2 border-b">Date</th>
-                <th className="bg-gray-100 px-4 py-2 border-b">Time</th>
-                <th className="bg-gray-100 px-4 py-2 border-b">
+                <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                  Date
+                </th>
+                <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                  Time
+                </th>
+                <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                   BTC Price (USD)
                 </th>
               </tr>
@@ -324,15 +367,15 @@ export function OptionsPage() {
                 return (
                   <tr
                     key={entry.timestamp}
-                    className={idx % 2 === 0 ? "bg-gray-50" : ""}
+                    className={idx % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "dark:bg-gray-800"}
                   >
-                    <td className="px-4 py-2 border-b">
+                    <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
                       {date.toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2 border-b">
+                    <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
                       {date.toLocaleTimeString()}
                     </td>
-                    <td className="px-4 py-2 border-b">
+                    <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
                       $
                       {entry.price.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
@@ -347,23 +390,25 @@ export function OptionsPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-lg p-6 mb-6 shadow">
-        <h2 className="text-xl font-semibold mb-4">Visited Sites Statistics</h2>
+      <div className="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">Visited Sites Statistics</h2>
         <div className="overflow-x-auto">
-          <p className="mb-2">
-            Sites where Opportunity Cost has converted prices:
-          </p>
+          <p className="mb-2 dark:text-gray-300">Sites where Opportunity Cost has converted prices:</p>
           {loadingSites ? (
-            <div className="text-gray-400">Loading visited sites...</div>
+            <div className="text-gray-400 dark:text-gray-500">Loading visited sites...</div>
           ) : sitesError ? (
             <div className="text-red-500">{sitesError}</div>
           ) : (
-            <table className="min-w-full border border-gray-200">
+            <table className="min-w-full border border-gray-200 dark:border-gray-600">
               <thead>
                 <tr>
-                  <th className="bg-gray-100 px-4 py-2 border-b">Website</th>
-                  <th className="bg-gray-100 px-4 py-2 border-b">Last Visit</th>
-                  <th className="bg-gray-100 px-4 py-2 border-b">
+                  <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    Website
+                  </th>
+                  <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    Last Visit
+                  </th>
+                  <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                     Conversions
                   </th>
                 </tr>
@@ -371,7 +416,7 @@ export function OptionsPage() {
               <tbody>
                 {sites.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="text-center text-gray-400 py-8">
+                    <td colSpan={3} className="py-8 text-center text-gray-400 dark:text-gray-500">
                       No data available.
                     </td>
                   </tr>
@@ -380,9 +425,7 @@ export function OptionsPage() {
                     let displayUrl = site.url;
                     try {
                       const urlObj = new URL(site.url);
-                      displayUrl =
-                        urlObj.hostname +
-                        (urlObj.pathname !== "/" ? urlObj.pathname : "");
+                      displayUrl = urlObj.hostname + (urlObj.pathname !== "/" ? urlObj.pathname : "");
                     } catch {
                       // console.error("Error parsing URL:", site.url);
                     }
@@ -390,14 +433,13 @@ export function OptionsPage() {
                     return (
                       <tr
                         key={site.url + site.timestamp}
-                        className={idx % 2 === 0 ? "bg-gray-50" : ""}
+                        className={idx % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "dark:bg-gray-800"}
                       >
-                        <td className="px-4 py-2 border-b">{displayUrl}</td>
-                        <td className="px-4 py-2 border-b">
-                          {date.toLocaleDateString()}{" "}
-                          {date.toLocaleTimeString()}
+                        <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">{displayUrl}</td>
+                        <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
+                          {date.toLocaleDateString()} {date.toLocaleTimeString()}
                         </td>
-                        <td className="px-4 py-2 border-b">
+                        <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
                           {site.conversionCount}
                         </td>
                       </tr>
@@ -408,22 +450,19 @@ export function OptionsPage() {
             </table>
           )}
         </div>
-        <button
-          onClick={handleClearData}
-          className="bg-foreground hover:bg-gray-700 text-background font-bold py-2 px-4 rounded mt-4"
-        >
+        <Button variant="default" onClick={handleClearData} className="mt-4">
           Clear All Data
-        </button>
+        </Button>
       </div>
 
-      <div className="mt-10 text-center text-gray-500 text-sm">
+      <div className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>
           &copy; 2025 Opportunity Cost &middot; Powered by{" "}
           <a
             href="https://tftc.io?utm_source=opportunity-cost-extension"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-700 hover:underline"
+            className="text-gray-700 hover:underline dark:text-gray-300"
           >
             TFTC
           </a>

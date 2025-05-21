@@ -16,7 +16,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
-import { Ellipsis, ExternalLink, Bitcoin, PaintbrushVertical, Link, Check } from "lucide-react";
+import { Ellipsis, ExternalLink, Bitcoin, PaintbrushVertical, Link, Check, Sun, Moon, Monitor } from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
@@ -39,7 +39,7 @@ function Header() {
     <header className="mb-2 flex items-center gap-x-0.5">
       <a href={APP_URL} target="_blank" className="mr-auto flex items-center">
         <img src="icons/logo.svg" alt="TFTC Logo" className="mr-2 h-8" />
-        <span className="text-foreground text-lg font-bold">Opportunity Cost</span>
+        <span className="text-foreground text-lg font-bold dark:text-white">Opportunity Cost</span>
       </a>
 
       <TooltipProvider>
@@ -48,7 +48,7 @@ function Header() {
             <Button
               variant="ghost"
               onClick={handleCopyLink}
-              className="size-8 rounded p-0 hover:bg-gray-100 focus:outline-none"
+              className="size-8 rounded p-0 hover:bg-gray-100 focus:outline-none dark:hover:bg-gray-800"
             >
               {linkCopied ? <Check className="size-4" /> : <Link className="size-4" />}
             </Button>
@@ -164,15 +164,15 @@ function LivePrice() {
   return (
     <section className="mb-2">
       <div className="flex items-center justify-between">
-        <span className="font-semibold">BTC Price:</span>
+        <span className="font-semibold dark:text-gray-200">BTC Price:</span>
         {loading ? (
-          <span className="font-mono text-lg text-gray-400">Loading...</span>
+          <span className="font-mono text-lg text-gray-400 dark:text-gray-500">Loading...</span>
         ) : error ? (
           <span className="text-sm text-red-500">Error: {error}</span>
         ) : !extensionEnabled ? (
-          <span className="font-mono text-lg text-gray-400">Extension Disabled</span>
+          <span className="font-mono text-lg text-gray-400 dark:text-gray-500">Extension Disabled</span>
         ) : (
-          <span className="font-mono text-xl">
+          <span className="font-mono text-xl dark:text-white">
             {getCurrencySymbol(currency)}
             {prices[currency]?.toLocaleString(undefined, {
               minimumFractionDigits: 2,
@@ -183,7 +183,7 @@ function LivePrice() {
       </div>
       <div
         className={cn(
-          "flex items-center text-[10px] text-gray-400",
+          "flex items-center text-[10px] text-gray-400 dark:text-gray-500",
           !extensionEnabled ? "justify-end" : "justify-between",
         )}
       >
@@ -515,12 +515,12 @@ function Converter() {
   return (
     <section className="mb-4">
       <div>
-        <div className="mb-2 text-sm font-bold">Currency Converter</div>
+        <div className="mb-2 text-sm font-bold dark:text-gray-200">Currency Converter</div>
 
         <div
           className={cn(
-            "mb-1 cursor-text rounded-xl border border-gray-300 bg-white bg-opacity-90 px-3 py-2 transition-opacity",
-            focusedPanel === "fiat" && "border-gray-500",
+            "mb-1 cursor-text rounded-xl border border-gray-300 bg-white bg-opacity-90 px-3 py-2 transition-opacity dark:border-gray-700 dark:bg-gray-800",
+            focusedPanel === "fiat" && "border-gray-500 dark:border-gray-400",
           )}
           onClick={(e) => {
             // Prevent focusing when clicking on select
@@ -534,11 +534,14 @@ function Converter() {
           }}
         >
           <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="fiat-input" className="text-md pointer-events-none font-medium text-gray-800">
+            <label
+              htmlFor="fiat-input"
+              className="text-md pointer-events-none font-medium text-gray-800 dark:text-gray-200"
+            >
               Fiat
             </label>
             <select
-              className="text-right text-xs"
+              className="text-right text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
               value={currency}
               onChange={handleCurrencySelect}
               onClick={(e) => e.stopPropagation()}
@@ -552,12 +555,12 @@ function Converter() {
             </select>
           </div>
           <div className="relative">
-            <label htmlFor="fiat-input" className="absolute left-0 top-0 text-lg text-gray-300">
+            <label htmlFor="fiat-input" className="absolute left-0 top-0 text-lg text-gray-300 dark:text-gray-500">
               {currencySymbol}
             </label>
             <Cleave
               id="fiat-input"
-              className="w-full border-none bg-transparent pl-4 text-lg text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-0"
+              className="w-full border-none bg-transparent pl-4 text-lg text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-0 dark:text-gray-200 dark:placeholder:text-gray-500"
               placeholder={`${currency.toUpperCase()}`}
               value={fiatAmount}
               onChange={handleFiatChange}
@@ -586,7 +589,7 @@ function Converter() {
             <button
               onClick={toggleDirectionAndFocus}
               className={cn(
-                "-mt-4 flex size-7 select-none items-center justify-center rounded-xl border-4 border-white bg-gray-100 font-bold transition-transform duration-300 ease-in-out",
+                "-mt-4 flex size-7 select-none items-center justify-center rounded-xl border-4 border-white bg-gray-100 font-bold transition-transform duration-300 ease-in-out dark:border-gray-900 dark:bg-gray-700 dark:text-white",
                 lastEdited === "btc" && "rotate-180",
               )}
               onMouseEnter={handleMouseEnter}
@@ -597,7 +600,7 @@ function Converter() {
 
             <div
               className={cn(
-                "pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-neutral-800 px-2 py-1 text-xs text-white opacity-100 transition-all duration-200",
+                "pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-neutral-800 px-2 py-1 text-xs text-white opacity-100 transition-all duration-200 dark:bg-neutral-700",
                 showTooltip
                   ? "pointer-events-auto -translate-y-2 opacity-100"
                   : "pointer-events-none translate-y-0 opacity-0",
@@ -611,8 +614,8 @@ function Converter() {
         {/* Bottom Panel - Bitcoin */}
         <div
           className={cn(
-            "cursor-text rounded-xl border border-gray-100 bg-gray-100 px-3 py-2",
-            focusedPanel === "btc" && "border-gray-500",
+            "cursor-text rounded-xl border border-gray-100 bg-gray-100 px-3 py-2 dark:border-gray-700 dark:bg-gray-700",
+            focusedPanel === "btc" && "border-gray-500 dark:border-gray-500",
           )}
           onClick={(e) => {
             // Prevent focusing when clicking on select
@@ -626,12 +629,15 @@ function Converter() {
           }}
         >
           <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="btc-input" className="text-md pointer-events-none font-medium text-gray-800">
+            <label
+              htmlFor="btc-input"
+              className="text-md pointer-events-none font-medium text-gray-800 dark:text-gray-200"
+            >
               Bitcoin
             </label>
             <select
               id="denomination-select"
-              className="text-right text-xs"
+              className="text-right text-xs dark:bg-gray-700 dark:text-gray-200"
               value={localDenomination}
               onClick={(e) => e.stopPropagation()}
               onChange={(e) => {
@@ -650,7 +656,7 @@ function Converter() {
           <div className="relative">
             <Cleave
               id="btc-input"
-              className="w-full border-none bg-transparent pr-10 text-lg placeholder:text-gray-300 focus:outline-none focus:ring-0"
+              className="w-full border-none bg-transparent pr-10 text-lg placeholder:text-gray-300 focus:outline-none focus:ring-0 dark:text-gray-200 dark:placeholder:text-gray-500"
               placeholder="0"
               value={btcAmount}
               onChange={handleBtcChange}
@@ -670,7 +676,10 @@ function Converter() {
               }}
               htmlRef={(el) => (btcInputRef.current = el)}
             />
-            <label htmlFor="btc-input" className="pointer-events-none absolute right-0 top-0 text-lg text-gray-300">
+            <label
+              htmlFor="btc-input"
+              className="pointer-events-none absolute right-0 top-0 text-lg text-gray-300 dark:text-gray-500"
+            >
               {bitcoinUnit}
             </label>
           </div>
@@ -786,7 +795,7 @@ function Settings() {
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              className="size-8 rounded p-0 hover:bg-gray-100 focus:outline-none"
+              className="size-8 rounded p-0 hover:bg-gray-100 focus:outline-none dark:hover:bg-gray-800"
               aria-label="Settings"
             >
               <Ellipsis className="size-5" />
@@ -803,7 +812,7 @@ function Settings() {
           >
             <span className="flex items-center">
               <Bitcoin className={cn("mr-2 h-4 w-4", displayMode === "bitcoin-only" && "text-oc-primary")} />
-              <span className="text-primary">Bitcoin Mode</span>
+              <span className="text-primary">Bitcoin-only Mode</span>
             </span>
           </DropdownMenuCheckboxItem>
           <DropdownMenuCheckboxItem
@@ -966,17 +975,116 @@ function Settings() {
 
 // --- Call To Action ---
 function CallToAction() {
+  const [themeMode, setThemeMode] = useState<"system" | "light" | "dark">("system");
+
+  // Get system theme detection function
+  const getSystemThemePreference = (): boolean => {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+
+  // Function to apply theme based on preference
+  const applyTheme = (mode: "system" | "light" | "dark", systemIsDark?: boolean) => {
+    const isDark =
+      mode === "dark" ||
+      (mode === "system" && (systemIsDark !== undefined ? systemIsDark : getSystemThemePreference()));
+
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
+  // Load theme setting from preferences
+  useEffect(() => {
+    const loadThemePreference = async () => {
+      try {
+        const preferences = await PriceDatabase.getPreferences();
+        const savedTheme = preferences.themeMode || "system";
+        setThemeMode(savedTheme as "system" | "light" | "dark");
+      } catch (error) {
+        console.error("Error loading theme preference:", error);
+      }
+    };
+
+    loadThemePreference();
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (themeMode === "system") {
+        applyTheme("system", e.matches);
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, [themeMode]);
+
+  // Handle theme change
+  const handleThemeChange = async (newTheme: "system" | "light" | "dark") => {
+    setThemeMode(newTheme);
+    applyTheme(newTheme);
+
+    try {
+      await PriceDatabase.savePreferences({
+        themeMode: newTheme,
+        // Also update darkMode for backward compatibility
+        darkMode: newTheme === "dark" || (newTheme === "system" && getSystemThemePreference()),
+      });
+      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+      document.dispatchEvent(
+        new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
+          detail: { themeMode: newTheme },
+        }),
+      );
+    } catch (error) {
+      console.error("Error saving theme preference:", error);
+    }
+  };
+
   return (
-    <section className="mb-2 text-left">
-      <Button variant="primary" size="sm" asChild>
-        <a
-          href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Subscribe to Bitcoin Brief
-        </a>
-      </Button>
+    <section className="mb-2">
+      <div className="mb-2 flex items-center justify-between">
+        <Button variant="primary" size="sm" asChild>
+          <a
+            href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost-extension"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Subscribe to Bitcoin Brief
+          </a>
+        </Button>
+
+        {/* Theme Selector */}
+        <div className="flex gap-1">
+          <button
+            onClick={() => handleThemeChange("light")}
+            className={`rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 ${themeMode === "light" ? "bg-gray-200 dark:bg-gray-700" : ""}`}
+            title="Light Mode"
+          >
+            <Sun className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => handleThemeChange("system")}
+            className={`rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 ${themeMode === "system" ? "bg-gray-200 dark:bg-gray-700" : ""}`}
+            title="System Default"
+          >
+            <Monitor className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => handleThemeChange("dark")}
+            className={`rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800 ${themeMode === "dark" ? "bg-gray-200 dark:bg-gray-700" : ""}`}
+            title="Dark Mode"
+          >
+            <Moon className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     </section>
   );
 }
@@ -984,7 +1092,7 @@ function CallToAction() {
 // --- Footer ---
 function Footer() {
   return (
-    <footer className="text-left text-[10px] text-gray-400">
+    <footer className="text-left text-[10px] text-gray-400 dark:text-gray-500">
       <div className="flex flex-col">
         <span>
           &copy; 2025 Opportunity Cost &middot; Powered by{" "}
@@ -992,7 +1100,7 @@ function Footer() {
             href="https://tftc.io?utm_source=opportunity-cost-extension"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-gray-500 hover:underline"
+            className="font-medium text-gray-500 hover:underline dark:text-gray-400"
           >
             TFTC
           </a>
@@ -1023,8 +1131,104 @@ function Footer() {
 
 // --- Main IndexPage ---
 export function IndexPage() {
+  // Initialize theme from preferences when popup opens
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+
+    const initializeTheme = async () => {
+      try {
+        const preferences = await PriceDatabase.getPreferences();
+        const themeMode = preferences.themeMode || "system";
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        // Apply theme based on preference
+        const isDark = themeMode === "dark" || (themeMode === "system" && systemPrefersDark);
+
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+
+        // Add listener for system theme changes if set to system
+        if (themeMode === "system") {
+          const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+          const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+            if (e.matches) {
+              document.documentElement.classList.add("dark");
+            } else {
+              document.documentElement.classList.remove("dark");
+            }
+          };
+
+          mediaQuery.addEventListener("change", handleSystemThemeChange);
+
+          // Store cleanup function
+          cleanup = () => {
+            mediaQuery.removeEventListener("change", handleSystemThemeChange);
+          };
+        }
+      } catch (error) {
+        console.error("Error initializing theme:", error);
+      }
+    };
+
+    // Apply theme immediately when popup opens
+    initializeTheme();
+
+    // Return cleanup function
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
+  }, []);
+
+  // Listen for theme change events from the theme buttons
+  useEffect(() => {
+    const handleThemeChange = (event: CustomEvent) => {
+      if (event.detail?.themeMode) {
+        const themeMode = event.detail.themeMode;
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        // Apply the new theme
+        const isDark = themeMode === "dark" || (themeMode === "system" && systemPrefersDark);
+
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+
+        // Update system theme change listener
+        if (themeMode === "system") {
+          const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+          const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+            if (e.matches) {
+              document.documentElement.classList.add("dark");
+            } else {
+              document.documentElement.classList.remove("dark");
+            }
+          };
+
+          // Remove existing listeners first to avoid duplicates
+          mediaQuery.removeEventListener("change", handleSystemThemeChange);
+          mediaQuery.addEventListener("change", handleSystemThemeChange);
+        }
+      }
+    };
+
+    document.addEventListener(DISPLAY_MODE_CHANGE_EVENT, handleThemeChange as EventListener);
+
+    return () => {
+      document.removeEventListener(DISPLAY_MODE_CHANGE_EVENT, handleThemeChange as EventListener);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen w-80 bg-white p-4 font-sans">
+    <div className="min-h-screen w-80 bg-white p-4 font-sans dark:bg-gray-900 dark:text-white">
       <Header />
       <LivePrice />
       <Converter />

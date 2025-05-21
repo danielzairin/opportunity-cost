@@ -30,6 +30,8 @@ export interface UserPreferences {
   trackStats?: boolean;
   highlightBitcoinValue?: boolean;
   enabled?: boolean; // Flag to enable/disable extension globally
+  darkMode?: boolean; // Flag for dark mode (deprecated, kept for backward compatibility)
+  themeMode?: "system" | "light" | "dark"; // New theme mode preference
   lastUpdated?: number;
 }
 
@@ -451,6 +453,8 @@ const PriceDatabase = {
               denomination: "btc",
               trackStats: true,
               enabled: true, // Enable the extension by default
+              darkMode: false, // Light mode by default
+              themeMode: "system", // Default theme mode
               lastUpdated: Date.now(),
             };
 
@@ -476,6 +480,8 @@ const PriceDatabase = {
             denomination: "btc",
             trackStats: true,
             enabled: true, // Enable the extension by default
+            darkMode: false, // Light mode by default
+            themeMode: "system", // Default theme mode
             lastUpdated: Date.now(),
           };
           resolve(defaultPrefs);

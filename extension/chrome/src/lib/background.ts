@@ -80,6 +80,8 @@ async function loadUserPreferences(): Promise<UserPreferences> {
       trackStats: true,
       highlightBitcoinValue: false, // Default to no highlighting
       enabled: true, // Enable the extension by default
+      darkMode: false, // Light mode by default (kept for backward compatibility)
+      themeMode: "system", // Use system theme by default
       lastUpdated: Date.now(),
     };
 
