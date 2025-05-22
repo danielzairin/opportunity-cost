@@ -36,7 +36,7 @@ function Header() {
   };
 
   return (
-    <header className="mb-2 flex items-center gap-x-0.5">
+    <header className="mb-4 flex items-center gap-x-0.5">
       <a href={APP_URL} target="_blank" className="mr-auto flex items-center">
         <img src="icons/logo.svg" alt="TFTC Logo" className="mr-2 h-8" />
         <span className="text-foreground text-lg font-bold dark:text-white">Opportunity Cost</span>
@@ -162,9 +162,9 @@ function LivePrice() {
   };
 
   return (
-    <section className="mb-2">
-      <div className="flex items-center justify-between">
-        <span className="font-semibold dark:text-gray-200">BTC Price:</span>
+    <section className="mb-4">
+      <div className="flex items-end justify-between">
+        <span className="font-semibold dark:text-gray-200">Bitcoin Price:</span>
         {loading ? (
           <span className="font-mono text-lg text-gray-400 dark:text-gray-500">Loading...</span>
         ) : error ? (
@@ -211,7 +211,7 @@ function Converter() {
   const [lastEdited, setLastEdited] = useState<"fiat" | "btc">("fiat");
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [localDenomination, setLocalDenomination] = useState<"sats" | "btc" | "dynamic">("sats");
+  const [localDenomination, setLocalDenomination] = useState<"sats" | "btc">("btc");
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [supportedCurrencies, setSupportedCurrencies] = useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -266,7 +266,9 @@ function Converter() {
       try {
         const preferences = await PriceDatabase.getPreferences();
         // setDisplayMode(preferences.displayMode || "dual-display");
-        setLocalDenomination(preferences.denomination || "sats");
+        // Ensure only "sats" or "btc" is set, defaulting to "btc"
+        const denomination = preferences.denomination === "sats" ? "sats" : "btc";
+        setLocalDenomination(denomination);
         // Check if extension is disabled
         if (preferences.enabled === false) {
           setLoading(true); // Disable inputs by setting loading state
@@ -510,7 +512,6 @@ function Converter() {
   const denominations = [
     { value: "sats", label: "Satoshis (sats)" },
     { value: "btc", label: "Bitcoin (BTC)" },
-    { value: "dynamic", label: "Dynamic BTC/Sats" },
   ];
 
   return (
@@ -693,7 +694,7 @@ function Converter() {
 // --- Settings ---
 function Settings() {
   const [showSettings, setShowSettings] = useState(false);
-  const [denomination, setDenomination] = useState<"sats" | "btc" | "dynamic">("dynamic");
+  const [denomination, setDenomination] = useState<"sats" | "btc">("btc");
   const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
   const [highlightBitcoinValue, setHighlightBitcoinValue] = useState(false);
   const [prefsLoading, setPrefsLoading] = useState(true);
@@ -708,7 +709,9 @@ function Settings() {
         const preferences = await PriceDatabase.getPreferences();
         setDisplayMode(preferences.displayMode || "dual-display");
         setHighlightBitcoinValue(preferences.highlightBitcoinValue || false);
-        setDenomination(preferences.denomination || "sats");
+        // Ensure only "sats" or "btc" is set, defaulting to "btc"
+        const denomination = preferences.denomination === "sats" ? "sats" : "btc";
+        setDenomination(denomination);
       } catch (error) {
         console.error("Error loading preferences:", error);
       } finally {
@@ -1062,7 +1065,7 @@ function CallToAction() {
   };
 
   return (
-    <section className="mb-2">
+    <section className="mb-4">
       <div className="mb-2 flex items-center justify-between">
         <Button variant="primary" size="sm" asChild>
           <a
