@@ -375,10 +375,14 @@ async function main() {
           frag.appendChild(document.createTextNode(content.slice(lastIndex, matchStart)));
         }
 
-        const fiatValue = convertCurrencyValue(match[0], currencySymbol);
+        const fullMatch = match[0];
+        const trailingWS = fullMatch.match(/\s+$/)?.[0] ?? "";
+        const fiatText = trailingWS ? fullMatch.slice(0, -trailingWS.length) : fullMatch;
+
+        const fiatValue = convertCurrencyValue(fullMatch, currencySymbol);
         const btcPrice = btcPrices[currency.value];
         if (!btcPrice) {
-          frag.appendChild(document.createTextNode(match[0]));
+          frag.appendChild(document.createTextNode(fullMatch));
           lastIndex = regex.lastIndex;
           continue;
         }
@@ -390,19 +394,16 @@ async function main() {
         applyBitcoinLabelStyles(bitcoinValueSpan);
 
         if (userPreferences.displayMode === "bitcoin-only") {
-          // Just insert BTC equivalent (no fiat text)
           frag.appendChild(bitcoinValueSpan);
         } else {
-          // Dual display: keep fiat + BTC
-          // Remove trailing spaces from fiat text
-          frag.appendChild(document.createTextNode(match[0].trim()));
+          frag.appendChild(document.createTextNode(fiatText));
           frag.appendChild(document.createTextNode(" | "));
           frag.appendChild(bitcoinValueSpan);
         }
 
-        const hadTrailingSpace = match[0].endsWith(" ");
-        if (hadTrailingSpace) {
-          frag.appendChild(document.createTextNode(" "));
+        // Re-append any trailing whitespace (spaces, tabs, line breaks)
+        if (trailingWS) {
+          frag.appendChild(document.createTextNode(trailingWS));
         }
 
         lastIndex = regex.lastIndex;
