@@ -214,6 +214,7 @@ export default function DemoPage() {
                 "Inflation Rate: 2.1%",
                 "Unemployment Rate: 5.5%",
                 "Interest Rate: 0.25%",
+                "Bitcoin is $110,000 per coin and climbing.",
               ],
             },
             {

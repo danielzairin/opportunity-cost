@@ -394,9 +394,15 @@ async function main() {
           frag.appendChild(bitcoinValueSpan);
         } else {
           // Dual display: keep fiat + BTC
-          frag.appendChild(document.createTextNode(match[0]));
+          // Remove trailing spaces from fiat text
+          frag.appendChild(document.createTextNode(match[0].trim()));
           frag.appendChild(document.createTextNode(" | "));
           frag.appendChild(bitcoinValueSpan);
+        }
+
+        const hadTrailingSpace = match[0].endsWith(" ");
+        if (hadTrailingSpace) {
+          frag.appendChild(document.createTextNode(" "));
         }
 
         lastIndex = regex.lastIndex;
