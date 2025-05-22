@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Twitter, Github, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { UTM_PARAMS } from "@/constants";
 
 export function Footer() {
   return (
@@ -99,7 +100,7 @@ export function Footer() {
                 <Twitter size={24} />
               </a>
               <a
-                href="https://github.com/tftc/opportunity-cost"
+                href="https://github.com/TFTC-Holdings-Inc/opportunity-cost"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white transition"
@@ -122,7 +123,7 @@ export function Footer() {
           <p className="text-gray-400 text-sm mb-0">
             &copy; 2025 Opportunity Cost | Powered by{" "}
             <a
-              href="https://tftc.io"
+              href={`https://tftc.io${UTM_PARAMS}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-200 hover:underline"

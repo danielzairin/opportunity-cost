@@ -1,4 +1,5 @@
 "use client";
+import { UTM_PARAMS } from "@/constants";
 import Image from "next/image";
 
 export function About() {
@@ -38,7 +39,7 @@ export function About() {
             <p className="text-gray-600">
               Powered by{" "}
               <a
-                href="https://tftc.io"
+                href={`https://tftc.io${UTM_PARAMS}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[var(--primary)] hover:underline"

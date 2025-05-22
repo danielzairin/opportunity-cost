@@ -1,5 +1,7 @@
 "use client";
 
+import { UTM_PARAMS } from "@/constants";
+
 export function Newsletter() {
   return (
     <section className="bg-[var(--primary)] text-white text-center py-16">
@@ -10,7 +12,7 @@ export function Newsletter() {
           Bitcoin news, market analysis, and Opportunity Cost updates.
         </p>
         <a
-          href="https://tftc.io/bitcoin-brief?utm_source=opportunity-cost"
+          href={`https://tftc.io/bitcoin-brief${UTM_PARAMS}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block px-6 py-3 font-semibold rounded-lg bg-white text-[var(--primary)] border-2 border-white hover:bg-transparent hover:text-white transition"

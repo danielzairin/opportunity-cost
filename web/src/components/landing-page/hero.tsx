@@ -45,12 +45,12 @@ export function Hero() {
             >
               Add to Chrome
             </a>
-            <a
+            {/* <a
               href="#firefox"
               className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-orange-100 transition text-center"
             >
               Add to Firefox
-            </a>
+            </a> */}
           </div>
         </div>
         <div className="relative shadow-lg rounded-lg flex justify-center items-center max-h-[500px] min-h-[250px] bg-gray-50 overflow-hidden">

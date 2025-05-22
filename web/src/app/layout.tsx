@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
@@ -12,6 +12,10 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  themeColor: "#f08a5d",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -69,7 +73,6 @@ export const metadata: Metadata = {
     ],
     creator: "@tftc21",
   },
-  themeColor: "#f7931a",
 };
 
 export default function RootLayout({

@@ -1,6 +1,5 @@
 "use client";
-import { Chrome, FlameKindling, FileDown } from "lucide-react";
-import Link from "next/link";
+import { Chrome, FlameKindling } from "lucide-react";
 
 export function Download() {
   return (
@@ -32,15 +31,15 @@ export function Download() {
           >
             <FlameKindling size={48} className="text-gray-700 h-20 mb-5" />
             <h3 className="text-xl font-bold mb-2">Firefox Add-on</h3>
-            <p className="mb-6 text-gray-600">Version 1.0.0</p>
-            <a
-              href="https://addons.mozilla.org/en-US/firefox/addon/opportunity-cost/"
-              className="inline-block px-6 py-3 font-semibold rounded-lg bg-[var(--primary)] text-white border-2 border-[var(--primary)] hover:border-orange-500 hover:bg-orange-500 transition"
+            <p className="mb-6 text-gray-600">Coming Soon</p>
+            <button
+              disabled
+              className="inline-block px-6 py-3 font-semibold rounded-lg opacity-50 cursor-not-allowed bg-[var(--primary)] text-white border-2 border-[var(--primary)]"
             >
               Add to Firefox
-            </a>
+            </button>
           </div>
-          <div
+          {/* <div
             id="manual"
             className="bg-gray-50 rounded-lg p-10 w-full md:w-[300px] text-center shadow-md transition hover:-translate-y-1 hover:shadow-lg browser-card flex flex-col items-center"
           >
@@ -53,7 +52,7 @@ export function Download() {
             >
               Side Load Extension
             </Link>
-          </div>
+          </div> */}
         </div>
       </div>
     </section>
