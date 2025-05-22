@@ -57,35 +57,40 @@ async function main() {
         .replace(/€/g, "")
         .trim();
 
-      // ① "1.234,56" → "1234.56"
+      // ① European: 1.234,56  → 1234.56
       if (/\.\d{3},\d{2}$/.test(v)) {
         return v.replace(/\./g, "").replace(",", ".");
       }
 
-      // ② "99,99" or "1,5"  →  "99.99" / "1.5"
-      if (!v.includes(".") && (v.match(/,/g) || []).length === 1) {
+      // ② Thousands-comma pattern (428,000 | 12,345,678.90) – just drop commas
+      if (/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(v)) {
+        return v.replace(/,/g, "");
+      }
+
+      // ③ Single comma used as decimal (“99,99” / “1,5”)
+      if (!v.includes(".") && v.split(",").length === 2 && v.split(",")[1].length <= 2) {
         return v.replace(",", ".");
       }
 
-      // ③ fallback – remove thousands-commas
+      // ④ Fallback – strip any remaining commas
       return v.replace(/,/g, "");
     }
 
     /**
      * Converts a currency string value to a number.
      * Handles:
-     *   $1,000.00 $3.92K $1.12M $50.24T
-     *   $100 thousand $42 Million $7.3 Billion $2 trillion
+     *   $1,000.00 | 911,835 sats   $3.92K | NaN BTC   $1.12M | NaN BTC   $50.24T | NaN BTC
+     *   $100 thousand | 0.91 BTC   $42 Million | NaN BTC   $7.3 Billion | NaN BTC   $2 trillion | 18,236,694 BTC
      */
     function convertCurrencyValue(str: string, currencySymbol?: string): number {
-      // abbreviations + full words (all case-insensitive)
+      // multipliers keyed in lower-case only
       const multipliers: Record<string, number> = {
         k: 1e3,
         thousand: 1e3,
         m: 1e6,
         million: 1e6,
         b: 1e9,
-        bn: 1e9, // optional, but handy
+        bn: 1e9,
         billion: 1e9,
         t: 1e12,
         trillion: 1e12,
@@ -97,16 +102,15 @@ async function main() {
         str.replace(currencySymbol ? new RegExp(`\\${currencySymbol}`, "g") : currencyRegex, ""),
       );
 
-      // capture number + optional magnitude word/letter
-      const match = cleaned.match(/^([\d.]+)\s*(k|m|b|bn|t|q|thousand|million|billion|trillion|quadrillion)?$/);
-
+      // ⬇ added “i” flag so the suffix is captured regardless of case
+      const match = cleaned.match(/^([\d.]+)\s*(k|m|b|bn|t|q|thousand|million|billion|trillion|quadrillion)?$/i);
       if (!match) return NaN;
 
-      const [, numStr, suffix] = match;
-      const num = parseFloat(numStr);
-      const multiplier = suffix ? (multipliers[suffix] ?? 1) : 1;
+      const [, numStr, rawSuffix] = match;
+      const suffix = (rawSuffix ?? "").toLowerCase(); // ⬅ normalise
+      const multiplier = multipliers[suffix] ?? 1;
 
-      return num * multiplier; // <-- multiply, don't replace
+      return parseFloat(numStr) * multiplier;
     }
 
     const fmt = (num: number, maxDecimals: number) =>

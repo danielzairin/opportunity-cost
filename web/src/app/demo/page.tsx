@@ -22,6 +22,11 @@ export default function DemoPage() {
             <h4>Education Funding: $100 billion/year</h4>
             <h5>Healthcare Spending: $3.8 trillion</h5>
             <h6>Infrastructure Investment: $1.2 trillion!</h6>
+            <br />
+            <h6>Bitcoin Price: $1.5M</h6>
+            <h6>Bitcoin Price: $1.5m</h6>
+            <h6>Bitcoin Price: $1.5k</h6>
+            <h6>Bitcoin Price: $15B</h6>
           </Section>
 
           <Section title="Economic Indicators">
