@@ -52,23 +52,22 @@ async function main() {
     });
 
     function normalizeLocaleNumber(raw: string): string {
-      // strip ISO code / symbol first
       const v = raw
         .replace(/\bEUR\b/gi, "")
         .replace(/€/g, "")
         .trim();
 
-      // ① "1.234,56"  →  "1234.56"
-      if (v.match(/\.\d{3},\d{2}$/)) {
+      // ① "1.234,56" → "1234.56"
+      if (/\.\d{3},\d{2}$/.test(v)) {
         return v.replace(/\./g, "").replace(",", ".");
       }
 
-      // ② "99,99"  →  "99.99"
-      if (v.includes(",") && !v.includes(".")) {
+      // ② "99,99" or "1,5"  →  "99.99" / "1.5"
+      if (!v.includes(".") && (v.match(/,/g) || []).length === 1) {
         return v.replace(",", ".");
       }
 
-      // ③ fallback – just remove thousands commas
+      // ③ fallback – remove thousands-commas
       return v.replace(/,/g, "");
     }
 
@@ -118,31 +117,27 @@ async function main() {
 
     // Format bitcoin value based on user's denomination preference
     const formatBitcoinValue = (satoshis: number): string => {
+      const btc = satoshis / SATS_IN_BTC;
+
+      // ── new rule ──
+      if (btc >= 100) return `${fmt(btc, 0)} BTC`; // e.g. 125 BTC
+
       if (userPreferences.denomination === "dynamic") {
-        const btc = satoshis / SATS_IN_BTC;
         return btc < 0.01 ? `${fmt(satoshis, 0)} sats` : `${fmt(btc, 2)} BTC`;
       }
 
       if (userPreferences.denomination === "btc") {
-        const btc = satoshis / SATS_IN_BTC;
-
-        if (btc >= 1) {
-          // ≥ 1 BTC  →  show at most 2 decimals
-          return `${fmt(btc, 2)} BTC`; // e.g. "1,234.56 BTC"
-        }
-
-        // < 1 BTC  →  keep finer-grained precision (commas still applied)
-        if (btc >= 0.01) return `${fmt(btc, 4)} BTC`; // 0.1234 BTC
-        if (btc >= 0.0001) return `${fmt(btc, 5)} BTC`; // 0.01234 BTC
-        if (btc >= 0.000001) return `${fmt(btc, 6)} BTC`; // 0.000012 BTC
+        if (btc >= 1) return `${fmt(btc, 2)} BTC`;
+        if (btc >= 0.01) return `${fmt(btc, 4)} BTC`;
+        if (btc >= 0.0001) return `${fmt(btc, 5)} BTC`;
+        if (btc >= 0.000001) return `${fmt(btc, 6)} BTC`;
         return `${btc.toLocaleString(undefined, {
           minimumFractionDigits: 8,
           maximumFractionDigits: 8,
         })} BTC`;
       }
 
-      // denomination === "sats"
-      return `${fmt(satoshis, 0)} sats`; // commas, no decimals
+      return `${fmt(satoshis, 0)} sats`;
     };
 
     // Get Bitcoin prices from background script
@@ -359,7 +354,8 @@ async function main() {
       const iso = currency.value.toUpperCase(); // e.g., EUR
       const sym = escapeRegex(currencySymbol); // e.g., €
       const magnitude = "(?:thousand|million|billion|trillion|quadrillion|[kmbtqKMBTQ])";
-      const regex = new RegExp(`(?:${sym}\\s?[\\d.,]+|[\\d.,]+\\s?(?:${sym}|${iso}))\\s*(?:${magnitude})?\\b`, "gi");
+      const number = "\\d[\\d.,]*";
+      const regex = new RegExp(`(?:${sym}\\s?${number}|${number}\\s?(?:${sym}|${iso}))\\s*(?:${magnitude})?\\b`, "gi");
       regex.lastIndex = 0;
 
       let match;
