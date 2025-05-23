@@ -73,7 +73,7 @@ async function main() {
      * Converts a currency string (with optional multipliers) to a numeric value.
      * Supports formats like "$1,000.00", "$3.92K", "$1.12M", "$2 trillion", etc.
      */
-    function convertCurrencyValue(str: string, currencySymbol?: string): number {
+    function convertCurrencyValue(str: string, currencySymbol?: string, currencyCode?: string): number {
       const multipliers: Record<string, number> = {
         k: 1e3,
         thousand: 1e3,
@@ -88,7 +88,9 @@ async function main() {
         quadrillion: 1e15,
       };
       const cleaned = normalizeLocaleNumber(
-        str.replace(currencySymbol ? new RegExp(`\\${currencySymbol}`, "g") : currencyRegex, ""),
+        str
+          .replace(currencySymbol ? new RegExp(escapeRegex(currencySymbol), "g") : currencyRegex, "")
+          .replace(new RegExp(`\\b${currencyCode}\\b`, "gi"), ""),
       );
       const match = cleaned.match(/^([\d.]+)\s*(k|m|b|bn|t|q|thousand|million|billion|trillion|quadrillion)?$/i);
       if (!match) return NaN;
@@ -271,7 +273,24 @@ async function main() {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const element = node as HTMLElement;
         const tagName = element.tagName.toLowerCase();
-        if (["script", "style", "noscript"].includes(tagName)) {
+        if (
+          [
+            "script",
+            "style",
+            "noscript",
+            "iframe",
+            "svg",
+            "canvas",
+            "video",
+            "audio",
+            "picture",
+            "code",
+            "pre",
+            "math",
+            "input",
+            "textarea",
+          ].includes(tagName)
+        ) {
           return;
         }
         if (element.isContentEditable) {
@@ -310,9 +329,12 @@ async function main() {
       const currencySymbol = currency.symbol;
       const iso = currency.value.toUpperCase();
       const sym = escapeRegex(currencySymbol);
-      const magnitude = "(?:thousand|million|billion|trillion|quadrillion|[kmbtqKMBTQ])";
+      const magnitude = "(?:thousand|million|billion|trillion|quadrillion|k|m|b|t|q|bn|mn|tn)";
       const number = "\\d[\\d.,]*";
-      const regex = new RegExp(`(?:${sym}\\s?${number}|${number}\\s?(?:${sym}|${iso}))\\s*(?:${magnitude})?\\b`, "gi");
+      const regex = new RegExp(
+        `(?:${sym}\\s?${number}(?:\\s*${magnitude})?|${number}(?:\\s*${magnitude})?\\s?(?:${sym}|${iso}))\\b`,
+        "gi",
+      );
       regex.lastIndex = 0;
       let match;
       let lastIndex = 0;
@@ -328,7 +350,12 @@ async function main() {
         const fullMatch = match[0];
         const trailingWS = fullMatch.match(/\s+$/)?.[0] ?? "";
         const fiatText = trailingWS ? fullMatch.slice(0, -trailingWS.length) : fullMatch;
-        const fiatValue = convertCurrencyValue(fullMatch, currencySymbol);
+        const fiatValue = convertCurrencyValue(fullMatch, currencySymbol, currency.value);
+        if (isNaN(fiatValue)) {
+          frag.appendChild(document.createTextNode(fullMatch));
+          lastIndex = regex.lastIndex;
+          continue;
+        }
         const btcPrice = btcPrices[currency.value];
         if (!btcPrice) {
           frag.appendChild(document.createTextNode(fullMatch));
@@ -382,7 +409,7 @@ async function main() {
         if (!vis.textContent!.includes(currency.symbol)) return;
         const btcPrice = btcPrices[currency.value];
         if (!btcPrice) return;
-        const fiatValue = convertCurrencyValue(vis.textContent, currency.symbol);
+        const fiatValue = convertCurrencyValue(vis.textContent, currency.symbol, currency.value);
         const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
         const btcDisplay = formatBitcoinValue(sats);
         const displayMode = userPreferences.displayMode;
@@ -438,7 +465,7 @@ async function main() {
         const btcPrice = btcPrices[currency.value];
         if (!btcPrice) return;
 
-        const fiatValue = convertCurrencyValue(amount.textContent ?? "", currency.symbol);
+        const fiatValue = convertCurrencyValue(amount.textContent ?? "", currency.symbol, currency.value);
         if (isNaN(fiatValue)) return;
 
         const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
