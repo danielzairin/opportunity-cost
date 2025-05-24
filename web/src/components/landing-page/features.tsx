@@ -83,7 +83,7 @@ export function Features() {
                         alt={feature.title}
                         width={600}
                         height={600}
-                        className="rounded-md aspect-square object-cover w-full max-h-56"
+                        className="rounded-md object-cover max-w-96 h-full w-full"
                       />
                     </div>
                   )}

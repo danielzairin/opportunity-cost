@@ -79,13 +79,15 @@ export function Demo() {
               <CarouselContent>
                 {carouselItems.map((item, index) => (
                   <CarouselItem key={index}>
-                    <Image
-                      src={item.src}
-                      alt={item.alt}
-                      width={800}
-                      height={400}
-                      className="w-full bg-white h-full object-contain"
-                    />
+                    <div className="w-full h-full bg-white rounded-lg">
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        width={800}
+                        height={400}
+                        className="w-full bg-white h-[300px] md:h-[500px] object-contain"
+                      />
+                    </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
