@@ -1,29 +1,32 @@
 "use client";
 import { UTM_PARAMS } from "@/constants";
 import Image from "next/image";
+import { Container } from "../ui/container";
 
 export function About() {
   return (
     <section id="about" className="py-20">
-      <div className="w-[90%] max-w-[1200px] mx-auto px-5">
-        <h2 className="text-3xl font-bold text-center mb-10">
+      <Container>
+        <h2 className="text-3xl text-foreground font-bold mb-6">
           About Opportunity Cost
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
-            <h3 className="text-xl font-bold mb-4">Why We Built This</h3>
-            <p className="mb-4 text-gray-600">
+            <h3 className="text-xl font-light text-foreground mb-2">
+              Why We Built This
+            </h3>
+            <p className="mb-2 text-muted-foreground">
               Opportunity Cost was created to help people better understand the
               value of their money in terms of Bitcoin. In an era of inflation
               and monetary uncertainty, Bitcoin provides a different perspective
               on value.
             </p>
-            <p className="mb-4 text-gray-600">
+            <p className="mb-2 text-muted-foreground">
               Our mission is to help everyone think in terms of Bitcoin&apos;s
               sound money principles, making the transition to a Bitcoin
               standard more intuitive for everyday purchases.
             </p>
-            <p className="mb-0 text-gray-600">
+            <p className="text-muted-foreground">
               The extension is built with privacy and performance in mind,
               running entirely in your browser with no data collection.
             </p>
@@ -36,7 +39,7 @@ export function About() {
               height={120}
               className="mx-auto mb-5"
             />
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Powered by{" "}
               <a
                 href={`https://tftc.io${UTM_PARAMS}`}
@@ -49,7 +52,7 @@ export function About() {
             </p>
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

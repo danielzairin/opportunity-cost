@@ -1,60 +1,67 @@
 "use client";
-import { Chrome, FlameKindling } from "lucide-react";
+
+import { Button } from "../ui/button";
+import { Container } from "@/components/ui/container";
+import Image from "next/image";
 
 export function Download() {
   return (
     <section id="download" className="text-center py-20">
-      <div className="w-[90%] max-w-[1200px] mx-auto px-5">
-        <h2 className="text-3xl font-bold mb-6">Download the Extension</h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
-          Opportunity Cost is available for Chrome and Firefox browsers. Install
-          it today to start seeing prices in Bitcoin!
+      <Container>
+        <h2 className="text-3xl font-bold mb-2">Download the Extension</h2>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          Opportunity Cost is available for Chrome browsers. Firefox coming
+          soon! Install it today to start seeing prices in Bitcoin!
         </p>
         <div className="flex flex-col md:flex-row justify-center gap-10 md:gap-16">
           <div
             id="chrome"
-            className="bg-gray-50 rounded-lg p-10 w-full md:w-[300px] text-center shadow-md transition hover:-translate-y-1 hover:shadow-lg browser-card flex flex-col items-center"
+            className="bg-accent rounded-lg p-6 shadow-sm border border-neutral-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
           >
-            <Chrome size={48} className="text-gray-700 h-20 mb-5" />
+            <Image
+              src="/images/icons/chrome.svg"
+              alt="Chrome"
+              width={64}
+              height={64}
+              className="mb-4"
+            />
             <h3 className="text-xl font-bold mb-2">Chrome Extension</h3>
-            <p className="mb-6 text-gray-600">Version 1.0.0</p>
-            <a
-              href="https://chrome.google.com/webstore/detail/opportunity-cost/"
-              className="inline-block px-6 py-3 font-semibold rounded-lg bg-[var(--primary)] text-white border-2 border-[var(--primary)] hover:border-orange-500 hover:bg-orange-500 transition"
+            <p className="mb-4 text-gray-600">Version 1.0.0</p>
+            <Button
+              asChild
+              variant="primary"
+              size="lg"
+              className="font-medium text-md"
             >
-              Add to Chrome
-            </a>
+              <a href="https://chrome.google.com/webstore/detail/opportunity-cost/">
+                Add to Chrome
+              </a>
+            </Button>
           </div>
           <div
             id="firefox"
-            className="bg-gray-50 rounded-lg p-10 w-full md:w-[300px] text-center shadow-md transition hover:-translate-y-1 hover:shadow-lg browser-card flex flex-col items-center"
+            className="bg-accent rounded-lg p-6 shadow-sm border border-neutral-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
           >
-            <FlameKindling size={48} className="text-gray-700 h-20 mb-5" />
+            <Image
+              src="/images/icons/firefox.svg"
+              alt="Firefox"
+              width={64}
+              height={64}
+              className="mb-4"
+            />
             <h3 className="text-xl font-bold mb-2">Firefox Add-on</h3>
-            <p className="mb-6 text-gray-600">Coming Soon</p>
-            <button
+            <p className="mb-4 text-gray-600">Coming Soon</p>
+            <Button
               disabled
-              className="inline-block px-6 py-3 font-semibold rounded-lg opacity-50 cursor-not-allowed bg-[var(--primary)] text-white border-2 border-[var(--primary)]"
+              variant="primary"
+              size="lg"
+              className="font-medium text-md opacity-50 cursor-not-allowed"
             >
               Add to Firefox
-            </button>
+            </Button>
           </div>
-          {/* <div
-            id="manual"
-            className="bg-gray-50 rounded-lg p-10 w-full md:w-[300px] text-center shadow-md transition hover:-translate-y-1 hover:shadow-lg browser-card flex flex-col items-center"
-          >
-            <FileDown size={48} className="text-gray-700 h-20 mb-5" />
-            <h3 className="text-xl font-bold mb-2">Manual Install</h3>
-            <p className="mb-6 text-gray-600">Latest Version</p>
-            <Link
-              href="/install"
-              className="inline-block px-6 py-3 font-semibold rounded-lg bg-[var(--primary)] text-white border-2 border-[var(--primary)] hover:border-orange-500 hover:bg-orange-500 transition"
-            >
-              Side Load Extension
-            </Link>
-          </div> */}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

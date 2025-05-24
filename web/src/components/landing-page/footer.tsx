@@ -4,11 +4,12 @@ import Image from "next/image";
 import { Twitter, Github, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { UTM_PARAMS } from "@/constants";
+import { Container } from "../ui/container";
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-white pt-16 pb-5">
-      <div className="w-[90%] max-w-[1200px] mx-auto px-5">
+    <footer className="bg-neutral-900 border-t border-neutral-700 text-white pt-16 pb-5">
+      <Container>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="flex flex-col items-start">
             <Image
@@ -119,8 +120,8 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-700 pt-5 text-center">
-          <p className="text-gray-400 text-sm mb-0">
+        <div className="border-t border-neutral-700 pt-5 text-center">
+          <p className="text-neutral-400 text-sm mb-0">
             &copy; 2025 Opportunity Cost | Powered by{" "}
             <a
               href={`https://tftc.io${UTM_PARAMS}`}
@@ -132,7 +133,7 @@ export function Footer() {
             </a>
           </p>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

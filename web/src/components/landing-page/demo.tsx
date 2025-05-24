@@ -1,47 +1,116 @@
 "use client";
 
+import { Container } from "@/components/ui/container";
+import Image from "next/image";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useEffect, useState } from "react";
+import type { CarouselApi } from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
+
+const carouselItems = [
+  {
+    src: "/images/zillow-btc-prices.png",
+    alt: "Zillow with Bitcoin prices",
+  },
+  {
+    src: "/images/nike-btc-prices-new.png",
+    alt: "Nike with Bitcoin prices",
+  },
+  {
+    src: "/images/apple-btc-prices.png",
+    alt: "Apple with Bitcoin prices",
+  },
+  {
+    src: "/images/hats-btc-prices.png",
+    alt: "Hats with Bitcoin prices",
+  },
+];
+
 export function Demo() {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
   return (
-    <section id="demo" className="bg-gray-50 py-20">
-      <div className="w-[90%] max-w-[1200px] mx-auto px-5">
-        <h2 className="text-3xl font-bold text-center mb-10">
-          See It in Action
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div className="rounded-lg overflow-hidden shadow-md demo-video">
-            <div className="bg-gray-100 h-[300px] flex justify-center items-center text-center rounded-lg">
-              <div className="p-5">
-                <div className="mb-4 flex justify-center">
-                  {/* SVG icon inline or Lucide PlayCircle icon can go here */}
-                </div>
-                <p className="text-lg text-gray-500 mb-0">
-                  Demo Video Coming Soon
-                </p>
-              </div>
+    <section id="demo" className="bg-white">
+      <Container>
+        <div className="bg-neutral-100 rounded-3xl p-8 md:p-12">
+          <div className="text-left max-w-lg mb-8">
+            <h2 className="text-3xl text-foreground font-bold mb-4">
+              See It in Action
+            </h2>
+            <h3 className="text-xl text-muted-foreground font-light">
+              See Bitcoin values on shopping sites, real estate listings,
+              financial platforms, and more
+            </h3>
+            {/* <Button
+              variant="primaryOutline"
+              size="lg"
+              className="font-medium border-2 hover:bg-oc-primary hover:text-white text-md"
+              asChild
+            >
+              <a href="#download">Get Started Now</a>
+            </Button> */}
+          </div>
+
+          <div className="max-w-3xl space-y-6 mx-auto">
+            <Carousel
+              className="w-full"
+              opts={{ loop: true, duration: 15 }}
+              setApi={setApi}
+            >
+              <CarouselContent>
+                {carouselItems.map((item, index) => (
+                  <CarouselItem key={index}>
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      width={800}
+                      height={400}
+                      className="w-full bg-white h-full object-contain"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+
+            <div className="flex justify-center gap-1">
+              {carouselItems.map((_, index) => (
+                <button
+                  key={index}
+                  className={cn(
+                    "h-2 rounded-full cursor-pointer transition-all duration-200",
+                    current === index
+                      ? "w-6 bg-oc-primary"
+                      : "w-3 bg-neutral-300 hover:bg-neutral-400"
+                  )}
+                  onClick={() => api?.scrollTo(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold mb-4">
-              Transform Your Online Shopping
-            </h3>
-            <p className="mb-4 text-gray-600">
-              With Opportunity Cost, you&apos;ll see the Bitcoin value of every
-              purchase, helping you make more informed decisions based on the
-              true opportunity cost of your spending.
-            </p>
-            <p className="mb-6 text-gray-600">
-              Works seamlessly on shopping sites, real estate listings,
-              financial platforms, and more!
-            </p>
-            <a
-              href="#download"
-              className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-orange-100 transition"
-            >
-              Get Started Now
-            </a>
-          </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
