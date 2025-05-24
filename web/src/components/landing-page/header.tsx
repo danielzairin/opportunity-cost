@@ -37,9 +37,9 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 w-full z-[1000] py-4">
-      <Container>
+      <Container className="px-0 md:px-4">
         <div
-          className={`flex justify-between items-center w-full bg-background/75 backdrop-blur-xl border rounded-full px-6 py-3 transition-all duration-300 ${
+          className={`flex justify-between items-center w-full bg-background/75 backdrop-blur-xl border rounded-full px-2 md:px-6 py-3 transition-all duration-300 ${
             isScrolled ? "shadow-lg border-border" : "shadow border-border/50"
           }`}
         >

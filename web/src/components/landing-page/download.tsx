@@ -14,10 +14,7 @@ export function Download() {
           soon! Install it today to start seeing prices in Bitcoin!
         </p>
         <div className="flex flex-col md:flex-row justify-center gap-10 md:gap-16">
-          <div
-            id="chrome"
-            className="bg-card rounded-lg p-6 shadow-sm border border-border transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
-          >
+          <div className="bg-card rounded-lg p-6 shadow-sm border border-border transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]">
             <Image
               src="/images/icons/chrome.svg"
               alt="Chrome"
@@ -38,10 +35,7 @@ export function Download() {
               </a>
             </Button>
           </div>
-          <div
-            id="firefox"
-            className="bg-accent rounded-lg p-6 shadow-sm border border-border transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
-          >
+          <div className="bg-accent rounded-lg p-6 shadow-sm border border-border transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]">
             <Image
               src="/images/icons/firefox.svg"
               alt="Firefox"

@@ -55,7 +55,7 @@ export function Hero() {
                 size="lg"
                 className="font-medium text-md"
               >
-                <a href="#chrome">
+                <a href="#download">
                   Add to Chrome <ArrowRightIcon className="s-4" />
                 </a>
               </Button>
