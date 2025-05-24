@@ -38,7 +38,7 @@ const features = [
 
 export function Features() {
   return (
-    <section id="features" className="py-20 bg-neutral-50">
+    <section id="features" className="py-20 bg-muted/30">
       <Container>
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">
@@ -55,7 +55,7 @@ export function Features() {
             return (
               <div
                 key={index}
-                className={`bg-white rounded-lg p-6 shadow-sm border border-neutral-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-md relative ${
+                className={`bg-card rounded-lg p-6 shadow-sm border border-border transition-all duration-200 hover:-translate-y-1 hover:shadow-md relative ${
                   feature.colSpan === 2 ? "md:col-span-2 lg:col-span-2" : ""
                 }`}
               >
@@ -64,7 +64,7 @@ export function Features() {
                   className={`${feature.colSpan === 2 ? "flex flex-col lg:flex-row gap-6" : ""}`}
                 >
                   <div className={`${feature.colSpan === 2 ? "lg:w-1/2" : ""}`}>
-                    <div className="w-12 h-12 mb-6 flex items-center justify-center bg-gradient-to-b from-oc-primary/10 to-orange-100 rounded-lg relative z-10">
+                    <div className="w-12 h-12 mb-6 flex items-center justify-center bg-gradient-to-b from-oc-primary/10 to-oc-primary/20 rounded-lg relative z-10">
                       <IconComponent className="text-oc-primary size-8 stroke-[1.5]" />
                     </div>
                     <h3 className="text-lg font-semibold mb-1 text-foreground relative z-10">

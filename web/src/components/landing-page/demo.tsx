@@ -49,9 +49,9 @@ export function Demo() {
   }, [api]);
 
   return (
-    <section id="demo" className="bg-white">
+    <section id="demo" className="bg-background">
       <Container>
-        <div className="bg-neutral-100 rounded-3xl p-8 md:p-12">
+        <div className="bg-muted/30 rounded-3xl p-8 md:p-12">
           <div className="text-left max-w-lg mb-8">
             <h2 className="text-3xl text-foreground font-bold mb-4">
               See It in Action
@@ -79,13 +79,13 @@ export function Demo() {
               <CarouselContent>
                 {carouselItems.map((item, index) => (
                   <CarouselItem key={index}>
-                    <div className="w-full h-full bg-white rounded-lg">
+                    <div className="w-full h-full bg-card rounded-lg">
                       <Image
                         src={item.src}
                         alt={item.alt}
                         width={800}
                         height={400}
-                        className="w-full bg-white h-[300px] md:h-[500px] object-contain"
+                        className="w-full bg-card h-[300px] md:h-[500px] object-contain"
                       />
                     </div>
                   </CarouselItem>
@@ -103,7 +103,7 @@ export function Demo() {
                     "h-2 rounded-full cursor-pointer transition-all duration-200",
                     current === index
                       ? "w-6 bg-oc-primary"
-                      : "w-3 bg-neutral-300 hover:bg-neutral-400"
+                      : "w-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
                   )}
                   onClick={() => api?.scrollTo(index)}
                   aria-label={`Go to slide ${index + 1}`}

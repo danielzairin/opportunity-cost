@@ -5,12 +5,12 @@ export default function DemoPage() {
   return (
     <>
       <Header />
-      <main className="flex flex-col items-center bg-gray-50 min-h-screen pt-32 pb-16">
+      <main className="flex flex-col items-center bg-neutral-50 dark:bg-neutral-900 min-h-screen pt-32 pb-16">
         <section className="w-[90%] max-w-[1200px] mx-auto mb-16">
-          <h1 className="text-4xl font-bold text-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground text-center mb-8">
             Demo: Kitchen Sink of USD Formats
           </h1>
-          <p className="text-lg text-gray-700 text-center mb-10">
+          <p className="text-lg text-muted-foreground text-center mb-10">
             This comprehensive test page contains every possible USD format,
             price, and value to thoroughly test the Opportunity Cost
             extension&apos;s detection and conversion capabilities.
@@ -74,7 +74,10 @@ export default function DemoPage() {
                 "100 US$",
                 "1000 US$",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -118,7 +121,10 @@ export default function DemoPage() {
                 "$0.1234",
                 "$0.12345",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -158,7 +164,10 @@ export default function DemoPage() {
                 "$123,456.78",
                 "$1,234,567.89",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -261,7 +270,10 @@ export default function DemoPage() {
                 "$5.5t",
                 "$10.5t",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -306,7 +318,10 @@ export default function DemoPage() {
                 "2.5 million USD",
                 "5.5 billion USD",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -373,7 +388,10 @@ export default function DemoPage() {
                 "$50/hr",
                 "$100/hr",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -447,7 +465,10 @@ export default function DemoPage() {
                 "from $50",
                 "from $100",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -497,7 +518,10 @@ export default function DemoPage() {
                 "+$100",
                 "+$1,000",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -524,7 +548,10 @@ export default function DemoPage() {
                       "Lunch: $13.50",
                       "Dinner: $28.75",
                     ].map((item) => (
-                      <div key={item} className="p-1 bg-white rounded">
+                      <div
+                        key={item}
+                        className="p-1 bg-white dark:bg-neutral-800 rounded"
+                      >
                         {item}
                       </div>
                     ))}
@@ -545,7 +572,10 @@ export default function DemoPage() {
                       "Phone plan: $60/month",
                       "Internet: $79.99/month",
                     ].map((item) => (
-                      <div key={item} className="p-1 bg-white rounded">
+                      <div
+                        key={item}
+                        className="p-1 bg-white dark:bg-neutral-800 rounded"
+                      >
                         {item}
                       </div>
                     ))}
@@ -571,7 +601,10 @@ export default function DemoPage() {
                 "NASA Budget: $25,000,000,000",
                 "FBI Budget: $9,000,000,000",
               ].map((item) => (
-                <div key={item} className="p-2 bg-white rounded border">
+                <div
+                  key={item}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {item}
                 </div>
               ))}
@@ -606,7 +639,10 @@ export default function DemoPage() {
                 "$1*10^9",
                 "$1*10^12",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -645,7 +681,10 @@ export default function DemoPage() {
                 "$10'000.99",
                 "$100'000.25",
               ].map((val) => (
-                <div key={val} className="p-2 bg-white rounded border">
+                <div
+                  key={val}
+                  className="p-2 bg-white dark:bg-neutral-800 rounded border"
+                >
                   {val}
                 </div>
               ))}
@@ -696,7 +735,7 @@ export default function DemoPage() {
 
           <Section title="Table of Various Formats">
             <table className="w-full text-left border mt-4 mb-8 text-sm">
-              <thead className="bg-gray-100">
+              <thead className="bg-neutral-100 dark:bg-neutral-800">
                 <tr>
                   <th className="border px-4 py-2">Format Type</th>
                   <th className="border px-4 py-2">Example 1</th>
@@ -784,7 +823,7 @@ export default function DemoPage() {
               }).map((price, i) => (
                 <div
                   key={i}
-                  className="p-1 bg-white rounded text-center border"
+                  className="p-1 bg-white dark:bg-neutral-800 rounded text-center border"
                 >
                   {price}
                 </div>
@@ -807,7 +846,7 @@ function Section({
 }) {
   return (
     <div className="mb-12">
-      <h2 className="text-2xl font-semibold mb-6 text-center bg-blue-50 py-3 rounded-lg">
+      <h2 className="text-2xl font-semibold mb-6 text-center text-primary py-3 rounded-lg">
         {title}
       </h2>
       {children}

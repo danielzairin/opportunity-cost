@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const navItems = [
   { href: "/#features", label: "Features" },
@@ -38,8 +39,8 @@ export function Header() {
     <header className="fixed top-0 left-0 w-full z-[1000] py-4">
       <Container>
         <div
-          className={`flex justify-between items-center w-full bg-background/95 backdrop-blur-lg border rounded-full px-6 py-3 transition-all duration-300 ${
-            isScrolled ? "shadow-lg border-gray-200" : "shadow border-gray-100"
+          className={`flex justify-between items-center w-full bg-background/75 backdrop-blur-xl border rounded-full px-6 py-3 transition-all duration-300 ${
+            isScrolled ? "shadow-lg border-border" : "shadow border-border/50"
           }`}
         >
           <Link href="/" className="flex items-center">
@@ -56,39 +57,45 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden sm:block">
-            <ul className="flex items-center">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="text-gray-900 text-sm font-medium hover:text-[var(--primary)] hover:bg-neutral-100 transition px-4 py-3 rounded-lg"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <div className="hidden sm:flex items-center gap-2">
+            <nav>
+              <ul className="flex items-center">
+                {navItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="text-foreground text-sm font-medium hover:text-[var(--primary)] hover:bg-accent transition px-4 py-3 rounded-lg"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <ThemeToggle />
+          </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMobileMenu}
-            className="sm:hidden p-2 rounded-lg hover:bg-neutral-100 transition"
-            aria-label="Toggle mobile menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="size-5" />
-            ) : (
-              <Menu className="size-5" />
-            )}
-          </button>
+          {/* Mobile Menu Button and Theme Toggle */}
+          <div className="sm:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 rounded-lg hover:bg-accent transition"
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="size-5" />
+              ) : (
+                <Menu className="size-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
           <div className="sm:hidden mt-2">
-            <div className="bg-background/95 backdrop-blur-lg border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-background/95 backdrop-blur-lg border border-border rounded-2xl shadow-lg overflow-hidden">
               <nav>
                 <ul className="py-2">
                   {navItems.map((item) => (
@@ -96,7 +103,7 @@ export function Header() {
                       <Link
                         href={item.href}
                         onClick={closeMobileMenu}
-                        className="block text-gray-900 text-sm font-medium hover:text-[var(--primary)] hover:bg-neutral-100 transition px-6 py-3"
+                        className="block text-foreground text-sm font-medium hover:text-[var(--primary)] hover:bg-accent transition px-6 py-3"
                       >
                         {item.label}
                       </Link>

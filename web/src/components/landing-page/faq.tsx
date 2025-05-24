@@ -47,7 +47,7 @@ const faqItems = [
           href="https://opportunitycost.userjot.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 underline"
+          className="text-oc-primary hover:text-oc-primary/80 underline"
         >
           feedback page
         </a>{" "}
@@ -56,7 +56,7 @@ const faqItems = [
           href="https://github.com/TFTC-Holdings-Inc/opportunity-cost"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 underline"
+          className="text-oc-primary hover:text-oc-primary/80 underline"
         >
           GitHub repository
         </a>
@@ -68,7 +68,7 @@ const faqItems = [
 
 export function FAQ() {
   return (
-    <section id="faq" className="bg-neutral-50 py-20">
+    <section id="faq" className="bg-muted/30 py-20">
       <Container>
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl text-foreground font-bold mb-8">

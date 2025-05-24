@@ -16,7 +16,7 @@ export function Download() {
         <div className="flex flex-col md:flex-row justify-center gap-10 md:gap-16">
           <div
             id="chrome"
-            className="bg-accent rounded-lg p-6 shadow-sm border border-neutral-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
+            className="bg-card rounded-lg p-6 shadow-sm border border-border transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
           >
             <Image
               src="/images/icons/chrome.svg"
@@ -26,7 +26,7 @@ export function Download() {
               className="mb-4"
             />
             <h3 className="text-xl font-bold mb-2">Chrome Extension</h3>
-            <p className="mb-4 text-gray-600">Version 1.0.0</p>
+            <p className="mb-4 text-muted-foreground">Version 1.0.0</p>
             <Button
               asChild
               variant="primary"
@@ -40,7 +40,7 @@ export function Download() {
           </div>
           <div
             id="firefox"
-            className="bg-accent rounded-lg p-6 shadow-sm border border-neutral-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
+            className="bg-accent rounded-lg p-6 shadow-sm border border-border transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col items-center w-full md:w-[300px]"
           >
             <Image
               src="/images/icons/firefox.svg"
@@ -50,7 +50,7 @@ export function Download() {
               className="mb-4"
             />
             <h3 className="text-xl font-bold mb-2">Firefox Add-on</h3>
-            <p className="mb-4 text-gray-600">Coming Soon</p>
+            <p className="mb-4 text-muted-foreground">Coming Soon</p>
             <Button
               disabled
               variant="primary"

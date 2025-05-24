@@ -8,7 +8,7 @@ import { Container } from "../ui/container";
 
 export function Footer() {
   return (
-    <footer className="bg-neutral-900 text-white pt-16 pb-5">
+    <footer className="bg-neutral-900 dark:bg-neutral-950 text-white pt-16 pb-5">
       <Container>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="flex flex-col items-start">

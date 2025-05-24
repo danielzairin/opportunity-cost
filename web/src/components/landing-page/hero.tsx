@@ -24,9 +24,9 @@ export function Hero() {
   };
 
   return (
-    <section className="pt-40 pb-20 border-b relative overflow-hidden">
+    <section className="pt-40 pb-20 border-b border-border relative overflow-hidden">
       {/* Layer 1: Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 to-oc-primary/10"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-background to-oc-primary/10 dark:from-background dark:to-oc-primary/15"></div>
 
       {/* Layer 2: Lines */}
       <div className="absolute inset-0">
@@ -35,7 +35,7 @@ export function Hero() {
       </div>
 
       {/* Layer 3: Gradient overlay from white to transparent (upper left to bottom right) */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 via-white/50 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/50 to-transparent"></div>
 
       <Container className="relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -59,7 +59,9 @@ export function Hero() {
                   Add to Chrome <ArrowRightIcon className="s-4" />
                 </a>
               </Button>
-              <p className="text-gray-400 text-xs">Firefox coming soon!</p>
+              <p className="text-muted-foreground text-xs">
+                Firefox coming soon!
+              </p>
               {/* <a
                 href="#firefox"
                 className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-orange-100 transition text-center"

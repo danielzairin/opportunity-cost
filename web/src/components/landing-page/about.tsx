@@ -1,4 +1,5 @@
 "use client";
+
 import { UTM_PARAMS } from "@/constants";
 import Image from "next/image";
 import { Container } from "../ui/container";
@@ -37,7 +38,7 @@ export function About() {
               alt="TFTC Logo"
               width={120}
               height={120}
-              className="mx-auto mb-5"
+              className="mx-auto mb-5 dark:invert transition-all duration-300"
             />
             <p className="text-muted-foreground">
               Powered by{" "}
@@ -45,7 +46,7 @@ export function About() {
                 href={`https://tftc.io${UTM_PARAMS}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--primary)] hover:underline"
+                className="text-[var(--primary)] hover:underline transition-colors duration-200"
               >
                 Truth For The Commoner (TFTC)
               </a>
