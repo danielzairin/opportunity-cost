@@ -4,7 +4,7 @@ import { UTM_PARAMS } from "@/constants";
 
 export function Newsletter() {
   return (
-    <section className="bg-[var(--primary)] text-white text-center py-16">
+    <section className="bg-oc-primary text-white text-center py-16">
       <div className="w-[90%] max-w-[1200px] mx-auto px-5">
         <h2 className="text-3xl font-bold mb-4 text-white">Stay Updated</h2>
         <p className="max-w-2xl mx-auto mb-8 text-lg text-white">

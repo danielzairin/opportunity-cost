@@ -51,7 +51,7 @@ export function Hero() {
             <div className="flex flex-col gap-2 justify-center lg:justify-start items-center lg:items-start">
               <Button
                 asChild
-                variant="default"
+                variant="primary"
                 size="lg"
                 className="font-medium text-md"
               >
