@@ -36,6 +36,11 @@ async function main() {
     // Regex for matching any supported currency symbol in text
     let currencyRegex: RegExp = new RegExp("");
 
+    if (document.contentType !== "text/html") {
+      console.log("Opportunity Cost: Skipping non-HTML document:", document.contentType);
+      return;
+    }
+
     // Listen for updates to user preferences from the background script
     chrome.runtime.onMessage.addListener((message) => {
       try {
@@ -321,8 +326,9 @@ async function main() {
     // Replaces fiat prices in text nodes with their bitcoin equivalent, for the default currency only
     const replacePrice = (textNode: Text): void => {
       const content = textNode.textContent || "";
-      const parent = textNode.parentNode as HTMLElement | null;
-      if (!parent || parent.dataset.ocProcessed === "true") return;
+      const parent = textNode.parentNode;
+      if (!(parent instanceof HTMLElement)) return;
+      if (parent.dataset.ocProcessed === "true") return;
       const defaultCurrency = userPreferences.defaultCurrency;
       const currency = supportedCurrencies.find((c) => c.value === defaultCurrency);
       if (!currency || !currency.symbol) return;
