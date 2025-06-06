@@ -26,13 +26,10 @@ type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number]["value"];
 
 interface MessageRequest {
   action: string;
-  url?: string;
-  conversionCount?: number;
 }
 
 interface MessageResponse {
   success?: boolean;
-  trackingDisabled?: boolean;
   price?: number | null;
   prices?: Record<string, number>;
   error?: string;
@@ -78,7 +75,6 @@ async function loadUserPreferences(): Promise<UserPreferences> {
       defaultCurrency: "usd",
       displayMode: "dual-display",
       denomination: "btc", // Default to BTC instead of sats
-      trackStats: true,
       highlightBitcoinValue: false, // Default to no highlighting
       enabled: true, // Enable the extension by default
       darkMode: false, // Light mode by default (kept for backward compatibility)
@@ -315,24 +311,6 @@ browser.runtime.onMessage.addListener(
           sendResponse({ error: error.message });
         });
       return true;
-    } else if (message.action === "saveVisitedSite") {
-      // Only save site data if tracking is enabled
-      if (userPreferences?.trackStats !== false) {
-        PriceDatabase.saveVisitedSite(message.url || "", message.conversionCount || 0)
-          .then(() => {
-            sendResponse({ success: true });
-          })
-          .catch((error: Error) => {
-            console.error("Error saving visited site:", error);
-            sendResponse({ error: error.message });
-          });
-
-        return true;
-      } else {
-        // Don't save if tracking is disabled
-        sendResponse({ success: true, trackingDisabled: true });
-        return;
-      }
     } else if (message.action === "preferencesUpdated") {
       // Reload preferences when options page updates them
       loadUserPreferences()
@@ -392,7 +370,6 @@ async function initialize(): Promise<void> {
         defaultCurrency: "usd",
         displayMode: "dual-display",
         denomination: "btc",
-        trackStats: true,
         highlightBitcoinValue: false,
         lastUpdated: Date.now(),
       };

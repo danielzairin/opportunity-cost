@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PriceDatabase, type PriceRecord, type SiteRecord } from "../lib/storage";
+import { PriceDatabase, type PriceRecord } from "../lib/storage";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "../lib/constants";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent } from "./ui/tooltip";
@@ -12,7 +12,6 @@ export function OptionsPage() {
   const [defaultCurrency, setDefaultCurrency] = useState(DEFAULT_CURRENCY);
   const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
   const [denomination, setDenomination] = useState<"btc" | "sats" | "dynamic">("btc");
-  const [trackStats, setTrackStats] = useState(true);
   const [highlightBitcoinValue, sethighlightBitcoinValue] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [darkMode, setDarkMode] = useState(false);
@@ -24,11 +23,6 @@ export function OptionsPage() {
   const [priceHistory, setPriceHistory] = useState<PriceRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [historyError, setHistoryError] = useState<string | null>(null);
-
-  // Visited sites state
-  const [sites, setSites] = useState<SiteRecord[]>([]);
-  const [loadingSites, setLoadingSites] = useState(true);
-  const [sitesError, setSitesError] = useState<string | null>(null);
 
   // Function to detect system theme preference
   const getSystemThemePreference = (): boolean => {
@@ -78,7 +72,6 @@ export function OptionsPage() {
         setDefaultCurrency(preferences.defaultCurrency || DEFAULT_CURRENCY);
         setDisplayMode(preferences.displayMode || "dual-display");
         setDenomination(preferences.denomination || "btc");
-        setTrackStats(preferences.trackStats !== false); // default true
         sethighlightBitcoinValue(preferences.highlightBitcoinValue === true); // default false
 
         // Load theme preference
@@ -117,24 +110,6 @@ export function OptionsPage() {
     loadPriceHistory();
   }, []);
 
-  // Load visited sites on mount
-  useEffect(() => {
-    async function loadVisitedSites() {
-      setLoadingSites(true);
-      setSitesError(null);
-      try {
-        const visited = await PriceDatabase.getVisitedSites();
-        visited.sort((a: SiteRecord, b: SiteRecord) => b.timestamp - a.timestamp);
-        setSites(visited);
-      } catch {
-        setSitesError("Error loading visited sites");
-      } finally {
-        setLoadingSites(false);
-      }
-    }
-    loadVisitedSites();
-  }, []);
-
   // Handle theme change
   const handleThemeChange = (newTheme: ThemeMode) => {
     setThemeMode(newTheme);
@@ -149,7 +124,6 @@ export function OptionsPage() {
         defaultCurrency,
         displayMode,
         denomination,
-        trackStats,
         highlightBitcoinValue,
         darkMode,
         themeMode,
@@ -168,13 +142,11 @@ export function OptionsPage() {
     if (!window.confirm("Are you sure you want to clear all saved data? This action cannot be undone.")) return;
     try {
       await PriceDatabase.db.clear("priceHistory");
-      await PriceDatabase.db.clear("visitedSites");
       await PriceDatabase.savePreferences({
         id: "user-preferences",
         defaultCurrency: "usd",
         displayMode: "dual-display",
         denomination: "btc",
-        trackStats: true,
         themeMode,
         lastUpdated: Date.now(),
       });
@@ -286,20 +258,6 @@ export function OptionsPage() {
               <label className="inline-flex items-center font-bold dark:text-gray-300">
                 <input
                   type="checkbox"
-                  id="track-stats"
-                  name="trackStats"
-                  className="mr-2"
-                  checked={trackStats}
-                  onChange={(e) => setTrackStats(e.target.checked)}
-                />
-                Track conversion statistics
-              </label>
-            </div>
-
-            <div className="mb-4">
-              <label className="inline-flex items-center font-bold dark:text-gray-300">
-                <input
-                  type="checkbox"
                   id="highlight-bitcoin-value"
                   name="highlightBitcoinValue"
                   className="mr-2"
@@ -339,15 +297,20 @@ export function OptionsPage() {
       </div>
 
       <div className="my-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-        <h2 className="mb-4 text-xl font-semibold dark:text-white">Bitcoin Price History</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="mb-4 text-xl font-semibold dark:text-white">Bitcoin Price History</h2>
+          {priceHistory.length > 0 && (
+            <Button size="sm" variant="outline" onClick={handleClearData}>
+              Clear Price History
+            </Button>
+          )}
+        </div>
         {loadingHistory ? (
           <div className="text-gray-400 dark:text-gray-500">Loading price history data...</div>
         ) : historyError ? (
           <div className="text-red-500">{historyError}</div>
         ) : priceHistory.length === 0 ? (
-          <div className="empty-state dark:text-gray-400">
-            No price history data available yet. The extension will collect data as you browse.
-          </div>
+          <div className="empty-state dark:text-gray-400">No price history data available yet.</div>
         ) : (
           <table className="min-w-full border border-gray-200 dark:border-gray-600">
             <thead>
@@ -390,71 +353,6 @@ export function OptionsPage() {
             </tbody>
           </table>
         )}
-      </div>
-
-      <div className="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-        <h2 className="mb-4 text-xl font-semibold dark:text-white">Visited Sites Statistics</h2>
-        <div className="overflow-x-auto">
-          <p className="mb-2 dark:text-gray-300">Sites where Opportunity Cost has converted prices:</p>
-          {loadingSites ? (
-            <div className="text-gray-400 dark:text-gray-500">Loading visited sites...</div>
-          ) : sitesError ? (
-            <div className="text-red-500">{sitesError}</div>
-          ) : (
-            <table className="min-w-full border border-gray-200 dark:border-gray-600">
-              <thead>
-                <tr>
-                  <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                    Website
-                  </th>
-                  <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                    Last Visit
-                  </th>
-                  <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                    Conversions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sites.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="py-8 text-center text-gray-400 dark:text-gray-500">
-                      No data available.
-                    </td>
-                  </tr>
-                ) : (
-                  sites.map((site: SiteRecord, idx: number) => {
-                    let displayUrl = site.url;
-                    try {
-                      const urlObj = new URL(site.url);
-                      displayUrl = urlObj.hostname + (urlObj.pathname !== "/" ? urlObj.pathname : "");
-                    } catch {
-                      // console.error("Error parsing URL:", site.url);
-                    }
-                    const date = new Date(site.timestamp);
-                    return (
-                      <tr
-                        key={site.url + site.timestamp}
-                        className={idx % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "dark:bg-gray-800"}
-                      >
-                        <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">{displayUrl}</td>
-                        <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
-                          {date.toLocaleDateString()} {date.toLocaleTimeString()}
-                        </td>
-                        <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
-                          {site.conversionCount}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
-        <Button variant="default" onClick={handleClearData} className="mt-4">
-          Clear All Data
-        </Button>
       </div>
 
       <div className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">

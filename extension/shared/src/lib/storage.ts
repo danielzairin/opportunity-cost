@@ -17,19 +17,11 @@ export interface PriceRecord {
   date: string;
 }
 
-export interface SiteRecord {
-  url: string;
-  timestamp: number;
-  date: string;
-  conversionCount: number;
-}
-
 export interface UserPreferences {
   id: string;
   defaultCurrency?: string;
   displayMode?: "bitcoin-only" | "dual-display";
   denomination?: "btc" | "sats" | "dynamic";
-  trackStats?: boolean;
   highlightBitcoinValue?: boolean;
   enabled?: boolean; // Flag to enable/disable extension globally
   darkMode?: boolean; // Flag for dark mode (deprecated, kept for backward compatibility)
@@ -106,13 +98,6 @@ class IndexedDBStorage {
             keyPath: "timestamp",
           });
           priceStore.createIndex("currency", "currency", { unique: false });
-        }
-
-        if (!db.objectStoreNames.contains("visitedSites")) {
-          const sitesStore = db.createObjectStore("visitedSites", {
-            keyPath: "url",
-          });
-          sitesStore.createIndex("timestamp", "timestamp", { unique: false });
         }
 
         if (!db.objectStoreNames.contains("userPreferences")) {
@@ -351,23 +336,6 @@ const PriceDatabase = {
     });
   },
 
-  // Save a visited site record
-  saveVisitedSite: (url: string, conversionCount: number): Promise<IDBValidKey> => {
-    const siteRecord: SiteRecord = {
-      url: url,
-      timestamp: Date.now(),
-      date: new Date().toISOString(),
-      conversionCount: conversionCount || 0,
-    };
-
-    return PriceDatabase.db.put("visitedSites", siteRecord);
-  },
-
-  // Get all visited sites
-  getVisitedSites: (): Promise<SiteRecord[]> => {
-    return PriceDatabase.db.getAll<SiteRecord>("visitedSites");
-  },
-
   // Save user preferences
   savePreferences: (preferences: Partial<UserPreferences>): Promise<IDBValidKey> => {
     return new Promise((resolve, reject) => {
@@ -380,7 +348,6 @@ const PriceDatabase = {
             defaultCurrency: "usd",
             displayMode: "dual-display",
             denomination: "btc",
-            trackStats: true,
           };
 
           // Merge existing with new preferences
@@ -418,7 +385,6 @@ const PriceDatabase = {
               defaultCurrency: "usd",
               displayMode: "dual-display",
               denomination: "dynamic",
-              trackStats: true,
               highlightBitcoinValue: false,
               enabled: true,
               darkMode: false,
@@ -446,7 +412,6 @@ const PriceDatabase = {
             defaultCurrency: "usd",
             displayMode: "dual-display",
             denomination: "dynamic",
-            trackStats: true,
             highlightBitcoinValue: false,
             enabled: true,
             darkMode: false,
