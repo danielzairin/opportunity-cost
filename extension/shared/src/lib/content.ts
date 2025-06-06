@@ -6,6 +6,7 @@
  * Handles dynamic content and tracks conversion statistics for analytics.
  */
 
+import browser from "webextension-polyfill";
 import type { UserPreferences } from "./storage";
 
 async function main() {
@@ -42,17 +43,11 @@ async function main() {
     }
 
     // Listen for updates to user preferences from the background script
-    chrome.runtime.onMessage.addListener((message) => {
-      try {
-        if (message && message.action === "preferencesUpdated") {
-          console.log("Preferences updated, reloading content script...");
-          window.location.reload();
-          return true;
-        }
-      } catch (error) {
-        console.error("Error processing message in content script:", error);
+    browser.runtime.onMessage.addListener((message) => {
+      if (message?.action === "preferencesUpdated") {
+        console.log("Preferences updated, reloading content script...");
+        window.location.reload();
       }
-      return false;
     });
 
     function normalizeLocaleNumber(raw: string): string {
@@ -134,95 +129,47 @@ async function main() {
 
     // Fetches the latest Bitcoin prices for all supported currencies from the background script
     async function getBitcoinPrices(): Promise<Record<string, number>> {
-      return new Promise((resolve, reject) => {
-        try {
-          chrome.runtime.sendMessage(
-            { action: "getBitcoinPrices" },
-            (response: { error?: string; prices?: Record<string, number> }) => {
-              if (chrome.runtime.lastError) {
-                console.error("Runtime error getting Bitcoin prices:", chrome.runtime.lastError);
-                reject(new Error(chrome.runtime.lastError.message || "Extension disconnected"));
-                return;
-              }
-              if (response?.error) {
-                console.error("Error getting Bitcoin prices:", response.error);
-                reject(new Error(response.error));
-              } else {
-                resolve(response?.prices || {});
-              }
-            },
-          );
-        } catch (error) {
-          console.error("Exception in getBitcoinPrices:", error);
-          reject(error);
-        }
-      });
+      const response = await browser.runtime.sendMessage({ action: "getBitcoinPrices" });
+      if (response?.error) {
+        console.error("Error getting Bitcoin prices:", response.error);
+        throw new Error(response.error);
+      }
+      return response?.prices || {};
     }
 
     // Fetches the list of supported currencies from the background script
     async function getSupportedCurrencies(): Promise<Array<{ value: string; symbol: string }>> {
-      return new Promise((resolve, reject) => {
-        try {
-          chrome.runtime.sendMessage(
-            { action: "getSupportedCurrencies" },
-            (response: { error?: string; supportedCurrencies?: Array<{ value: string; symbol: string }> }) => {
-              if (chrome.runtime.lastError) {
-                console.error("Runtime error getting supported currencies:", chrome.runtime.lastError);
-                reject(new Error(chrome.runtime.lastError.message || "Extension disconnected"));
-                return;
-              }
-              if (response?.error) {
-                console.error("Error getting supported currencies:", response.error);
-                reject(new Error(response.error));
-              } else {
-                resolve(response?.supportedCurrencies || []);
-              }
-            },
-          );
-        } catch (error) {
-          console.error("Exception in getSupportedCurrencies:", error);
-          reject(error);
-        }
-      });
+      const response = await browser.runtime.sendMessage({ action: "getSupportedCurrencies" });
+      if (response?.error) {
+        console.error("Error getting supported currencies:", response.error);
+        throw new Error(response.error);
+      }
+      return response?.supportedCurrencies || [];
     }
 
     // Loads user preferences from the background script, falling back to defaults if unavailable
     async function getUserPreferences(): Promise<UserPreferences> {
-      return new Promise((resolve) => {
-        try {
-          chrome.runtime.sendMessage(
-            { action: "getPreferences" },
-            (response: { error?: string; preferences?: UserPreferences }) => {
-              if (chrome.runtime.lastError) {
-                console.error("Runtime error getting preferences:", chrome.runtime.lastError);
-                resolve(userPreferences);
-                return;
-              }
-              if (response?.error) {
-                console.error("Error getting preferences:", response.error);
-                resolve(userPreferences);
-              } else if (response?.preferences) {
-                userPreferences = response.preferences;
-                console.log("User preferences loaded:", userPreferences);
-                resolve(userPreferences);
-              } else {
-                console.warn("No preferences received from background, using defaults");
-                resolve(userPreferences);
-              }
-            },
-          );
-        } catch (error) {
-          console.error("Exception in getUserPreferences:", error);
-          resolve(userPreferences);
+      try {
+        const response = await browser.runtime.sendMessage({ action: "getPreferences" });
+        if (response?.error) {
+          console.error("Error getting preferences:", response.error);
+        } else if (response?.preferences) {
+          userPreferences = response.preferences;
+          console.log("User preferences loaded:", userPreferences);
+        } else {
+          console.warn("No preferences received from background, using defaults");
         }
-      });
+      } catch (error) {
+        console.error("Exception in getUserPreferences:", error);
+      }
+      return userPreferences;
     }
 
     // Logs a page visit and the number of conversions performed, for analytics
     function logPageVisit(): void {
       if (conversionCount > 0 && userPreferences.trackStats) {
         const url = window.location.href;
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
           action: "saveVisitedSite",
           url: url,
           conversionCount: conversionCount,

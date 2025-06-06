@@ -8,6 +8,7 @@
  * 4. User preferences management
  */
 
+import browser from "webextension-polyfill";
 import { PriceDatabase } from "./storage";
 import type { UserPreferences } from "./storage";
 import {
@@ -230,10 +231,10 @@ async function getAllBitcoinPrices(): Promise<Record<string, number> | null> {
 }
 
 // Listen for messages from content scripts and options page
-chrome.runtime.onMessage.addListener(
+browser.runtime.onMessage.addListener(
   (
     message: MessageRequest,
-    _sender: chrome.runtime.MessageSender,
+    _sender: browser.Runtime.MessageSender,
     sendResponse: (response?: MessageResponse) => void,
   ) => {
     // Get Bitcoin prices only
@@ -255,7 +256,7 @@ chrome.runtime.onMessage.addListener(
     // Get supported currencies only
     else if (message.action === "getSupportedCurrencies") {
       sendResponse({ supportedCurrencies: SUPPORTED_CURRENCIES });
-      return false; // No async operation
+      return; // No async operation
     }
     // Get complete user preferences
     else if (message.action === "getPreferences") {
@@ -330,46 +331,35 @@ chrome.runtime.onMessage.addListener(
       } else {
         // Don't save if tracking is disabled
         sendResponse({ success: true, trackingDisabled: true });
-        return false;
+        return;
       }
     } else if (message.action === "preferencesUpdated") {
       // Reload preferences when options page updates them
       loadUserPreferences()
-        .then(() => {
+        .then(async () => {
           // Broadcast the preference update to applicable tabs
-          chrome.tabs.query({}, (tabs) => {
-            tabs.forEach((tab) => {
-              // Skip sending to tabs that won't have our content script
-              if (
-                tab.id &&
-                tab.url &&
-                !tab.url.startsWith("chrome://") &&
-                !tab.url.startsWith("chrome-extension://") &&
-                !tab.url.startsWith("about:") &&
-                !tab.url.startsWith("edge://") &&
-                !tab.url.startsWith("brave://")
-              ) {
-                try {
-                  // Use a try-catch to handle any messaging errors
-                  chrome.tabs.sendMessage(
-                    tab.id,
-                    { action: "preferencesUpdated" },
-                    // Add an empty callback to handle the response or error
-                    () => {
-                      // Suppress any errors by handling them silently
-                      if (chrome.runtime.lastError) {
-                        // We can log it for debugging but it's expected that some tabs won't respond
-                        // console.debug("Tab messaging error:", chrome.runtime.lastError.message);
-                      }
-                    },
-                  );
-                } catch (err) {
-                  // Catch and suppress any other errors
-                  console.debug("Error sending message to tab:", err);
-                }
+          const tabs = await browser.tabs.query({});
+          for (const tab of tabs) {
+            // Skip sending to tabs that won't have our content script
+            if (
+              tab.id &&
+              tab.url &&
+              !tab.url.startsWith("chrome://") &&
+              !tab.url.startsWith("chrome-extension://") &&
+              !tab.url.startsWith("about:") &&
+              !tab.url.startsWith("edge://") &&
+              !tab.url.startsWith("brave://")
+            ) {
+              try {
+                // Use a try-catch to handle any messaging errors
+                await browser.tabs.sendMessage(tab.id, { action: "preferencesUpdated" });
+              } catch {
+                // This error is expected for tabs that don't have the content script injected.
+                // We can log it for debugging purposes.
+                // console.debug(`Could not send message to tab ${tab.id}:`, err);
               }
-            });
-          });
+            }
+          }
           sendResponse({ success: true });
         })
         .catch((error: Error) => {
@@ -379,8 +369,6 @@ chrome.runtime.onMessage.addListener(
 
       return true;
     }
-
-    return false;
   },
 );
 

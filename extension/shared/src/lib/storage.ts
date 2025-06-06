@@ -1,5 +1,7 @@
 /// <reference types="chrome" />
 
+import browser from "webextension-polyfill";
+
 /**
  * Price-in-Sats Chrome Extension
  *
@@ -43,61 +45,26 @@ export interface UserPreferences {
  * Chrome Storage API wrapper for simpler, key-value data storage
  * Good for user preferences, settings, and small amounts of data
  */
-const ChromeStorage = {
+const BrowserStorage = {
   // Save data to Chrome storage
-  save: <T>(key: string, value: T): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.set({ [key]: value }, () => {
-        if (chrome.runtime.lastError) {
-          console.error("Storage save error:", chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve();
-        }
-      });
-    });
+  save: <T>(key: string, value: T) => {
+    return browser.storage.local.set({ [key]: value });
   },
 
   // Get data from Chrome storage
-  get: <T>(key: string): Promise<T | undefined> => {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.get([key], (result: { [key: string]: T }) => {
-        if (chrome.runtime.lastError) {
-          console.error("Storage get error:", chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(result[key] as T);
-        }
-      });
-    });
+  get: async <T>(key: string) => {
+    const result = await browser.storage.local.get(key);
+    return result?.[key] as T;
   },
 
   // Remove data from Chrome storage
-  remove: (key: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.remove(key, () => {
-        if (chrome.runtime.lastError) {
-          console.error("Storage remove error:", chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve();
-        }
-      });
-    });
+  remove: (key: string) => {
+    return browser.storage.local.remove(key);
   },
 
   // Clear all data from Chrome storage
-  clear: (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.clear(() => {
-        if (chrome.runtime.lastError) {
-          console.error("Storage clear error:", chrome.runtime.lastError);
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve();
-        }
-      });
-    });
+  clear: () => {
+    return browser.storage.local.clear();
   },
 };
 
@@ -493,4 +460,4 @@ const PriceDatabase = {
 };
 
 // Export the storage objects
-export { ChromeStorage, IndexedDBStorage, PriceDatabase };
+export { BrowserStorage, IndexedDBStorage, PriceDatabase };
