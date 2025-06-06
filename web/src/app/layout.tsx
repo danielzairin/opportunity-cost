@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     siteName: "Opportunity Cost",
     images: [
       {
-        url: "/images/og-image.png",
+        url: "/images/og-image_v1.png",
         width: 1200,
         height: 630,
         alt: "Opportunity Cost Extension – See Prices in Bitcoin",
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
       "Convert USD prices to Bitcoin (satoshis) as you browse. Dual display, privacy-first, and open source.",
     images: [
       {
-        url: "/images/og-image.png",
+        url: "/images/og-image_v1.png",
         alt: "Opportunity Cost Extension – See Prices in Bitcoin",
       },
     ],
