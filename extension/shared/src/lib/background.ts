@@ -26,6 +26,7 @@ type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number]["value"];
 
 interface MessageRequest {
   action: string;
+  site?: string;
 }
 
 interface MessageResponse {
@@ -35,6 +36,7 @@ interface MessageResponse {
   error?: string;
   supportedCurrencies?: Array<{ value: string; symbol: string }>;
   preferences?: UserPreferences;
+  tab?: browser.Tabs.Tab;
 }
 
 interface BitcoinPriceAPIResponse {
@@ -76,7 +78,7 @@ async function loadUserPreferences(): Promise<UserPreferences> {
       displayMode: "dual-display",
       denomination: "btc", // Default to BTC instead of sats
       highlightBitcoinValue: false, // Default to no highlighting
-      enabled: true, // Enable the extension by default
+      disabledSites: [], // Disable the extension on these sites
       darkMode: false, // Light mode by default (kept for backward compatibility)
       themeMode: "system", // Use system theme by default
       lastUpdated: Date.now(),
@@ -333,8 +335,6 @@ browser.runtime.onMessage.addListener(
                 await browser.tabs.sendMessage(tab.id, { action: "preferencesUpdated" });
               } catch {
                 // This error is expected for tabs that don't have the content script injected.
-                // We can log it for debugging purposes.
-                // console.debug(`Could not send message to tab ${tab.id}:`, err);
               }
             }
           }
@@ -345,6 +345,53 @@ browser.runtime.onMessage.addListener(
           sendResponse({ error: error.message });
         });
 
+      return true;
+    } else if (message.action === "toggleSiteDisabled") {
+      const site = message.site;
+      if (!site) {
+        sendResponse({ error: "No site provided" });
+        return;
+      }
+      loadUserPreferences()
+        .then((prefs) => {
+          const disabledSites = prefs.disabledSites || [];
+          const isDisabled = disabledSites.includes(site);
+          if (isDisabled) {
+            // It's disabled, so enable it by removing it from the list
+            prefs.disabledSites = disabledSites.filter((s) => s !== site);
+          } else {
+            // It's enabled, so disable it by adding it to the list
+            prefs.disabledSites = [...disabledSites, site];
+          }
+          return PriceDatabase.savePreferences(prefs);
+        })
+        .then(async () => {
+          // Broadcast the preference update to applicable tabs
+          const tabs = await browser.tabs.query({});
+          for (const tab of tabs) {
+            if (tab.id) {
+              try {
+                await browser.tabs.sendMessage(tab.id, { action: "preferencesUpdated" });
+              } catch {
+                // Ignore errors
+              }
+            }
+          }
+          sendResponse({ success: true });
+        })
+        .catch((error: Error) => {
+          console.error("Error toggling site disabled state:", error);
+          sendResponse({ error: error.message });
+        });
+      return true;
+    } else if (message.action === "getCurrentTab") {
+      browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+        if (tabs[0]) {
+          sendResponse({ tab: tabs[0] });
+        } else {
+          sendResponse({ error: "No active tab found" });
+        }
+      });
       return true;
     }
   },
@@ -371,6 +418,7 @@ async function initialize(): Promise<void> {
         displayMode: "dual-display",
         denomination: "btc",
         highlightBitcoinValue: false,
+        disabledSites: [],
         lastUpdated: Date.now(),
       };
     }

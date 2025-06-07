@@ -125,7 +125,6 @@ export function OptionsPage() {
         displayMode,
         denomination,
         highlightBitcoinValue,
-        darkMode,
         themeMode,
       });
       // Notify background script that preferences have been updated
@@ -149,6 +148,7 @@ export function OptionsPage() {
         denomination: "btc",
         themeMode,
         lastUpdated: Date.now(),
+        disabledSites: [],
       });
       // Reload all data
       window.location.reload();

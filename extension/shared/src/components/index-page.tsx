@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import browser from "webextension-polyfill";
 import "@/index.css";
 import { SUPPORTED_CURRENCIES, DEFAULT_CURRENCY, APP_URL } from "../lib/constants";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ import {
 import { Ellipsis, Bitcoin, PaintbrushVertical, Link, Check, Sun, Moon, Monitor, Settings2, Info } from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Switch } from "./ui/switch";
 
 // Custom event name for display mode changes
 const DISPLAY_MODE_CHANGE_EVENT = "display-mode-change";
@@ -69,29 +71,17 @@ function LivePrice() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
-  const [extensionEnabled, setExtensionEnabled] = useState(true);
   const [supportedCurrencies, setSupportedCurrencies] = useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
 
   const fetchPrices = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await new Promise<{
-        prices?: Record<string, number>;
-        currency?: string;
-        supportedCurrencies?: typeof SUPPORTED_CURRENCIES;
-        error?: string;
-      }>((resolve, reject) => {
-        chrome.runtime.sendMessage({ action: "getAllBitcoinPrices" }, (response) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else if (response?.error) {
-            reject(new Error(response.error));
-          } else {
-            resolve(response);
-          }
-        });
-      });
+      const response = await browser.runtime.sendMessage({ action: "getAllBitcoinPrices" });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
       if (response?.prices) {
         setPrices(response.prices);
@@ -110,55 +100,12 @@ function LivePrice() {
 
   useEffect(() => {
     fetchPrices();
-
-    // Listen for extension enabled/disabled changes
-    const handleDisplayModeChange = (event: CustomEvent) => {
-      if (event.detail.enabled !== undefined) {
-        setExtensionEnabled(event.detail.enabled);
-      }
-    };
-
-    document.addEventListener(DISPLAY_MODE_CHANGE_EVENT, handleDisplayModeChange as EventListener);
-
-    // Load initial enabled state
-    const loadPreferences = async () => {
-      try {
-        const preferences = await PriceDatabase.getPreferences();
-        setExtensionEnabled(preferences.enabled !== false);
-      } catch (error) {
-        console.error("Error loading extension enabled state:", error);
-      }
-    };
-
-    loadPreferences();
-
-    return () => {
-      document.removeEventListener(DISPLAY_MODE_CHANGE_EVENT, handleDisplayModeChange as EventListener);
-    };
   }, []);
 
   // Format currency symbol based on currency code
   const getCurrencySymbol = (currencyCode: string) => {
     const found = supportedCurrencies.find((c) => c.value === currencyCode);
     return found ? found.symbol : "$";
-  };
-
-  // Toggle extension enabled/disabled state
-  const toggleExtensionEnabled = async () => {
-    const newEnabledState = !extensionEnabled;
-    setExtensionEnabled(newEnabledState);
-    try {
-      await PriceDatabase.savePreferences({ enabled: newEnabledState });
-      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
-      // Notify other components about the enabled state change
-      document.dispatchEvent(
-        new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
-          detail: { enabled: newEnabledState },
-        }),
-      );
-    } catch (error) {
-      console.error("Error saving extension enabled state:", error);
-    }
   };
 
   return (
@@ -169,10 +116,8 @@ function LivePrice() {
           <span className="font-mono text-lg text-gray-400 dark:text-gray-500">Loading...</span>
         ) : error ? (
           <span className="text-sm text-red-500">Error: {error}</span>
-        ) : !extensionEnabled ? (
-          <span className="font-mono text-lg text-gray-400 dark:text-gray-500">Extension Disabled</span>
         ) : (
-          <span className="font-mono text-xl dark:text-white">
+          <span className={cn("font-mono text-xl dark:text-white")}>
             {getCurrencySymbol(currency)}
             {prices[currency]?.toLocaleString(undefined, {
               minimumFractionDigits: 2,
@@ -181,24 +126,11 @@ function LivePrice() {
           </span>
         )}
       </div>
-      <div
-        className={cn(
-          "flex items-center text-[10px] text-gray-400 dark:text-gray-500",
-          !extensionEnabled ? "justify-end" : "justify-between",
-        )}
-      >
-        <button
-          className={cn("hover:underline", !extensionEnabled && "text-oc-primary")}
-          onClick={toggleExtensionEnabled}
-        >
-          {extensionEnabled ? "Disable Extension" : "Enable Extension"}
-        </button>
-        {extensionEnabled && (
-          <span>
-            Last updated:{" "}
-            {lastUpdated ? lastUpdated.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "--:--"}
-          </span>
-        )}
+      <div className="flex justify-end text-[10px] text-gray-400 dark:text-gray-500">
+        <span>
+          Last updated:{" "}
+          {lastUpdated ? lastUpdated.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "--:--"}
+        </span>
       </div>
     </section>
   );
@@ -269,10 +201,6 @@ function Converter() {
         // Ensure only "sats" or "btc" is set, defaulting to "btc"
         const denomination = preferences.denomination === "sats" ? "sats" : "btc";
         setLocalDenomination(denomination);
-        // Check if extension is disabled
-        if (preferences.enabled === false) {
-          setLoading(true); // Disable inputs by setting loading state
-        }
       } catch (error) {
         console.error("Error loading display mode:", error);
       }
@@ -282,11 +210,6 @@ function Converter() {
     const handleDisplayModeChange = (event: CustomEvent) => {
       if (event.detail.denomination) {
         setLocalDenomination(event.detail.denomination);
-      }
-
-      // Handle extension enabled/disabled state changes
-      if (event.detail.enabled !== undefined) {
-        setLoading(!event.detail.enabled);
       }
     };
 
@@ -307,22 +230,11 @@ function Converter() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await new Promise<{
-          prices?: Record<string, number>;
-          currency?: string;
-          supportedCurrencies?: typeof SUPPORTED_CURRENCIES;
-          error?: string;
-        }>((resolve, reject) => {
-          chrome.runtime.sendMessage({ action: "getAllBitcoinPrices" }, (response) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-            } else if (response?.error) {
-              reject(new Error(response.error));
-            } else {
-              resolve(response);
-            }
-          });
-        });
+        const response = await browser.runtime.sendMessage({ action: "getAllBitcoinPrices" });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
 
         if (response?.prices) {
           setPrices(response.prices);
@@ -728,31 +640,13 @@ function Settings() {
     };
   }, []);
 
-  // Handle copy link function
-  // const handleCopyLink = () => {
-  //   navigator.clipboard.writeText(APP_URL);
-  //   setCopyLinkText("Copied!");
-
-  //   // Clear any existing timeout
-  //   if (copyTimeoutRef.current) {
-  //     clearTimeout(copyTimeoutRef.current);
-  //   }
-
-  //   // Set new timeout
-  //   copyTimeoutRef.current = window.setTimeout(() => {
-  //     setCopyLinkText("Copy Share Link");
-  //     setShowSettings(false);
-  //     copyTimeoutRef.current = null;
-  //   }, 1000);
-  // };
-
   // Toggle Bitcoin-only mode
   const toggleBitcoinOnlyMode = async () => {
     const newMode = displayMode === "bitcoin-only" ? "dual-display" : "bitcoin-only";
     setDisplayMode(newMode);
     try {
       await PriceDatabase.savePreferences({ displayMode: newMode });
-      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
       document.dispatchEvent(
         new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
           detail: { displayMode: newMode, denomination },
@@ -769,7 +663,7 @@ function Settings() {
     setHighlightBitcoinValue(newHighlightValue);
     try {
       await PriceDatabase.savePreferences({ highlightBitcoinValue: newHighlightValue });
-      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
     } catch (error) {
       console.error("Error saving highlight preference:", error);
     }
@@ -780,7 +674,7 @@ function Settings() {
     setDenomination(newDenomination);
     try {
       await PriceDatabase.savePreferences({ denomination: newDenomination });
-      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
       document.dispatchEvent(
         new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
           detail: { displayMode, denomination: newDenomination },
@@ -868,17 +762,6 @@ function Settings() {
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            {/* <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
-              className="flex items-center"
-              onClick={handleCopyLink}
-            >
-              {copyLinkText}
-              <Link className="ml-auto h-4 w-4" />
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator /> */}
-
             <DropdownMenuItem asChild className="flex items-center justify-between">
               <a href="options.html" target="_blank" rel="noopener noreferrer">
                 Settings
@@ -891,104 +774,6 @@ function Settings() {
     </Tooltip>
   );
 }
-
-// --- Recent Conversions ---
-// function RecentConversions() {
-//   const [sites, setSites] = useState<SiteRecord[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     const fetchConversions = async () => {
-//       setLoading(true);
-//       setError(null);
-//       try {
-//         const visited = await PriceDatabase.getVisitedSites();
-//         // Sort by timestamp descending, get the most recent 5
-//         visited.sort((a, b) => b.timestamp - a.timestamp);
-//         setSites(visited.slice(0, 5));
-//       } catch (err) {
-//         setError("Failed to load recent conversions");
-//         console.error("Error loading visited sites:", err);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchConversions();
-//   }, []);
-
-//   const clearConversions = async () => {
-//     try {
-//       await PriceDatabase.db.clear("visitedSites");
-//       setSites([]);
-//     } catch (err) {
-//       setError("Failed to clear conversions");
-//       console.error("Error clearing sites:", err);
-//     }
-//   };
-
-//   // Format time ago from timestamp
-//   const timeAgo = (timestamp: number): string => {
-//     const seconds = Math.floor((Date.now() - timestamp) / 1000);
-
-//     if (seconds < 60) return `${seconds}s ago`;
-//     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-//     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-//     return `${Math.floor(seconds / 86400)}d ago`;
-//   };
-
-//   // Format URL for display
-//   const formatUrl = (url: string): string => {
-//     try {
-//       const urlObj = new URL(url);
-//       return urlObj.hostname;
-//     } catch {
-//       return url;
-//     }
-//   };
-
-//   return (
-//     <section className="mb-4">
-//       <div className="font-semibold mb-1">Recent Conversions</div>
-//       {loading ? (
-//         <div className="text-xs text-gray-400">Loading conversions...</div>
-//       ) : error ? (
-//         <div className="text-xs text-red-500">{error}</div>
-//       ) : (
-//         <ul className="text-xs text-gray-700 space-y-1">
-//           {sites.length === 0 ? (
-//             <li>No recent conversions.</li>
-//           ) : (
-//             sites.map((site) => (
-//               <li key={site.url + site.timestamp}>
-//                 {formatUrl(site.url)} - {site.conversionCount} conversions (
-//                 {timeAgo(site.timestamp)})
-//               </li>
-//             ))
-//           )}
-//         </ul>
-//       )}
-//       <div className="flex justify-between mt-1">
-//         <button
-//           className="text-xs text-gray-400 hover:underline"
-//           onClick={clearConversions}
-//           disabled={loading || sites.length === 0}
-//         >
-//           Clear
-//         </button>
-//         <a
-//           href="options.html"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//           className="text-xs text-blue-500 hover:underline"
-//         >
-//           More
-//         </a>
-//       </div>
-//     </section>
-//   );
-// }
 
 // --- Call To Action ---
 function CallToAction() {
@@ -1053,7 +838,7 @@ function CallToAction() {
         // Also update darkMode for backward compatibility
         darkMode: newTheme === "dark" || (newTheme === "system" && getSystemThemePreference()),
       });
-      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
       document.dispatchEvent(
         new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
           detail: { themeMode: newTheme },
@@ -1107,21 +892,18 @@ function CallToAction() {
 }
 
 // --- Footer ---
-function Footer() {
+function Footer({
+  isSiteEnabled,
+  onToggle,
+  hostname,
+}: {
+  isSiteEnabled: boolean;
+  onToggle: () => void;
+  hostname: string;
+}) {
   return (
-    <footer className="text-left text-[10px] text-gray-400 dark:text-gray-500">
+    <footer className="flex items-center justify-between text-left text-[10px] text-gray-400 dark:text-gray-500">
       <div className="flex flex-col">
-        <span>
-          &copy; 2025 Opportunity Cost &middot; Powered by{" "}
-          <a
-            href="https://tftc.io?utm_source=opportunity-cost-extension"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-gray-500 hover:underline dark:text-gray-400"
-          >
-            TFTC
-          </a>
-        </span>
         <span>
           <a
             href="https://www.opportunitycost.app/privacy-policy?utm_source=opportunity-cost-extension"
@@ -1142,12 +924,32 @@ function Footer() {
           </a>
         </span>
       </div>
+      <div className="flex items-center gap-x-2">
+        {hostname && (
+          <>
+            <Switch id="extension-enabled" checked={isSiteEnabled} onCheckedChange={onToggle} />
+            <label htmlFor="extension-enabled" className="cursor-pointer text-xs">
+              {isSiteEnabled ? "Enabled" : "Disabled"} on this site
+            </label>
+          </>
+        )}
+      </div>
     </footer>
   );
 }
 
 // --- Main IndexPage ---
 export function IndexPage() {
+  const [isSiteEnabled, setIsSiteEnabled] = useState(true);
+  const [hostname, setHostname] = useState("");
+
+  const toggleCurrentSite = async () => {
+    if (!hostname) return;
+    await browser.runtime.sendMessage({ action: "toggleSiteDisabled", site: hostname });
+    // After toggling, update the state
+    setIsSiteEnabled((prev) => !prev);
+  };
+
   // Initialize theme from preferences when popup opens
   useEffect(() => {
     let cleanup: (() => void) | undefined;
@@ -1204,7 +1006,7 @@ export function IndexPage() {
 
   // Listen for theme change events from the theme buttons
   useEffect(() => {
-    const handleThemeChange = (event: CustomEvent) => {
+    const handleDisplayChange = (event: CustomEvent) => {
       if (event.detail?.themeMode) {
         const themeMode = event.detail.themeMode;
         const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -1237,10 +1039,36 @@ export function IndexPage() {
       }
     };
 
-    document.addEventListener(DISPLAY_MODE_CHANGE_EVENT, handleThemeChange as EventListener);
+    const loadPreferencesAndTab = async () => {
+      // Get current tab info
+      const response = await browser.runtime.sendMessage({ action: "getCurrentTab" });
+      if (response?.tab?.url) {
+        try {
+          const url = new URL(response.tab.url);
+          const currentHostname = url.hostname;
+          setHostname(currentHostname);
+
+          // Load preferences to check if this site is disabled
+          PriceDatabase.getPreferences().then((prefs) => {
+            const disabledSites = prefs.disabledSites || [];
+            setIsSiteEnabled(!disabledSites.includes(currentHostname));
+          });
+        } catch (error) {
+          // Invalid URL, maybe about:blank or something similar
+          console.error("Error parsing URL for site toggle:", error);
+          setHostname("");
+        }
+      } else {
+        setHostname("");
+      }
+    };
+
+    loadPreferencesAndTab();
+
+    document.addEventListener(DISPLAY_MODE_CHANGE_EVENT, handleDisplayChange as EventListener);
 
     return () => {
-      document.removeEventListener(DISPLAY_MODE_CHANGE_EVENT, handleThemeChange as EventListener);
+      document.removeEventListener(DISPLAY_MODE_CHANGE_EVENT, handleDisplayChange as EventListener);
     };
   }, []);
 
@@ -1249,10 +1077,8 @@ export function IndexPage() {
       <Header />
       <LivePrice />
       <Converter />
-      {/* <Settings /> */}
-      {/* <RecentConversions /> */}
       <CallToAction />
-      <Footer />
+      <Footer isSiteEnabled={isSiteEnabled} onToggle={toggleCurrentSite} hostname={hostname} />
     </div>
   );
 }

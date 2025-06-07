@@ -23,7 +23,7 @@ export interface UserPreferences {
   displayMode?: "bitcoin-only" | "dual-display";
   denomination?: "btc" | "sats" | "dynamic";
   highlightBitcoinValue?: boolean;
-  enabled?: boolean; // Flag to enable/disable extension globally
+  disabledSites?: string[]; // Array of hostnames where the extension is disabled
   darkMode?: boolean; // Flag for dark mode (deprecated, kept for backward compatibility)
   themeMode?: "system" | "light" | "dark"; // New theme mode preference
   lastUpdated?: number;
@@ -386,7 +386,7 @@ const PriceDatabase = {
               displayMode: "dual-display",
               denomination: "dynamic",
               highlightBitcoinValue: false,
-              enabled: true,
+              disabledSites: [],
               darkMode: false,
               themeMode: "system",
               lastUpdated: Date.now(),
@@ -413,7 +413,7 @@ const PriceDatabase = {
             displayMode: "dual-display",
             denomination: "dynamic",
             highlightBitcoinValue: false,
-            enabled: true,
+            disabledSites: [],
             darkMode: false,
             themeMode: "system",
             lastUpdated: Date.now(),

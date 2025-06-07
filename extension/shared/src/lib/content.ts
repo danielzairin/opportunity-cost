@@ -21,7 +21,7 @@ async function main() {
       displayMode: "dual-display",
       denomination: "dynamic",
       highlightBitcoinValue: false,
-      enabled: true,
+      disabledSites: [],
     };
 
     // List of supported currencies, loaded from background script
@@ -183,10 +183,11 @@ async function main() {
     }
 
     // --- Begin main script logic after data is loaded ---
-    const { currencies, prices: btcPrices } = await initializeData();
+    const { preferences, currencies, prices: btcPrices } = await initializeData();
+    userPreferences = preferences;
 
-    if (userPreferences.enabled === false) {
-      console.log("Opportunity Cost: Extension is disabled globally");
+    if (userPreferences.disabledSites?.includes(window.location.hostname)) {
+      console.log(`Opportunity Cost: Extension is disabled for ${window.location.hostname}`);
       return;
     }
 
