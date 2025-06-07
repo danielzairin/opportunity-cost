@@ -897,7 +897,7 @@ function Footer({
   onToggle,
   hostname,
 }: {
-  isSiteEnabled: boolean;
+  isSiteEnabled: boolean | null;
   onToggle: () => void;
   hostname: string;
 }) {
@@ -927,7 +927,9 @@ function Footer({
       <div className="flex items-center gap-x-2">
         {hostname && (
           <>
-            <Switch id="extension-enabled" checked={isSiteEnabled} onCheckedChange={onToggle} />
+            {isSiteEnabled !== null && (
+              <Switch id="extension-enabled" checked={isSiteEnabled} onCheckedChange={onToggle} />
+            )}
             <label htmlFor="extension-enabled" className="cursor-pointer text-xs">
               {isSiteEnabled ? "Enabled" : "Disabled"} on this site
             </label>
@@ -940,7 +942,7 @@ function Footer({
 
 // --- Main IndexPage ---
 export function IndexPage() {
-  const [isSiteEnabled, setIsSiteEnabled] = useState(true);
+  const [isSiteEnabled, setIsSiteEnabled] = useState<boolean | null>(null);
   const [hostname, setHostname] = useState("");
 
   const toggleCurrentSite = async () => {

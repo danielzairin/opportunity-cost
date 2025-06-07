@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import browser from "webextension-polyfill";
 import { PriceDatabase, type PriceRecord } from "../lib/storage";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "../lib/constants";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent } from "./ui/tooltip";
+import { X } from "lucide-react";
 
 // Theme types for more flexibility
 type ThemeMode = "system" | "light" | "dark";
@@ -13,6 +15,8 @@ export function OptionsPage() {
   const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
   const [denomination, setDenomination] = useState<"btc" | "sats" | "dynamic">("btc");
   const [highlightBitcoinValue, sethighlightBitcoinValue] = useState(false);
+  const [disabledSites, setDisabledSites] = useState<string[]>([]);
+  const [newSite, setNewSite] = useState("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [darkMode, setDarkMode] = useState(false);
   const [saveMessage, setSaveMessage] = useState(false);
@@ -73,6 +77,7 @@ export function OptionsPage() {
         setDisplayMode(preferences.displayMode || "dual-display");
         setDenomination(preferences.denomination || "btc");
         sethighlightBitcoinValue(preferences.highlightBitcoinValue === true); // default false
+        setDisabledSites(preferences.disabledSites || []);
 
         // Load theme preference
         const savedTheme = preferences.themeMode || "system";
@@ -128,11 +133,65 @@ export function OptionsPage() {
         themeMode,
       });
       // Notify background script that preferences have been updated
-      chrome.runtime.sendMessage({ action: "preferencesUpdated" });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
       setSaveMessage(true);
       setTimeout(() => setSaveMessage(false), 2000);
     } catch {
       alert("There was an error saving your settings. Please try again.");
+    }
+  };
+
+  const handleAddDisabledSite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const siteToAdd = newSite.trim();
+
+    if (!siteToAdd) {
+      return; // Do nothing if input is empty
+    }
+
+    let hostname: string;
+    try {
+      // Use URL to validate and extract hostname. Prepend protocol if missing.
+      hostname = new URL(siteToAdd.startsWith("http") ? siteToAdd : `https://${siteToAdd}`).hostname;
+    } catch {
+      alert("Please enter a valid hostname (e.g., example.com).");
+      return;
+    }
+
+    if (disabledSites.includes(hostname)) {
+      alert(`${hostname} is already in the disabled list.`);
+      setNewSite("");
+      return;
+    }
+
+    const originalSites = [...disabledSites];
+    const updatedSites = [...disabledSites, hostname].sort(); // Keep the list sorted
+    setDisabledSites(updatedSites);
+    setNewSite("");
+
+    try {
+      await PriceDatabase.savePreferences({ disabledSites: updatedSites });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
+    } catch (error) {
+      console.error("Error updating disabled sites:", error);
+      alert("Failed to add site to disabled list. Please try again.");
+      setDisabledSites(originalSites); // Revert on failure
+    }
+  };
+
+  const handleRemoveDisabledSite = async (siteToRemove: string) => {
+    const originalSites = [...disabledSites];
+    const updatedSites = disabledSites.filter((site) => site !== siteToRemove);
+    setDisabledSites(updatedSites);
+
+    try {
+      await PriceDatabase.savePreferences({ disabledSites: updatedSites });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
+    } catch (error) {
+      console.error("Error updating disabled sites:", error);
+      alert("Failed to update disabled sites. Please try again.");
+      // Revert UI change on failure
+      setDisabledSites(originalSites);
     }
   };
 
@@ -276,6 +335,50 @@ export function OptionsPage() {
             </Button>
             {saveMessage && <span className="ml-4 font-bold text-green-600 dark:text-green-400">Settings saved!</span>}
           </form>
+        )}
+      </div>
+
+      <div className="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">Manage Disabled Sites</h2>
+        {loadingSettings ? (
+          <div className="text-gray-400 dark:text-gray-500">Loading...</div>
+        ) : settingsError ? (
+          <div className="text-red-500">{settingsError}</div>
+        ) : (
+          <div>
+            <form onSubmit={handleAddDisabledSite} className="mb-4 flex gap-2">
+              <input
+                type="text"
+                value={newSite}
+                onChange={(e) => setNewSite(e.target.value)}
+                placeholder="e.g., example.com"
+                className="flex-grow rounded border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <Button type="submit" variant="secondary">
+                Disable Site
+              </Button>
+            </form>
+            {disabledSites.length === 0 ? (
+              <p className="mt-4 text-center text-gray-600 dark:text-gray-400">No sites are currently disabled.</p>
+            ) : (
+              <ul className="max-h-60 divide-y divide-gray-200 overflow-y-auto rounded-md border dark:divide-gray-700 dark:border-gray-700">
+                {disabledSites.map((site) => (
+                  <li key={site} className="flex items-center justify-between p-3">
+                    <span className="font-medium">{site}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveDisabledSite(site)}
+                      className="h-8 w-8 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                      aria-label={`Re-enable on ${site}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </div>
 
