@@ -317,25 +317,23 @@ browser.runtime.onMessage.addListener(
       // Reload preferences when options page updates them
       loadUserPreferences()
         .then(async () => {
-          // Broadcast the preference update to applicable tabs
-          const tabs = await browser.tabs.query({});
-          for (const tab of tabs) {
-            // Skip sending to tabs that won't have our content script
-            if (
-              tab.id &&
-              tab.url &&
-              !tab.url.startsWith("chrome://") &&
-              !tab.url.startsWith("chrome-extension://") &&
-              !tab.url.startsWith("about:") &&
-              !tab.url.startsWith("edge://") &&
-              !tab.url.startsWith("brave://")
-            ) {
-              try {
-                // Use a try-catch to handle any messaging errors
-                await browser.tabs.sendMessage(tab.id, { action: "preferencesUpdated" });
-              } catch {
-                // This error is expected for tabs that don't have the content script injected.
-              }
+          // Broadcast the preference update to the current active tab
+          const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true });
+          if (
+            currentTab &&
+            currentTab.id &&
+            currentTab.url &&
+            !currentTab.url.startsWith("chrome://") &&
+            !currentTab.url.startsWith("chrome-extension://") &&
+            !currentTab.url.startsWith("about:") &&
+            !currentTab.url.startsWith("edge://") &&
+            !currentTab.url.startsWith("brave://")
+          ) {
+            try {
+              // Use a try-catch to handle any messaging errors
+              await browser.tabs.sendMessage(currentTab.id, { action: "preferencesUpdated" });
+            } catch {
+              // This error is expected for tabs that don't have the content script injected.
             }
           }
           sendResponse({ success: true });
@@ -366,15 +364,22 @@ browser.runtime.onMessage.addListener(
           return PriceDatabase.savePreferences(prefs);
         })
         .then(async () => {
-          // Broadcast the preference update to applicable tabs
-          const tabs = await browser.tabs.query({});
-          for (const tab of tabs) {
-            if (tab.id) {
-              try {
-                await browser.tabs.sendMessage(tab.id, { action: "preferencesUpdated" });
-              } catch {
-                // Ignore errors
-              }
+          // Broadcast the preference update to the current active tab
+          const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true });
+          if (
+            currentTab &&
+            currentTab.id &&
+            currentTab.url &&
+            !currentTab.url.startsWith("chrome://") &&
+            !currentTab.url.startsWith("chrome-extension://") &&
+            !currentTab.url.startsWith("about:") &&
+            !currentTab.url.startsWith("edge://") &&
+            !currentTab.url.startsWith("brave://")
+          ) {
+            try {
+              await browser.tabs.sendMessage(currentTab.id, { action: "preferencesUpdated" });
+            } catch {
+              // Ignore errors
             }
           }
           sendResponse({ success: true });
