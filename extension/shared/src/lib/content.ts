@@ -39,10 +39,32 @@ async function main() {
     }
 
     // Listen for updates to user preferences from the background script
-    browser.runtime.onMessage.addListener((message) => {
+    browser.runtime.onMessage.addListener(async (message) => {
       if (message?.action === "preferencesUpdated") {
-        console.log("Preferences updated, reloading content script...");
-        window.location.reload();
+        const relevantOldPrefs = {
+          displayMode: userPreferences.displayMode,
+          denomination: userPreferences.denomination,
+          highlightBitcoinValue: userPreferences.highlightBitcoinValue,
+          disabledSites: userPreferences.disabledSites,
+          defaultCurrency: userPreferences.defaultCurrency,
+        };
+
+        await getUserPreferences(); // This updates the userPreferences variable
+
+        const relevantNewPrefs = {
+          displayMode: userPreferences.displayMode,
+          denomination: userPreferences.denomination,
+          highlightBitcoinValue: userPreferences.highlightBitcoinValue,
+          disabledSites: userPreferences.disabledSites,
+          defaultCurrency: userPreferences.defaultCurrency,
+        };
+
+        if (JSON.stringify(relevantOldPrefs) !== JSON.stringify(relevantNewPrefs)) {
+          console.log("Relevant preferences changed. Reloading page.");
+          window.location.reload();
+        } else {
+          console.log("No relevant preferences changed. Page will not be reloaded.");
+        }
       }
     });
 
