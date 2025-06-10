@@ -56,12 +56,12 @@ export function Hero() {
                 className="font-medium text-md"
               >
                 <a href="#download">
-                  Add to Chrome <ArrowRightIcon className="s-4" />
+                  Install now <ArrowRightIcon className="s-4" />
                 </a>
               </Button>
-              <p className="text-muted-foreground text-xs">
-                Firefox coming soon!
-              </p>
+              {/* <p className="text-muted-foreground text-xs">
+                  Firefox coming soon!
+                </p> */}
               {/* <a
                 href="#firefox"
                 className="inline-block px-6 py-3 font-semibold rounded-lg border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-orange-100 transition text-center"
