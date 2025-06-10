@@ -10,6 +10,24 @@ import { Container } from "../ui/container";
 
 const faqItems = [
   {
+    question: "Is the code open source?",
+    answer: (
+      <>
+        Yes, the code is open source and available on our GitHub repository. You
+        can find it at{" "}
+        <a
+          href="https://github.com/TFTC-Holdings-Inc/opportunity-cost"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-oc-primary hover:text-oc-primary/80 underline"
+        >
+          GitHub
+        </a>
+        .
+      </>
+    ),
+  },
+  {
     question: "Is the extension free to use?",
     answer: "Yes, Opportunity Cost is completely free and open source.",
   },

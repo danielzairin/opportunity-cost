@@ -1,7 +1,7 @@
 # Opportunity Cost Browser Extension
 
 <div align="center">
-  <img src="extension/chrome/public/icons/logo.svg" alt="Opportunity Cost Logo" width="100" />
+  <img src="web/public/images/logo/svg/black-transparent.svg" alt="Opportunity Cost Logo" width="256" />
   <h3>See the True Cost of Everything in Bitcoin</h3>
   <p>Convert online prices to Bitcoin as you browse</p>
 </div>

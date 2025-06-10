@@ -23,14 +23,14 @@ export function Download() {
               className="mb-4"
             />
             <h3 className="text-xl font-bold mb-2">Chrome Extension</h3>
-            <p className="mb-4 text-muted-foreground">Version 1.0.0</p>
+            <p className="mb-4 text-muted-foreground">Version 0.0.2</p>
             <Button
               asChild
               variant="primary"
               size="lg"
               className="font-medium text-md"
             >
-              <a href="https://chrome.google.com/webstore/detail/opportunity-cost/">
+              <a href="https://chromewebstore.google.com/detail/opportunity-cost/pfhbigpmdnngoebopkigaocjcabbibil">
                 Add to Chrome
               </a>
             </Button>
