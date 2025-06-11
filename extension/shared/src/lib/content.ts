@@ -354,11 +354,105 @@ async function main() {
       }
     };
 
+    /**
+     * Processes Amazon price elements, appending bitcoin values next to fiat prices.
+     * Handles both dual-display and bitcoin-only display modes.
+     */
+    function processAmazonPrices() {
+      document.querySelectorAll<HTMLSpanElement>('.a-price span[aria-hidden="true"]').forEach((vis) => {
+        if (!vis || !vis.textContent || vis.children.length === 0) return;
+        if (vis.querySelector(".oc-btc-price")) return;
+        const parent = vis.closest(".a-price");
+        if (!parent) return;
+        const currency = supportedCurrencies.find((c) => c.value === userPreferences.defaultCurrency);
+        if (!currency) return;
+        if (!vis.textContent!.includes(currency.symbol)) return;
+        const btcPrice = btcPrices[currency.value];
+        if (!btcPrice) return;
+        const fiatValue = convertCurrencyValue(vis.textContent, currency.symbol, currency.value);
+        const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+        const btcDisplay = formatBitcoinValue(sats);
+        const displayMode = userPreferences.displayMode;
+        const formatted = displayMode === "dual-display" ? ` | ${btcDisplay}` : btcDisplay;
+        const screenReaderSpan = vis.querySelector(".a-offscreen");
+        if (screenReaderSpan) {
+          screenReaderSpan.textContent += formatted;
+        }
+        const label = document.createElement("span");
+        label.className = "oc-btc-price";
+        if (userPreferences.displayMode === "dual-display") {
+          const parts = formatted.split("|");
+          if (parts.length > 1) {
+            label.textContent = parts[0] + "| ";
+            const btcValueSpan = document.createElement("span");
+            btcValueSpan.textContent = parts[1].trim();
+            applyBitcoinLabelStyles(btcValueSpan);
+            label.appendChild(btcValueSpan);
+          } else {
+            label.textContent = formatted;
+          }
+        } else {
+          label.textContent = formatted;
+          applyBitcoinLabelStyles(label);
+        }
+
+        vis.appendChild(label);
+
+        if (userPreferences.displayMode === "bitcoin-only") {
+          const priceSymbol = vis.querySelector(".a-price-symbol");
+          const priceWhole = vis.querySelector(".a-price-whole");
+          const priceFraction = vis.querySelector(".a-price-fraction");
+          if (priceSymbol) priceSymbol.remove();
+          if (priceWhole) priceWhole.remove();
+          if (priceFraction) priceFraction.remove();
+        }
+      });
+    }
+
+    /**
+     * Processes WooCommerce price elements, appending bitcoin values or replacing fiat prices.
+     * Handles both dual-display and bitcoin-only display modes.
+     */
+    function processWooCommercePrices(): void {
+      document.querySelectorAll<HTMLSpanElement>(".woocommerce-Price-amount.amount").forEach((amount) => {
+        if (amount.dataset.ocProcessed === "true" || amount.querySelector(".oc-btc-price")) return;
+
+        const currency = supportedCurrencies.find((c) => c.value === userPreferences.defaultCurrency);
+        if (!currency) return;
+
+        const btcPrice = btcPrices[currency.value];
+        if (!btcPrice) return;
+
+        const fiatValue = convertCurrencyValue(amount.textContent ?? "", currency.symbol, currency.value);
+        if (isNaN(fiatValue)) return;
+
+        const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+        const btcDisplay = formatBitcoinValue(sats);
+        const btcSpan = document.createElement("span");
+        btcSpan.className = "oc-btc-price";
+        btcSpan.textContent = btcDisplay;
+        applyBitcoinLabelStyles(btcSpan);
+
+        if (userPreferences.displayMode === "dual-display") {
+          (amount.querySelector("bdi") ?? amount).append(" | ", btcSpan);
+        } else {
+          amount.textContent = "";
+          amount.appendChild(btcSpan);
+        }
+
+        amount.dataset.ocProcessed = "true";
+      });
+    }
+
     // --- Initial processing and observer setup ---
+    processAmazonPrices();
+    processWooCommercePrices();
     walkDOM(document.body);
 
     // Observes DOM mutations to process dynamically added content for price conversion
     const observer = new MutationObserver((mutations: MutationRecord[]) => {
+      processAmazonPrices();
+      processWooCommercePrices();
       mutations.forEach((mutation: MutationRecord) => {
         if (mutation.type === "childList") {
           mutation.addedNodes.forEach((node: Node) => walkDOM(node));
