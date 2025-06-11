@@ -125,12 +125,40 @@ async function main() {
         maximumFractionDigits: maxDecimals,
       });
 
+    // Helper to abbreviate large satoshi values (e.g., 100000 -> 100k, 1000000 -> 1M)
+    const abbreviateSats = (sats: number): string => {
+      const thresholds: [number, string][] = [
+        [1e15, "Q"],
+        [1e12, "T"],
+        [1e9, "B"],
+        [1e6, "M"],
+        [1e3, "k"],
+      ];
+      for (const [value, suffix] of thresholds) {
+        if (sats >= value) {
+          const shortened = sats / value;
+          // Use fewer decimals for larger numbers
+          const decimals = shortened >= 100 ? 0 : shortened >= 10 ? 1 : 2;
+          const formatted = shortened.toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: decimals,
+          });
+          return `${formatted}${suffix}`;
+        }
+      }
+      return sats.toLocaleString();
+    };
+
     // Formats a bitcoin value (in satoshis) according to user denomination preference
     const formatBitcoinValue = (satoshis: number): string => {
       const btc = satoshis / SATS_IN_BTC;
       if (btc >= 100) return `${fmt(btc, 0)} BTC`;
       if (userPreferences.denomination === "dynamic") {
-        return btc < 0.01 ? `${fmt(satoshis, 0)} sats` : `${fmt(btc, 2)} BTC`;
+        if (btc < 0.01) {
+          const satsStr = satoshis >= 100_000 ? abbreviateSats(satoshis) : fmt(satoshis, 0);
+          return `${satsStr} sats`;
+        }
+        return `${fmt(btc, 2)} BTC`;
       }
       if (userPreferences.denomination === "btc") {
         if (btc >= 1) return `${fmt(btc, 2)} BTC`;
@@ -142,7 +170,9 @@ async function main() {
           maximumFractionDigits: 8,
         })} BTC`;
       }
-      return `${fmt(satoshis, 0)} sats`;
+      // Sats denomination
+      const satsStr = satoshis >= 100_000 ? abbreviateSats(satoshis) : fmt(satoshis, 0);
+      return `${satsStr} sats`;
     };
 
     // Fetches the latest Bitcoin prices for all supported currencies from the background script
@@ -444,15 +474,59 @@ async function main() {
       });
     }
 
+    /**
+     * Processes price elements where the currency symbol and numeric value are split
+     * into separate sibling elements within the same container (e.g. <span aria-hidden="true"><span>$</span><span>564</span></span>).
+     * Works for both dual-display and bitcoin-only modes.
+     */
+    function processCompositePriceElements(): void {
+      const currency = supportedCurrencies.find((c) => c.value === userPreferences.defaultCurrency);
+      if (!currency) return;
+
+      const btcPrice = btcPrices[currency.value];
+      if (!btcPrice) return;
+
+      // Target common containers that hide duplicated/visual prices (e.g., Amazon, generic price widgets)
+      const selector = "span[aria-hidden='true']:not([data-oc-processed])";
+      document.querySelectorAll<HTMLElement>(selector).forEach((container) => {
+        if (container.dataset.ocProcessed === "true" || container.querySelector(".oc-btc-price")) return;
+        if (!container.textContent) return;
+        if (!container.textContent.includes(currency.symbol)) return;
+
+        const fiatValue = convertCurrencyValue(container.textContent, currency.symbol, currency.value);
+        if (isNaN(fiatValue)) return;
+
+        const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
+        const btcDisplay = formatBitcoinValue(sats);
+
+        const btcSpan = document.createElement("span");
+        btcSpan.className = "oc-btc-price";
+        btcSpan.textContent = btcDisplay;
+        applyBitcoinLabelStyles(btcSpan);
+
+        if (userPreferences.displayMode === "dual-display") {
+          container.append(" | ", btcSpan);
+        } else {
+          // Remove existing children that represent the fiat price so only BTC remains
+          container.textContent = "";
+          container.appendChild(btcSpan);
+        }
+
+        container.dataset.ocProcessed = "true";
+      });
+    }
+
     // --- Initial processing and observer setup ---
     processAmazonPrices();
     processWooCommercePrices();
+    processCompositePriceElements();
     walkDOM(document.body);
 
     // Observes DOM mutations to process dynamically added content for price conversion
     const observer = new MutationObserver((mutations: MutationRecord[]) => {
       processAmazonPrices();
       processWooCommercePrices();
+      processCompositePriceElements();
       mutations.forEach((mutation: MutationRecord) => {
         if (mutation.type === "childList") {
           mutation.addedNodes.forEach((node: Node) => walkDOM(node));

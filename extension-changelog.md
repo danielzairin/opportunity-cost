@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Abbreviated sats display for large satoshi values (e.g., 100k, 1M, 1B)
+- Support for processing composite price elements that split currency symbols and numeric values across sibling nodes for more accurate price conversions
+
 ### Added
 
 ### Changed
