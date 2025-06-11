@@ -141,7 +141,7 @@ We welcome contributions from the community! Please feel free to submit pull req
 
 ## License
 
-This project is proprietary software but [source-available](LICENSE) for auditing purposes. Reuse, redistribution, or modification is not permitted without written permission.
+Opportunity Cost Browser Extension is licensed under the [MIT license](LICENSE).
 
 ## Links
 
