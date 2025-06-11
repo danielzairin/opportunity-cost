@@ -17,7 +17,19 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
-import { Ellipsis, Bitcoin, PaintbrushVertical, Link, Check, Sun, Moon, Monitor, Settings2, Info } from "lucide-react";
+import {
+  Ellipsis,
+  Bitcoin,
+  PaintbrushVertical,
+  Link,
+  Check,
+  Sun,
+  Moon,
+  Monitor,
+  Settings2,
+  Info,
+  ChevronsUpDown,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Switch } from "./ui/switch";
@@ -86,7 +98,7 @@ function LivePrice() {
       if (response?.prices) {
         setPrices(response.prices);
         setSupportedCurrencies(response.supportedCurrencies || SUPPORTED_CURRENCIES);
-        setCurrency(response.currency || DEFAULT_CURRENCY);
+        setCurrency(response.preferences?.defaultCurrency || DEFAULT_CURRENCY);
         setLastUpdated(new Date());
       } else {
         throw new Error("Invalid price data received");
@@ -108,25 +120,66 @@ function LivePrice() {
     return found ? found.symbol : "$";
   };
 
+  // --- Local state & helpers for currency picker ---
+  const changeDefaultCurrency = async (newCurrency: string) => {
+    setCurrency(newCurrency);
+    try {
+      await PriceDatabase.savePreferences({ defaultCurrency: newCurrency });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
+      // Refresh prices to ensure latest values are shown
+      fetchPrices();
+    } catch (err) {
+      console.error("Error updating default currency:", err);
+    }
+  };
+
   return (
     <section className="mb-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-start justify-between">
         <span className="font-semibold dark:text-gray-200">Bitcoin Price:</span>
         {loading ? (
           <span className="font-mono text-lg text-gray-400 dark:text-gray-500">Loading...</span>
         ) : error ? (
           <span className="text-sm text-red-500">Error: {error}</span>
         ) : (
-          <span className={cn("font-mono text-xl dark:text-white")}>
-            {getCurrencySymbol(currency)}
-            {prices[currency]?.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
+          <div className="group flex items-center">
+            {/* Currency switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="mr-1 rounded p-1 opacity-0 transition-opacity hover:bg-gray-100 focus:outline-none group-focus-within:opacity-100 group-hover:opacity-100 dark:hover:bg-gray-800"
+                  aria-label="Change default currency"
+                >
+                  <ChevronsUpDown className="size-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center">
+                <DropdownMenuLabel>Select default currency</DropdownMenuLabel>
+                {supportedCurrencies.map((c) => (
+                  <DropdownMenuItem
+                    key={c.value}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      changeDefaultCurrency(c.value);
+                    }}
+                  >
+                    {c.name} ({c.symbol}){c.value === currency && <Check className="ml-auto size-4" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <span className={cn("font-mono text-xl dark:text-white")}>
+              {getCurrencySymbol(currency)}
+              {prices[currency]?.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
         )}
       </div>
-      <div className="flex justify-end text-[10px] text-gray-400 dark:text-gray-500">
+      <div className="flex justify-end text-xs text-gray-400 dark:text-gray-500">
         <span>
           Last updated:{" "}
           {lastUpdated ? lastUpdated.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "--:--"}
@@ -239,7 +292,7 @@ function Converter() {
         if (response?.prices) {
           setPrices(response.prices);
           setSupportedCurrencies(response.supportedCurrencies || SUPPORTED_CURRENCIES);
-          setCurrency(response.currency || DEFAULT_CURRENCY);
+          setCurrency(response.preferences?.defaultCurrency || DEFAULT_CURRENCY);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -902,7 +955,19 @@ function Footer({
   hostname: string;
 }) {
   return (
-    <footer className="flex items-center justify-between text-left text-[10px] text-gray-400 dark:text-gray-500">
+    <footer className="flex items-center justify-between text-left text-xs text-gray-400 dark:text-gray-500">
+      <div className="flex items-center gap-x-2">
+        {hostname && (
+          <>
+            {isSiteEnabled !== null && (
+              <Switch id="extension-enabled" checked={isSiteEnabled} onCheckedChange={onToggle} />
+            )}
+            <label htmlFor="extension-enabled" className="cursor-pointer text-xs">
+              {isSiteEnabled ? "Enabled" : "Disabled"} on this site
+            </label>
+          </>
+        )}
+      </div>
       <div className="flex flex-col">
         <span>
           <a
@@ -923,18 +988,6 @@ function Footer({
             Feedback
           </a>
         </span>
-      </div>
-      <div className="flex items-center gap-x-2">
-        {hostname && (
-          <>
-            {isSiteEnabled !== null && (
-              <Switch id="extension-enabled" checked={isSiteEnabled} onCheckedChange={onToggle} />
-            )}
-            <label htmlFor="extension-enabled" className="cursor-pointer text-xs">
-              {isSiteEnabled ? "Enabled" : "Disabled"} on this site
-            </label>
-          </>
-        )}
       </div>
     </footer>
   );
