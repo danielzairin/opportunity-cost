@@ -33,6 +33,8 @@ import {
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Switch } from "./ui/switch";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 // Custom event name for display mode changes
 const DISPLAY_MODE_CHANGE_EVENT = "display-mode-change";
@@ -84,6 +86,7 @@ function LivePrice() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [supportedCurrencies, setSupportedCurrencies] = useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
 
   const fetchPrices = async () => {
     setLoading(true);
@@ -144,30 +147,41 @@ function LivePrice() {
         ) : (
           <div className="group flex items-center">
             {/* Currency switcher */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <Popover open={currencyPickerOpen} onOpenChange={setCurrencyPickerOpen}>
+              <PopoverTrigger asChild>
                 <button
                   className="mr-1 rounded p-1 opacity-0 transition-opacity hover:bg-gray-100 focus:outline-none group-focus-within:opacity-100 group-hover:opacity-100 dark:hover:bg-gray-800"
                   aria-label="Change default currency"
+                  role="combobox"
+                  aria-expanded={currencyPickerOpen}
                 >
                   <ChevronsUpDown className="size-4" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center">
-                <DropdownMenuLabel>Select default currency</DropdownMenuLabel>
-                {supportedCurrencies.map((c) => (
-                  <DropdownMenuItem
-                    key={c.value}
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      changeDefaultCurrency(c.value);
-                    }}
-                  >
-                    {c.name} ({c.symbol}){c.value === currency && <Check className="ml-auto size-4" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </PopoverTrigger>
+              <PopoverContent className="h-64 w-52 p-0">
+                <Command>
+                  <CommandInput placeholder="Search currency..." />
+                  <CommandList>
+                    <CommandEmpty>No currency found.</CommandEmpty>
+                    <CommandGroup>
+                      {supportedCurrencies.map((c) => (
+                        <CommandItem
+                          key={c.value}
+                          value={`${c.name} ${c.symbol}`}
+                          onSelect={() => {
+                            changeDefaultCurrency(c.value);
+                            setCurrencyPickerOpen(false);
+                          }}
+                        >
+                          <Check className={cn("mr-2 h-4 w-4", currency === c.value ? "opacity-100" : "opacity-0")} />
+                          {c.name} ({c.symbol})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
             <span className={cn("font-mono text-xl dark:text-white")}>
               {getCurrencySymbol(currency)}
