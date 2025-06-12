@@ -42,6 +42,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: `dist/${browser}`,
+      emptyOutDir: process.env.WATCH ? false : true,
       rollupOptions: {
         input,
         output: {
