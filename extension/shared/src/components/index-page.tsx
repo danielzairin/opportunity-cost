@@ -160,7 +160,7 @@ function LivePrice() {
               </PopoverTrigger>
               <PopoverContent className="h-64 w-52 p-0">
                 <Command>
-                  <CommandInput placeholder="Search currency..." />
+                  <CommandInput placeholder="Search default currency..." />
                   <CommandList>
                     <CommandEmpty>No currency found.</CommandEmpty>
                     <CommandGroup>
