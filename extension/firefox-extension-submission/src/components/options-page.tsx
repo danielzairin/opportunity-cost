@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import browser from "webextension-polyfill";
-import { PriceDatabase, type PriceRecord } from "../lib/storage";
+import { PriceDatabase } from "../lib/storage";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "../lib/constants";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent } from "./ui/tooltip";
@@ -22,11 +22,6 @@ export function OptionsPage() {
   const [saveMessage, setSaveMessage] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [settingsError, setSettingsError] = useState<string | null>(null);
-
-  // Price history state
-  const [priceHistory, setPriceHistory] = useState<PriceRecord[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-  const [historyError, setHistoryError] = useState<string | null>(null);
 
   // Function to detect system theme preference
   const getSystemThemePreference = (): boolean => {
@@ -92,27 +87,6 @@ export function OptionsPage() {
       }
     }
     loadSettings();
-  }, []);
-
-  // Load price history on mount
-  useEffect(() => {
-    async function loadPriceHistory() {
-      setLoadingHistory(true);
-      setHistoryError(null);
-      try {
-        const endTime = Date.now();
-        const startTime = endTime - 7 * 24 * 60 * 60 * 1000; // 7 days
-        const history = await PriceDatabase.getPriceHistory("usd", startTime, endTime);
-        // Sort by timestamp descending, show up to 10
-        history.sort((a: PriceRecord, b: PriceRecord) => b.timestamp - a.timestamp);
-        setPriceHistory(history.slice(0, 10));
-      } catch {
-        setHistoryError("Error loading price history");
-      } finally {
-        setLoadingHistory(false);
-      }
-    }
-    loadPriceHistory();
   }, []);
 
   // Handle theme change
@@ -192,27 +166,6 @@ export function OptionsPage() {
       alert("Failed to update disabled sites. Please try again.");
       // Revert UI change on failure
       setDisabledSites(originalSites);
-    }
-  };
-
-  // Handle clear data
-  const handleClearData = async () => {
-    if (!window.confirm("Are you sure you want to clear all saved data? This action cannot be undone.")) return;
-    try {
-      await PriceDatabase.db.clear("priceHistory");
-      await PriceDatabase.savePreferences({
-        id: "user-preferences",
-        defaultCurrency: "usd",
-        displayMode: "dual-display",
-        denomination: "btc",
-        themeMode,
-        lastUpdated: Date.now(),
-        disabledSites: [],
-      });
-      // Reload all data
-      window.location.reload();
-    } catch {
-      alert("There was an error clearing the data. Please try again.");
     }
   };
 
@@ -397,65 +350,6 @@ export function OptionsPage() {
             Subscribe to Bitcoin Brief
           </a>
         </Button>
-      </div>
-
-      <div className="my-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-        <div className="flex items-center justify-between">
-          <h2 className="mb-4 text-xl font-semibold dark:text-white">Bitcoin Price History</h2>
-          {priceHistory.length > 0 && (
-            <Button size="sm" variant="outline" onClick={handleClearData}>
-              Clear Price History
-            </Button>
-          )}
-        </div>
-        {loadingHistory ? (
-          <div className="text-gray-400 dark:text-gray-500">Loading price history data...</div>
-        ) : historyError ? (
-          <div className="text-red-500">{historyError}</div>
-        ) : priceHistory.length === 0 ? (
-          <div className="empty-state dark:text-gray-400">No price history data available yet.</div>
-        ) : (
-          <table className="min-w-full border border-gray-200 dark:border-gray-600">
-            <thead>
-              <tr>
-                <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                  Date
-                </th>
-                <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                  Time
-                </th>
-                <th className="border-b bg-gray-100 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                  BTC Price (USD)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {priceHistory.map((entry, idx) => {
-                const date = new Date(entry.timestamp);
-                return (
-                  <tr
-                    key={entry.timestamp}
-                    className={idx % 2 === 0 ? "bg-gray-50 dark:bg-gray-900" : "dark:bg-gray-800"}
-                  >
-                    <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
-                      {date.toLocaleDateString()}
-                    </td>
-                    <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
-                      {date.toLocaleTimeString()}
-                    </td>
-                    <td className="border-b px-4 py-2 dark:border-gray-600 dark:text-gray-300">
-                      $
-                      {entry.price.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
       </div>
 
       <div className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">

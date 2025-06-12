@@ -1,9 +1,9 @@
 {
   "name": "Opportunity Cost",
   "description": "See every price in satoshis. Understand the Bitcoin opportunity cost of your purchases.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "manifest_version": 3,
-  "permissions": ["storage", "tabs"],
+  "permissions": ["tabs"],
   "action": {
     "default_title": "Opportunity Cost",
     "default_icon": {

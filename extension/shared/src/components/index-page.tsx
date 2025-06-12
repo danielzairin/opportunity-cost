@@ -17,13 +17,29 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
-import { Ellipsis, Bitcoin, PaintbrushVertical, Link, Check, Sun, Moon, Monitor, Settings2, Info } from "lucide-react";
+import {
+  Ellipsis,
+  Bitcoin,
+  PaintbrushVertical,
+  Link,
+  Check,
+  Sun,
+  Moon,
+  Monitor,
+  Settings2,
+  Info,
+  ChevronsUpDown,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Switch } from "./ui/switch";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 // Custom event name for display mode changes
 const DISPLAY_MODE_CHANGE_EVENT = "display-mode-change";
+// NEW: Custom event name for default currency changes
+const DEFAULT_CURRENCY_CHANGE_EVENT = "default-currency-change";
 
 // --- Header ---
 function Header() {
@@ -72,6 +88,7 @@ function LivePrice() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [supportedCurrencies, setSupportedCurrencies] = useState<typeof SUPPORTED_CURRENCIES>(SUPPORTED_CURRENCIES);
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
 
   const fetchPrices = async () => {
     setLoading(true);
@@ -86,7 +103,7 @@ function LivePrice() {
       if (response?.prices) {
         setPrices(response.prices);
         setSupportedCurrencies(response.supportedCurrencies || SUPPORTED_CURRENCIES);
-        setCurrency(response.currency || DEFAULT_CURRENCY);
+        setCurrency(response.preferences?.defaultCurrency || DEFAULT_CURRENCY);
         setLastUpdated(new Date());
       } else {
         throw new Error("Invalid price data received");
@@ -108,25 +125,83 @@ function LivePrice() {
     return found ? found.symbol : "$";
   };
 
+  // --- Local state & helpers for currency picker ---
+  const changeDefaultCurrency = async (newCurrency: string) => {
+    setCurrency(newCurrency);
+    try {
+      await PriceDatabase.savePreferences({ defaultCurrency: newCurrency });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
+      // Refresh prices to ensure latest values are shown
+      fetchPrices();
+      // Notify other components about the currency change
+      document.dispatchEvent(
+        new CustomEvent(DEFAULT_CURRENCY_CHANGE_EVENT, {
+          detail: { defaultCurrency: newCurrency },
+        }),
+      );
+    } catch (err) {
+      console.error("Error updating default currency:", err);
+    }
+  };
+
   return (
     <section className="mb-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-start justify-between">
         <span className="font-semibold dark:text-gray-200">Bitcoin Price:</span>
         {loading ? (
           <span className="font-mono text-lg text-gray-400 dark:text-gray-500">Loading...</span>
         ) : error ? (
           <span className="text-sm text-red-500">Error: {error}</span>
         ) : (
-          <span className={cn("font-mono text-xl dark:text-white")}>
-            {getCurrencySymbol(currency)}
-            {prices[currency]?.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
+          <div className="group flex items-center">
+            {/* Currency switcher */}
+            <Popover open={currencyPickerOpen} onOpenChange={setCurrencyPickerOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="mr-1 rounded p-1 opacity-0 transition-opacity hover:bg-gray-100 focus:outline-none group-focus-within:opacity-100 group-hover:opacity-100 dark:hover:bg-gray-800"
+                  aria-label="Change default currency"
+                  role="combobox"
+                  aria-expanded={currencyPickerOpen}
+                >
+                  <ChevronsUpDown className="size-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="h-64 w-56 p-0">
+                <Command>
+                  <CommandInput placeholder="Search default currency..." />
+                  <CommandList>
+                    <CommandEmpty>No currency found.</CommandEmpty>
+                    <CommandGroup>
+                      {supportedCurrencies.map((c) => (
+                        <CommandItem
+                          key={c.value}
+                          value={`${c.name} ${c.symbol}`}
+                          onSelect={() => {
+                            changeDefaultCurrency(c.value);
+                            setCurrencyPickerOpen(false);
+                          }}
+                        >
+                          <Check className={cn("mr-2 h-4 w-4", currency === c.value ? "opacity-100" : "opacity-0")} />
+                          {c.name} ({c.symbol})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
+            <span className={cn("font-mono text-xl dark:text-white")}>
+              {getCurrencySymbol(currency)}
+              {prices[currency]?.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
         )}
       </div>
-      <div className="flex justify-end text-[10px] text-gray-400 dark:text-gray-500">
+      <div className="flex justify-end text-xs text-gray-400 dark:text-gray-500">
         <span>
           Last updated:{" "}
           {lastUpdated ? lastUpdated.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "--:--"}
@@ -239,7 +314,7 @@ function Converter() {
         if (response?.prices) {
           setPrices(response.prices);
           setSupportedCurrencies(response.supportedCurrencies || SUPPORTED_CURRENCIES);
-          setCurrency(response.currency || DEFAULT_CURRENCY);
+          setCurrency(response.preferences?.defaultCurrency || DEFAULT_CURRENCY);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -250,6 +325,59 @@ function Converter() {
 
     fetchData();
   }, []);
+
+  // Listen for default currency changes from LivePrice
+  useEffect(() => {
+    const handleDefaultCurrencyChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ defaultCurrency: string }>;
+      const newCurrency = customEvent.detail?.defaultCurrency;
+      if (newCurrency) {
+        // Update currency state first
+        setCurrency(newCurrency);
+
+        // Retrieve the price for the newly-selected currency
+        const priceForNewCurrency = prices[newCurrency];
+        if (!priceForNewCurrency) {
+          // If we don't have the price yet, we can't recalculate – exit early
+          return;
+        }
+
+        // Recalculate based on the last edited field using *new* currency pricing
+        if (lastEdited === "fiat" && fiatAmount) {
+          const numValue = parseFloat(fiatAmount.replace(/,/g, ""));
+          if (!isNaN(numValue)) {
+            const inBtc = numValue / priceForNewCurrency;
+
+            if (localDenomination === "sats") {
+              const inSats = Math.round(inBtc * SATS_IN_BTC);
+              setBtcAmount(inSats.toString());
+            } else {
+              if (inBtc < 0.000001) {
+                setBtcAmount(inBtc.toFixed(8));
+              } else if (inBtc < 0.0001) {
+                setBtcAmount(inBtc.toFixed(6));
+              } else {
+                setBtcAmount(inBtc.toFixed(5));
+              }
+            }
+          }
+        } else if (lastEdited === "btc" && btcAmount) {
+          const numValue = parseFloat(btcAmount.replace(/,/g, ""));
+          if (!isNaN(numValue)) {
+            const inBtc = localDenomination === "sats" ? numValue / SATS_IN_BTC : numValue;
+            const fiatValue = inBtc * priceForNewCurrency;
+            setFiatAmount(fiatValue.toFixed(2));
+          }
+        }
+      }
+    };
+
+    document.addEventListener(DEFAULT_CURRENCY_CHANGE_EVENT, handleDefaultCurrencyChange);
+
+    return () => {
+      document.removeEventListener(DEFAULT_CURRENCY_CHANGE_EVENT, handleDefaultCurrencyChange);
+    };
+  }, [lastEdited, fiatAmount, btcAmount, prices, localDenomination]);
 
   // Convert fiat to Bitcoin
   const convertFiatToBtc = (fiatValue: number): string => {
@@ -469,13 +597,13 @@ function Converter() {
             </select>
           </div>
           <div className="relative">
-            <label htmlFor="fiat-input" className="absolute left-0 top-0 text-lg text-gray-300 dark:text-gray-500">
-              {currencySymbol}
+            <label htmlFor="fiat-input" className="absolute right-0 top-0 text-lg text-gray-300 dark:text-gray-500">
+              {currency.toUpperCase()}
             </label>
             <Cleave
               id="fiat-input"
-              className="w-full border-none bg-transparent pl-4 text-lg text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-0 dark:text-gray-200 dark:placeholder:text-gray-500"
-              placeholder={`${currency.toUpperCase()}`}
+              className="w-full border-none bg-transparent pr-4 text-lg text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-0 dark:text-gray-200 dark:placeholder:text-gray-500"
+              placeholder={currencySymbol}
               value={fiatAmount}
               onChange={handleFiatChange}
               onFocus={() => {
@@ -902,7 +1030,19 @@ function Footer({
   hostname: string;
 }) {
   return (
-    <footer className="flex items-center justify-between text-left text-[10px] text-gray-400 dark:text-gray-500">
+    <footer className="flex items-center justify-between text-left text-xs text-gray-400 dark:text-gray-500">
+      <div className="flex items-center gap-x-2">
+        {hostname && (
+          <>
+            {isSiteEnabled !== null && (
+              <Switch id="extension-enabled" checked={isSiteEnabled} onCheckedChange={onToggle} />
+            )}
+            <label htmlFor="extension-enabled" className="cursor-pointer text-xs">
+              {isSiteEnabled ? "Enabled" : "Disabled"} on this site
+            </label>
+          </>
+        )}
+      </div>
       <div className="flex flex-col">
         <span>
           <a
@@ -923,18 +1063,6 @@ function Footer({
             Feedback
           </a>
         </span>
-      </div>
-      <div className="flex items-center gap-x-2">
-        {hostname && (
-          <>
-            {isSiteEnabled !== null && (
-              <Switch id="extension-enabled" checked={isSiteEnabled} onCheckedChange={onToggle} />
-            )}
-            <label htmlFor="extension-enabled" className="cursor-pointer text-xs">
-              {isSiteEnabled ? "Enabled" : "Disabled"} on this site
-            </label>
-          </>
-        )}
       </div>
     </footer>
   );
