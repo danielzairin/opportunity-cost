@@ -158,7 +158,7 @@ function LivePrice() {
                   <ChevronsUpDown className="size-4" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="h-64 w-52 p-0">
+              <PopoverContent className="h-64 w-56 p-0">
                 <Command>
                   <CommandInput placeholder="Search default currency..." />
                   <CommandList>
