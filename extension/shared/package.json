@@ -11,7 +11,10 @@
     "package:firefox": "npm run build:firefox && cd dist/firefox && zip -r ../oc-firefox.zip .",
     "package": "npm run package:chrome && npm run package:firefox",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "watch:ts": "tsc -b --watch",
+    "watch:chrome": "concurrently \"pnpm run watch:ts\" \"vite build --mode chrome --watch\" \"vite build --mode chrome --config vite.content.config.ts --watch\"",
+    "watch:firefox": "concurrently \"pnpm run watch:ts\" \"vite build --mode firefox --watch\" \"vite build --mode firefox --config vite.content.config.ts --watch\" \"vite build --mode firefox --config vite.background.config.ts --watch\"",
+    "watch:all": "concurrently \"npm run watch:chrome\" \"npm run watch:firefox\""
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -52,6 +55,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
-    "webextension-polyfill": "^0.12.0"
+    "webextension-polyfill": "^0.12.0",
+    "concurrently": "^8.2.2"
   }
 }
