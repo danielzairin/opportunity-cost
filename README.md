@@ -141,11 +141,11 @@ We welcome contributions from the community! Please feel free to submit pull req
 
 ## License
 
-This project is proprietary software but source-available for auditing purposes. Reuse, redistribution, or modification is not permitted without written permission.
+Opportunity Cost Browser Extension is licensed under the [MIT license](LICENSE).
 
 ## Links
 
 - [Official Website](https://www.opportunitycost.app)
 - [TFTC](https://tftc.io)
 - [Bitcoin Brief Newsletter](https://tftc.io/bitcoin-brief)
-- [Feedback](https://opportunitycost.userjot.com/)
+- [Feedback](https://opportunitycost.userjot.com)
