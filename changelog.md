@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Abbreviated sats display for large satoshi values (e.g., 100k, 1M, 1B)
+- Abbreviated sats display for large satoshi values ≥100,000 sats (e.g. 250k sats)
 - Support for processing composite price elements that split currency symbols and numeric values across sibling nodes for more accurate price conversions
 - Currency selector in extension popup - users can now change their default currency directly from the popup interface
 - Added support for 20 additional currencies: Mexican Peso (MXN), Argentine Peso (ARS), Philippine Peso (PHP), Vietnamese Dong (VND), Indonesian Rupiah (IDR), Brazilian Real (BRL), Chilean Peso (CLP), South African Rand (ZAR), Russian Ruble (RUB), South Korean Won (KRW), Hong Kong Dollar (HKD), New Taiwan Dollar (TWD), Hungarian Forint (HUF), Danish Krone (DKK), New Zealand Dollar (NZD), Turkish Lira (TRY), Polish Złoty (PLN), Czech Koruna (CZK), Swedish Krona (SEK), and Norwegian Krone (NOK)
