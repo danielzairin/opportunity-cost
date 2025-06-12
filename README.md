@@ -6,8 +6,6 @@
   <p>Convert online prices to Bitcoin as you browse</p>
 </div>
 
-> The code is available solely for auditing and transparency. Reuse, redistribution, or modification is prohibited.
-
 ## Overview
 
 Opportunity Cost is a browser extension that instantly converts fiat currency prices (USD, EUR, GBP, etc.) to their Bitcoin or satoshi equivalent as you browse the web. It helps you think in terms of sound money principles by showing the Bitcoin value of everyday purchases.
