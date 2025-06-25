@@ -1,0 +1,181 @@
+"use client";
+
+import { Container } from "@/components/ui/container";
+import { Button } from "../ui/button";
+import { PlayIcon, ExternalLinkIcon } from "lucide-react";
+
+export function SaylorVideo() {
+  return (
+    <section className="py-20 bg-gradient-to-b from-background to-orange-50/30 dark:to-orange-950/20 border-t border-border">
+      <Container>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            The Speech That Started It All
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Watch Michael Saylor's bold prediction at BTC Prague 2025 that
+            inspired this feature. See the moment that changed how we think
+            about Bitcoin's future.
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          {/* Video placeholder - replace with actual embed when available */}
+          <div className="relative bg-card rounded-2xl border border-border overflow-hidden shadow-2xl">
+            <div className="aspect-video bg-gradient-to-br from-orange-900 to-orange-800 flex items-center justify-center relative">
+              {/* Placeholder for video */}
+              <div className="text-center text-white">
+                <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <PlayIcon className="w-12 h-12 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">
+                  BTC Prague 2025 Keynote
+                </h3>
+                <p className="text-lg opacity-90">
+                  Michael Saylor's $21M Prediction
+                </p>
+              </div>
+
+              {/* Overlay pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-orange-600/20"></div>
+            </div>
+
+            <div className="p-8">
+              <div className="text-center mb-8">
+                <blockquote className="text-xl lg:text-2xl font-medium text-foreground mb-4 italic">
+                  "I think we're going to be $21 million in 21 years. That's my
+                  number."
+                </blockquote>
+                <cite className="text-muted-foreground">
+                  — Michael Saylor, BTC Prague 2025
+                </cite>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  asChild
+                  variant="primary"
+                  size="lg"
+                  className="font-medium"
+                >
+                  <a
+                    href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <PlayIcon className="w-5 h-5 mr-2" />
+                    Watch Full Speech
+                  </a>
+                </Button>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="font-medium"
+                >
+                  <a
+                    href="https://btcprague.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLinkIcon className="w-5 h-5 mr-2" />
+                    BTC Prague 2025
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Key quotes grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
+          <div className="bg-card rounded-xl p-6 border border-border">
+            <blockquote className="text-lg font-medium text-foreground mb-4">
+              "Bitcoin is the most powerful asset in the universe."
+            </blockquote>
+            <cite className="text-sm text-muted-foreground">
+              — Michael Saylor
+            </cite>
+          </div>
+
+          <div className="bg-card rounded-xl p-6 border border-border">
+            <blockquote className="text-lg font-medium text-foreground mb-4">
+              "We're going to see exponential adoption over the next two
+              decades."
+            </blockquote>
+            <cite className="text-sm text-muted-foreground">
+              — Michael Saylor
+            </cite>
+          </div>
+
+          <div className="bg-card rounded-xl p-6 border border-border">
+            <blockquote className="text-lg font-medium text-foreground mb-4">
+              "The question isn't if, but when Bitcoin becomes the global
+              standard."
+            </blockquote>
+            <cite className="text-sm text-muted-foreground">
+              — Michael Saylor
+            </cite>
+          </div>
+        </div>
+
+        {/* Timeline of Saylor's predictions */}
+        <div className="bg-card rounded-2xl p-8 border border-border mt-16">
+          <h3 className="text-2xl font-bold text-center mb-8">
+            Saylor's Track Record
+          </h3>
+
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="sm:w-24 text-sm font-medium text-muted-foreground">
+                2020
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-foreground mb-1">
+                  MicroStrategy begins Bitcoin accumulation
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Called Bitcoin "digital gold" when it was $10k
+                </div>
+              </div>
+              <div className="text-green-600 font-medium">✓ Correct</div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="sm:w-24 text-sm font-medium text-muted-foreground">
+                2021
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-foreground mb-1">
+                  Predicted $100k+ Bitcoin
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  When most thought it was a bubble
+                </div>
+              </div>
+              <div className="text-green-600 font-medium">✓ Correct</div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="sm:w-24 text-sm font-medium text-muted-foreground">
+                2025
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-foreground mb-1">
+                  $21 million in 21 years
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  The boldest prediction yet
+                </div>
+              </div>
+              <div className="text-orange-600 font-medium">
+                ⏳ Time will tell
+              </div>
+            </div>
+          </div>
+        </div>
+      </Container>
+    </section>
+  );
+}

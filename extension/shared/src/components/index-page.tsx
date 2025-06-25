@@ -737,6 +737,7 @@ function Settings() {
   const [denomination, setDenomination] = useState<"sats" | "btc">("btc");
   const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
   const [highlightBitcoinValue, setHighlightBitcoinValue] = useState(false);
+  const [saylorMode, setSaylorMode] = useState(false);
   const [prefsLoading, setPrefsLoading] = useState(true);
   // const [copyLinkText, setCopyLinkText] = useState("Copy website link");
   const copyTimeoutRef = useRef<number | null>(null);
@@ -749,6 +750,7 @@ function Settings() {
         const preferences = await PriceDatabase.getPreferences();
         setDisplayMode(preferences.displayMode || "dual-display");
         setHighlightBitcoinValue(preferences.highlightBitcoinValue || false);
+        setSaylorMode(preferences.saylorMode || false);
         // Ensure only "sats" or "btc" is set, defaulting to "btc"
         const denomination = preferences.denomination === "sats" ? "sats" : "btc";
         setDenomination(denomination);
@@ -794,6 +796,18 @@ function Settings() {
       await browser.runtime.sendMessage({ action: "preferencesUpdated" });
     } catch (error) {
       console.error("Error saving highlight preference:", error);
+    }
+  };
+
+  // Toggle Saylor Mode
+  const toggleSaylorMode = async () => {
+    const newSaylorMode = !saylorMode;
+    setSaylorMode(newSaylorMode);
+    try {
+      await PriceDatabase.savePreferences({ saylorMode: newSaylorMode });
+      await browser.runtime.sendMessage({ action: "preferencesUpdated" });
+    } catch (error) {
+      console.error("Error saving Saylor Mode preference:", error);
     }
   };
 
@@ -850,6 +864,21 @@ function Settings() {
             <span className="flex items-center">
               <PaintbrushVertical className={cn("mr-2 h-4 w-4", highlightBitcoinValue && "text-oc-primary")} />
               <span className="text-primary">Highlight Bitcoin</span>
+            </span>
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            onSelect={(e) => e.preventDefault()}
+            checked={saylorMode}
+            onCheckedChange={toggleSaylorMode}
+            disabled={prefsLoading}
+          >
+            <span className="flex items-center">
+              <img
+                src="saylor.jpg"
+                alt="Michael Saylor"
+                className={cn("mr-2 h-4 w-4 rounded-full object-cover", saylorMode && "ring-oc-primary/50 ring-2")}
+              />
+              <span className="text-primary">Saylor Mode</span>
             </span>
           </DropdownMenuCheckboxItem>
           <DropdownMenuSeparator />

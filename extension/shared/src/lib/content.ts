@@ -8,6 +8,7 @@
 
 import browser from "webextension-polyfill";
 import type { UserPreferences } from "./storage";
+import { SAYLOR_TARGET_PRICE } from "./constants";
 
 async function main() {
   try {
@@ -47,6 +48,7 @@ async function main() {
           highlightBitcoinValue: userPreferences.highlightBitcoinValue,
           disabledSites: userPreferences.disabledSites,
           defaultCurrency: userPreferences.defaultCurrency,
+          saylorMode: userPreferences.saylorMode,
         };
 
         await getUserPreferences(); // This updates the userPreferences variable
@@ -57,6 +59,7 @@ async function main() {
           highlightBitcoinValue: userPreferences.highlightBitcoinValue,
           disabledSites: userPreferences.disabledSites,
           defaultCurrency: userPreferences.defaultCurrency,
+          saylorMode: userPreferences.saylorMode,
         };
 
         if (JSON.stringify(relevantOldPrefs) !== JSON.stringify(relevantNewPrefs)) {
@@ -209,6 +212,25 @@ async function main() {
       return `${fmt(satoshis, 0)} sats`;
     };
 
+    // Formats a Saylor Mode value (future price at $21M BTC)
+    const formatSaylorModeValue = (fiatValue: number, btcPrice: number, currencySymbol: string): string => {
+      // Calculate the multiplier: how many times Bitcoin needs to increase
+      // For USD: 21,000,000 / current_price (e.g., 21M / 100k = 210x)
+      // For other currencies, we need to use the USD price as base
+      const usdPrice = btcPrices.usd;
+      if (!usdPrice) {
+        console.error("USD price not available for Saylor Mode calculation");
+        return `${fiatValue.toFixed(2)}`;
+      }
+
+      const multiplier = SAYLOR_TARGET_PRICE / usdPrice;
+
+      // Future value = current fiat price * multiplier
+      const futureValue = fiatValue * multiplier;
+
+      return `${currencySymbol}${fmt(futureValue, 2)}`;
+    };
+
     // Fetches the latest Bitcoin prices for all supported currencies from the background script
     async function getBitcoinPrices(): Promise<Record<string, number>> {
       const response = await browser.runtime.sendMessage({ action: "getBitcoinPrices" });
@@ -319,9 +341,21 @@ async function main() {
         if (element.isContentEditable) {
           return;
         }
+        // Skip elements that are already processed
+        if (element.dataset.ocProcessed === "true") {
+          return;
+        }
+        // Skip elements that already contain our Bitcoin price spans
+        if (element.classList.contains("oc-btc-price") || element.querySelector(".oc-btc-price")) {
+          return;
+        }
       }
       if (node.nodeType === Node.TEXT_NODE) {
         if (node.parentElement && node.parentElement.closest("[contenteditable=true], [contenteditable='']")) {
+          return;
+        }
+        // Skip text nodes that are inside our Bitcoin price spans
+        if (node.parentElement && node.parentElement.closest(".oc-btc-price")) {
           return;
         }
         replacePrice(node as Text);
@@ -346,7 +380,16 @@ async function main() {
       const content = textNode.textContent || "";
       const parent = textNode.parentNode;
       if (!(parent instanceof HTMLElement)) return;
-      if (parent.dataset.ocProcessed === "true") return;
+
+      // Check the entire ancestor chain for ocProcessed
+      let ancestor = parent;
+      while (ancestor) {
+        if (ancestor instanceof HTMLElement && ancestor.dataset.ocProcessed === "true") {
+          return;
+        }
+        ancestor = ancestor.parentElement;
+      }
+
       const defaultCurrency = userPreferences.defaultCurrency;
       const currency = supportedCurrencies.find((c) => c.value === defaultCurrency);
       if (!currency || !currency.symbol) return;
@@ -390,7 +433,16 @@ async function main() {
         const satsValue = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
         const bitcoinValueSpan = document.createElement("span");
         bitcoinValueSpan.className = "oc-btc-price";
-        bitcoinValueSpan.textContent = formatBitcoinValue(satsValue);
+
+        // Check if Saylor Mode is enabled
+        if (userPreferences.saylorMode) {
+          // In Saylor Mode, display the future fiat value
+          bitcoinValueSpan.textContent = formatSaylorModeValue(fiatValue, btcPrice, currencySymbol);
+        } else {
+          // Normal mode - display Bitcoin value
+          bitcoinValueSpan.textContent = formatBitcoinValue(satsValue);
+        }
+
         applyBitcoinLabelStyles(bitcoinValueSpan);
 
         if (userPreferences.displayMode === "bitcoin-only") {
@@ -435,7 +487,16 @@ async function main() {
         if (!btcPrice) return;
         const fiatValue = convertCurrencyValue(vis.textContent, currency.symbol, currency.value);
         const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
-        const btcDisplay = formatBitcoinValue(sats);
+
+        let btcDisplay: string;
+        if (userPreferences.saylorMode) {
+          // In Saylor Mode, display the future fiat value
+          btcDisplay = formatSaylorModeValue(fiatValue, btcPrice, currency.symbol);
+        } else {
+          // Normal mode - display Bitcoin value
+          btcDisplay = formatBitcoinValue(sats);
+        }
+
         const displayMode = userPreferences.displayMode;
         const formatted = displayMode === "dual-display" ? ` | ${btcDisplay}` : btcDisplay;
         const screenReaderSpan = vis.querySelector(".a-offscreen");
@@ -491,7 +552,16 @@ async function main() {
         if (isNaN(fiatValue)) return;
 
         const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
-        const btcDisplay = formatBitcoinValue(sats);
+
+        let btcDisplay: string;
+        if (userPreferences.saylorMode) {
+          // In Saylor Mode, display the future fiat value
+          btcDisplay = formatSaylorModeValue(fiatValue, btcPrice, currency.symbol);
+        } else {
+          // Normal mode - display Bitcoin value
+          btcDisplay = formatBitcoinValue(sats);
+        }
+
         const btcSpan = document.createElement("span");
         btcSpan.className = "oc-btc-price";
         btcSpan.textContent = btcDisplay;
@@ -531,7 +601,15 @@ async function main() {
         if (isNaN(fiatValue)) return;
 
         const sats = Math.round((fiatValue / btcPrice) * SATS_IN_BTC);
-        const btcDisplay = formatBitcoinValue(sats);
+
+        let btcDisplay: string;
+        if (userPreferences.saylorMode) {
+          // In Saylor Mode, display the future fiat value
+          btcDisplay = formatSaylorModeValue(fiatValue, btcPrice, currency.symbol);
+        } else {
+          // Normal mode - display Bitcoin value
+          btcDisplay = formatBitcoinValue(sats);
+        }
 
         const btcSpan = document.createElement("span");
         btcSpan.className = "oc-btc-price";
@@ -563,7 +641,24 @@ async function main() {
       processCompositePriceElements();
       mutations.forEach((mutation: MutationRecord) => {
         if (mutation.type === "childList") {
-          mutation.addedNodes.forEach((node: Node) => walkDOM(node));
+          mutation.addedNodes.forEach((node: Node) => {
+            // Check if this node is within an already-processed element
+            let ancestor = node.parentElement;
+            let isWithinProcessed = false;
+
+            while (ancestor) {
+              if (ancestor.dataset?.ocProcessed === "true") {
+                isWithinProcessed = true;
+                break;
+              }
+              ancestor = ancestor.parentElement;
+            }
+
+            // Only process if not within a processed element
+            if (!isWithinProcessed) {
+              walkDOM(node);
+            }
+          });
         }
       });
     });
