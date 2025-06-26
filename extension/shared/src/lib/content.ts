@@ -39,6 +39,12 @@ async function main() {
       return;
     }
 
+    // Check if the body has the disabled attribute
+    if (document.body?.getAttribute("data-opp-cost-disabled") === "true") {
+      console.log("Opportunity Cost: Extension is disabled for this page via data-opp-cost-disabled attribute");
+      return;
+    }
+
     // Listen for updates to user preferences from the background script
     browser.runtime.onMessage.addListener(async (message) => {
       if (message?.action === "preferencesUpdated") {
@@ -214,9 +220,6 @@ async function main() {
 
     // Formats a Saylor Mode value (future price at $21M BTC)
     const formatSaylorModeValue = (fiatValue: number, btcPrice: number, currencySymbol: string): string => {
-      // Calculate the multiplier: how many times Bitcoin needs to increase
-      // For USD: 21,000,000 / current_price (e.g., 21M / 100k = 210x)
-      // For other currencies, we need to use the USD price as base
       const usdPrice = btcPrices.usd;
       if (!usdPrice) {
         console.error("USD price not available for Saylor Mode calculation");
@@ -227,6 +230,29 @@ async function main() {
 
       // Future value = current fiat price * multiplier
       const futureValue = fiatValue * multiplier;
+
+      // Format large numbers with abbreviations for values over 6 figures (1,000,000)
+      if (futureValue >= 1000000) {
+        const thresholds: [number, string][] = [
+          [1e15, "Q"],
+          [1e12, "T"],
+          [1e9, "B"],
+          [1e6, "M"],
+        ];
+
+        for (const [value, suffix] of thresholds) {
+          if (futureValue >= value) {
+            const shortened = futureValue / value;
+            // Use fewer decimals for larger numbers
+            const decimals = shortened >= 100 ? 0 : shortened >= 10 ? 1 : 2;
+            const formatted = shortened.toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: decimals,
+            });
+            return `${currencySymbol}${formatted}${suffix}`;
+          }
+        }
+      }
 
       return `${currencySymbol}${fmt(futureValue, 2)}`;
     };
@@ -349,6 +375,10 @@ async function main() {
         if (element.classList.contains("oc-btc-price") || element.querySelector(".oc-btc-price")) {
           return;
         }
+        // Skip elements that are children of elements with data-opp-cost-disabled="true"
+        if (element.closest('[data-opp-cost-disabled="true"]')) {
+          return;
+        }
       }
       if (node.nodeType === Node.TEXT_NODE) {
         if (node.parentElement && node.parentElement.closest("[contenteditable=true], [contenteditable='']")) {
@@ -356,6 +386,10 @@ async function main() {
         }
         // Skip text nodes that are inside our Bitcoin price spans
         if (node.parentElement && node.parentElement.closest(".oc-btc-price")) {
+          return;
+        }
+        // Skip text nodes that are children of elements with data-opp-cost-disabled="true"
+        if (node.parentElement && node.parentElement.closest('[data-opp-cost-disabled="true"]')) {
           return;
         }
         replacePrice(node as Text);
@@ -382,7 +416,7 @@ async function main() {
       if (!(parent instanceof HTMLElement)) return;
 
       // Check the entire ancestor chain for ocProcessed
-      let ancestor = parent;
+      let ancestor: HTMLElement | null = parent;
       while (ancestor) {
         if (ancestor instanceof HTMLElement && ancestor.dataset.ocProcessed === "true") {
           return;
@@ -478,6 +512,8 @@ async function main() {
       document.querySelectorAll<HTMLSpanElement>('.a-price span[aria-hidden="true"]').forEach((vis) => {
         if (!vis || !vis.textContent || vis.children.length === 0) return;
         if (vis.querySelector(".oc-btc-price")) return;
+        // Skip elements that are children of elements with data-opp-cost-disabled="true"
+        if (vis.closest('[data-opp-cost-disabled="true"]')) return;
         const parent = vis.closest(".a-price");
         if (!parent) return;
         const currency = supportedCurrencies.find((c) => c.value === userPreferences.defaultCurrency);
@@ -541,6 +577,8 @@ async function main() {
     function processWooCommercePrices(): void {
       document.querySelectorAll<HTMLSpanElement>(".woocommerce-Price-amount.amount").forEach((amount) => {
         if (amount.dataset.ocProcessed === "true" || amount.querySelector(".oc-btc-price")) return;
+        // Skip elements that are children of elements with data-opp-cost-disabled="true"
+        if (amount.closest('[data-opp-cost-disabled="true"]')) return;
 
         const currency = supportedCurrencies.find((c) => c.value === userPreferences.defaultCurrency);
         if (!currency) return;
@@ -594,6 +632,8 @@ async function main() {
       const selector = "span[aria-hidden='true']:not([data-oc-processed])";
       document.querySelectorAll<HTMLElement>(selector).forEach((container) => {
         if (container.dataset.ocProcessed === "true" || container.querySelector(".oc-btc-price")) return;
+        // Skip elements that are children of elements with data-opp-cost-disabled="true"
+        if (container.closest('[data-opp-cost-disabled="true"]')) return;
         if (!container.textContent) return;
         if (!container.textContent.includes(currency.symbol)) return;
 

@@ -29,6 +29,7 @@ import {
   Settings2,
   Info,
   ChevronsUpDown,
+  InfoIcon,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
@@ -878,43 +879,60 @@ function Settings() {
                 alt="Michael Saylor"
                 className={cn("mr-2 h-4 w-4 rounded-full object-cover", saylorMode && "ring-oc-primary/50 ring-2")}
               />
-              <span className="text-primary">Saylor Mode</span>
+              <span className="text-primary">Saylor Mode ⚡</span>
             </span>
           </DropdownMenuCheckboxItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>Denomination</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={denomination}
-            onValueChange={(value) => handleDenominationChange(value as "sats" | "btc")}
-          >
-            <DropdownMenuRadioItem
-              onSelect={(e) => e.preventDefault()}
-              value="sats"
-              className="data-[state=checked]:text-oc-primary"
+          {saylorMode && (
+            <DropdownMenuItem
+              asChild
+              className="pl-2 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
             >
-              Sats
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem
-              onSelect={(e) => e.preventDefault()}
-              value="btc"
-              className="data-[state=checked]:text-oc-primary"
-            >
-              BTC
-            </DropdownMenuRadioItem>
-            <Tooltip delayDuration={500}>
-              <TooltipContent>Shows BTC for prices &ge;0.01 BTC, sats otherwise.</TooltipContent>
-              <DropdownMenuRadioItem
-                onSelect={(e) => e.preventDefault()}
-                value="dynamic"
-                className="data-[state=checked]:text-oc-primary gap-0"
+              <span className="flex items-center">
+                <Info className="size-3" />
+                <a href={`${APP_URL}/saylor`} target="_blank">
+                  What is Saylor Mode?
+                </a>
+              </span>
+            </DropdownMenuItem>
+          )}
+          {!saylorMode && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Denomination</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={denomination}
+                onValueChange={(value) => handleDenominationChange(value as "sats" | "btc")}
               >
-                Dynamic BTC/Sats
-                <TooltipTrigger className="ml-auto">
-                  <Info className="ml-auto size-3" />
-                </TooltipTrigger>
-              </DropdownMenuRadioItem>
-            </Tooltip>
-          </DropdownMenuRadioGroup>
+                <DropdownMenuRadioItem
+                  onSelect={(e) => e.preventDefault()}
+                  value="sats"
+                  className="data-[state=checked]:text-oc-primary"
+                >
+                  Sats
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  onSelect={(e) => e.preventDefault()}
+                  value="btc"
+                  className="data-[state=checked]:text-oc-primary"
+                >
+                  BTC
+                </DropdownMenuRadioItem>
+                <Tooltip delayDuration={500}>
+                  <TooltipContent>Shows BTC for prices &ge;0.01 BTC, sats otherwise.</TooltipContent>
+                  <DropdownMenuRadioItem
+                    onSelect={(e) => e.preventDefault()}
+                    value="dynamic"
+                    className="data-[state=checked]:text-oc-primary gap-0"
+                  >
+                    Dynamic BTC/Sats
+                    <TooltipTrigger className="ml-auto">
+                      <Info className="ml-auto size-3" />
+                    </TooltipTrigger>
+                  </DropdownMenuRadioItem>
+                </Tooltip>
+              </DropdownMenuRadioGroup>
+            </>
+          )}
 
           <DropdownMenuSeparator />
 
