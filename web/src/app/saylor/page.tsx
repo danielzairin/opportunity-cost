@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 
 export default function SaylorPage() {
   return (
-    <>
+    <div data-opp-cost-disabled="true">
       <Header />
       <SaylorHero />
       <SaylorPrediction />
@@ -53,6 +53,6 @@ export default function SaylorPage() {
       <SaylorVideo />
       <SaylorCTA />
       <Footer />
-    </>
+    </div>
   );
 }

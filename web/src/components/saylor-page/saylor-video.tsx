@@ -20,24 +20,16 @@ export function SaylorVideo() {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          {/* Video placeholder - replace with actual embed when available */}
+          {/* YouTube embed */}
           <div className="relative bg-card rounded-2xl border border-border overflow-hidden shadow-2xl">
-            <div className="aspect-video bg-gradient-to-br from-orange-900 to-orange-800 flex items-center justify-center relative">
-              {/* Placeholder for video */}
-              <div className="text-center text-white">
-                <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <PlayIcon className="w-12 h-12 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">
-                  BTC Prague 2025 Keynote
-                </h3>
-                <p className="text-lg opacity-90">
-                  Michael Saylor's $21M Prediction
-                </p>
-              </div>
-
-              {/* Overlay pattern */}
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-orange-600/20"></div>
+            <div className="aspect-video">
+              <iframe
+                src="https://www.youtube.com/embed/GqjOaaAYbk8"
+                title="Michael Saylor BTC Prague 2025 - $21 Million Bitcoin Prediction"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full"
+              ></iframe>
             </div>
 
             <div className="p-8">
@@ -59,7 +51,7 @@ export function SaylorVideo() {
                   className="font-medium"
                 >
                   <a
-                    href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
+                    href="https://www.youtube.com/watch?v=GqjOaaAYbk8"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
