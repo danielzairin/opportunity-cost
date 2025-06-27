@@ -28,9 +28,9 @@ export function SaylorCTA() {
             Ready to See the Future?
           </h2>
           <p className="text-xl opacity-90 max-w-3xl mx-auto mb-8">
-            Join thousands of Bitcoiners who are already living in tomorrow's
-            world. Download the Opportunity Cost extension and enable Saylor
-            Mode today.
+            Join thousands of Bitcoiners who are already living in
+            tomorrow&apos;s world. Download the Opportunity Cost extension and
+            enable Saylor Mode today.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -90,7 +90,7 @@ export function SaylorCTA() {
         {/* Final CTA */}
         <div className="text-center">
           <h3 className="text-2xl font-bold mb-4">
-            Don't Just Dream About Bitcoin's Future
+            Don&apos;t Just Dream About Bitcoin&apos;s Future
           </h3>
           <p className="text-lg opacity-90 mb-8">
             Experience it every day with Saylor Mode

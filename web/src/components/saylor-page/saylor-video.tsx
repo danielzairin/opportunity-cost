@@ -13,9 +13,9 @@ export function SaylorVideo() {
             The Speech That Started It All
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Watch Michael Saylor's bold prediction at BTC Prague 2025 that
+            Watch Michael Saylor&apos;s bold prediction at BTC Prague 2025 that
             inspired this feature. See the moment that changed how we think
-            about Bitcoin's future.
+            about Bitcoin&apos;s future.
           </p>
         </div>
 
@@ -35,8 +35,8 @@ export function SaylorVideo() {
             <div className="p-8">
               <div className="text-center mb-8">
                 <blockquote className="text-xl lg:text-2xl font-medium text-foreground mb-4 italic">
-                  "I think we're going to be $21 million in 21 years. That's my
-                  number."
+                  &quot;I think we&apos;re going to be $21 million in 21 years.
+                  That&apos;s my number.&quot;
                 </blockquote>
                 <cite className="text-muted-foreground">
                   — Michael Saylor, BTC Prague 2025
@@ -84,7 +84,7 @@ export function SaylorVideo() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
           <div className="bg-card rounded-xl p-6 border border-border">
             <blockquote className="text-lg font-medium text-foreground mb-4">
-              "Bitcoin is the most powerful asset in the universe."
+              &quot;Bitcoin is the most powerful asset in the universe.&quot;
             </blockquote>
             <cite className="text-sm text-muted-foreground">
               — Michael Saylor
@@ -93,8 +93,8 @@ export function SaylorVideo() {
 
           <div className="bg-card rounded-xl p-6 border border-border">
             <blockquote className="text-lg font-medium text-foreground mb-4">
-              "We're going to see exponential adoption over the next two
-              decades."
+              &quot;We&apos;re going to see exponential adoption over the next
+              two decades.&quot;
             </blockquote>
             <cite className="text-sm text-muted-foreground">
               — Michael Saylor
@@ -103,8 +103,8 @@ export function SaylorVideo() {
 
           <div className="bg-card rounded-xl p-6 border border-border">
             <blockquote className="text-lg font-medium text-foreground mb-4">
-              "The question isn't if, but when Bitcoin becomes the global
-              standard."
+              &quot;The question isn&apos;t if, but when Bitcoin becomes the
+              global standard.&quot;
             </blockquote>
             <cite className="text-sm text-muted-foreground">
               — Michael Saylor
@@ -115,7 +115,7 @@ export function SaylorVideo() {
         {/* Timeline of Saylor's predictions */}
         <div className="bg-card rounded-2xl p-8 border border-border mt-16">
           <h3 className="text-2xl font-bold text-center mb-8">
-            Saylor's Track Record
+            Saylor&apos;s Track Record
           </h3>
 
           <div className="space-y-6">
@@ -128,7 +128,7 @@ export function SaylorVideo() {
                   MicroStrategy begins Bitcoin accumulation
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Called Bitcoin "digital gold" when it was $10k
+                  Called Bitcoin &quot;digital gold&quot; when it was $10k
                 </div>
               </div>
               <div className="text-green-600 font-medium">✓ Correct</div>

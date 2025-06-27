@@ -3,7 +3,6 @@
 import { Button } from "../ui/button";
 import { ArrowRightIcon } from "lucide-react";
 import { Container } from "@/components/ui/container";
-import { formatPrice } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -12,7 +11,7 @@ interface SaylorHeroProps {
   growthFactor: number;
 }
 
-export function SaylorHero({ currentBtcPrice, growthFactor }: SaylorHeroProps) {
+export function SaylorHero({ growthFactor }: SaylorHeroProps) {
   const currentYear = new Date().getFullYear();
   const targetYear = 2046;
   const yearsRemaining = targetYear - currentYear;

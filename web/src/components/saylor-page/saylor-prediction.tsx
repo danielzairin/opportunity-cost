@@ -17,7 +17,7 @@ export function SaylorPrediction({
   const targetYear = 2046;
   const yearsRemaining = targetYear - currentYear;
   const midpointYear = currentYear + Math.floor(yearsRemaining / 2);
-  const midpointPrice = Math.sqrt(currentBtcPrice * 21_000_000);
+  const midpointPrice = 21_000_000 / 2;
 
   return (
     <section className="py-20 bg-muted/30 relative">

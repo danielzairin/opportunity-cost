@@ -2,13 +2,8 @@
 
 import { Container } from "@/components/ui/container";
 import { formatPrice, calculateSaylorPrice } from "@/lib/utils";
-import {
-  ArrowRightIcon,
-  CoffeeIcon,
-  LaptopIcon,
-  CarIcon,
-  HomeIcon,
-} from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
+import Image from "next/image";
 
 interface SaylorFeaturesProps {
   currentBtcPrice: number;
@@ -21,28 +16,28 @@ export function SaylorFeatures({
 }: SaylorFeaturesProps) {
   const priceExamples = [
     {
-      icon: CoffeeIcon,
+      image: "/images/coffee.jpg",
+      alt: "Steaming coffee cup",
       item: "Coffee",
       normalPrice: 5,
-      color: "from-amber-500 to-amber-600",
     },
     {
-      icon: LaptopIcon,
+      image: "/images/laptop.jpg",
+      alt: "Modern laptop on desk",
       item: "Laptop",
       normalPrice: 1000,
-      color: "from-blue-500 to-blue-600",
     },
     {
-      icon: CarIcon,
+      image: "/images/car.webp",
+      alt: "Luxury sports car",
       item: "Car",
       normalPrice: 30000,
-      color: "from-green-500 to-green-600",
     },
     {
-      icon: HomeIcon,
+      image: "/images/house.avif",
+      alt: "Beautiful modern house",
       item: "House",
       normalPrice: 500000,
-      color: "from-purple-500 to-purple-600",
     },
   ];
 
@@ -55,8 +50,9 @@ export function SaylorFeatures({
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Saylor Mode shows you what prices would look like if Bitcoin reaches
-            Saylor's $21 million target. Every price is multiplied by the growth
-            factor, giving you a glimpse into tomorrow's purchasing power.
+            Saylor&apos;s $21 million target. Every price is multiplied by the
+            growth factor, giving you a glimpse into tomorrow&apos;s purchasing
+            power in Bitcoin.
           </p>
         </div>
 
@@ -80,7 +76,7 @@ export function SaylorFeatures({
 
             <div className="bg-oc-primary/10 dark:bg-oc-primary/20 rounded-xl p-6 border border-oc-primary/20">
               <div className="text-lg text-muted-foreground mb-2">
-                Saylor's Target
+                Saylor&apos;s Target
               </div>
               <div className="text-3xl font-bold text-oc-primary">
                 $21,000,000
@@ -118,41 +114,47 @@ export function SaylorFeatures({
             return (
               <div
                 key={index}
-                className="bg-card rounded-xl p-6 border border-border hover:shadow-lg transition-shadow"
+                className="bg-card rounded-xl overflow-hidden border border-border hover:shadow-lg transition-shadow"
               >
-                <div
-                  className={`w-12 h-12 rounded-lg bg-gradient-to-br ${example.color} flex items-center justify-center mb-4`}
-                >
-                  <example.icon className="w-6 h-6 text-white" />
+                <div className="relative h-48 w-full mb-4">
+                  <Image
+                    src={example.image}
+                    alt={example.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                  />
                 </div>
 
-                <h4 className="text-lg font-bold text-foreground mb-4">
-                  {example.item}
-                </h4>
+                <div className="p-6 pt-0">
+                  <h4 className="text-lg font-bold text-foreground mb-4">
+                    {example.item}
+                  </h4>
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Today:
-                    </span>
-                    <span className="font-bold text-foreground">
-                      ${example.normalPrice.toLocaleString()}
-                    </span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Today:
+                      </span>
+                      <span className="font-bold text-foreground">
+                        ${example.normalPrice.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Saylor Mode:
+                      </span>
+                      <span className="font-bold text-oc-primary">
+                        {formatPrice(saylorPrice)}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Saylor Mode:
-                    </span>
-                    <span className="font-bold text-oc-primary">
-                      {formatPrice(saylorPrice)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border">
-                  <div className="text-xs text-muted-foreground text-center">
-                    {growthFactor}x more expensive
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="text-xs text-muted-foreground text-center">
+                      {growthFactor}x more expensive
+                    </div>
                   </div>
                 </div>
               </div>
