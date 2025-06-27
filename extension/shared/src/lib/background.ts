@@ -19,7 +19,6 @@ import {
   MAX_BACKOFF,
   MAX_RETRIES,
   SUPPORTED_CURRENCIES,
-  SAYLOR_TARGET_PRICE,
 } from "./constants";
 
 // Supported currencies as a tuple and type

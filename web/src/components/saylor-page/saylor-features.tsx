@@ -64,7 +64,8 @@ export function SaylorFeatures({
 
           <div className="flex flex-col lg:flex-row items-center justify-center gap-8 text-center">
             <div className="bg-background rounded-xl p-6 border border-border">
-              <div className="text-lg text-muted-foreground mb-2">
+              <div className="flex items-center justify-center gap-2 text-lg text-muted-foreground mb-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 Current Bitcoin Price
               </div>
               <div className="text-3xl font-bold text-foreground">
@@ -153,7 +154,7 @@ export function SaylorFeatures({
 
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="text-xs text-muted-foreground text-center">
-                      {growthFactor}x more expensive
+                      {growthFactor}x opportunity cost
                     </div>
                   </div>
                 </div>
