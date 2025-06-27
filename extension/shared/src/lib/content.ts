@@ -219,7 +219,7 @@ async function main() {
     };
 
     // Formats a Saylor Mode value (future price at $21M BTC)
-    const formatSaylorModeValue = (fiatValue: number, btcPrice: number, currencySymbol: string): string => {
+    const formatSaylorModeValue = (fiatValue: number, currencySymbol: string): string => {
       const usdPrice = btcPrices.usd;
       if (!usdPrice) {
         console.error("USD price not available for Saylor Mode calculation");
@@ -471,7 +471,7 @@ async function main() {
         // Check if Saylor Mode is enabled
         if (userPreferences.saylorMode) {
           // In Saylor Mode, display the future fiat value
-          bitcoinValueSpan.textContent = formatSaylorModeValue(fiatValue, btcPrice, currencySymbol);
+          bitcoinValueSpan.textContent = formatSaylorModeValue(fiatValue, currencySymbol);
         } else {
           // Normal mode - display Bitcoin value
           bitcoinValueSpan.textContent = formatBitcoinValue(satsValue);
@@ -527,7 +527,7 @@ async function main() {
         let btcDisplay: string;
         if (userPreferences.saylorMode) {
           // In Saylor Mode, display the future fiat value
-          btcDisplay = formatSaylorModeValue(fiatValue, btcPrice, currency.symbol);
+          btcDisplay = formatSaylorModeValue(fiatValue, currency.symbol);
         } else {
           // Normal mode - display Bitcoin value
           btcDisplay = formatBitcoinValue(sats);
@@ -594,7 +594,7 @@ async function main() {
         let btcDisplay: string;
         if (userPreferences.saylorMode) {
           // In Saylor Mode, display the future fiat value
-          btcDisplay = formatSaylorModeValue(fiatValue, btcPrice, currency.symbol);
+          btcDisplay = formatSaylorModeValue(fiatValue, currency.symbol);
         } else {
           // Normal mode - display Bitcoin value
           btcDisplay = formatBitcoinValue(sats);
@@ -645,7 +645,7 @@ async function main() {
         let btcDisplay: string;
         if (userPreferences.saylorMode) {
           // In Saylor Mode, display the future fiat value
-          btcDisplay = formatSaylorModeValue(fiatValue, btcPrice, currency.symbol);
+          btcDisplay = formatSaylorModeValue(fiatValue, currency.symbol);
         } else {
           // Normal mode - display Bitcoin value
           btcDisplay = formatBitcoinValue(sats);
