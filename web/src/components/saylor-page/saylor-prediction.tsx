@@ -36,13 +36,13 @@ export function SaylorPrediction({
         {/* Main prediction display */}
         <div className="bg-gradient-to-br from-oc-primary to-oc-primary/80 rounded-3xl p-8 lg:p-12 text-white text-center mb-16 shadow-2xl">
           <div className="mb-6">
-            <div className="text-6xl lg:text-8xl font-bold mb-4">
+            <div className="text-4xl sm:text-6xl lg:text-8xl font-bold mb-4">
               $21,000,000
             </div>
             <div className="text-2xl lg:text-3xl opacity-90">per Bitcoin</div>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-center justify-center gap-8 text-lg">
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-2 sm:gap-8 text-lg">
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-6 h-6" />
               <span>{yearsRemaining} years from now</span>
