@@ -222,7 +222,7 @@ export function SaylorModeOverlay({ isActive, onComplete }: SaylorModeOverlayPro
               transition={{ delay: QUOTE_FADE_DELAY, duration: QUOTE_FADE_DURATION }}
             >
               <motion.a
-                href={`${APP_URL}/saylor`}
+                href={`${APP_URL}/saylor-mode`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded underline transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-50"

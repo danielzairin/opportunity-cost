@@ -913,7 +913,7 @@ function Settings() {
             asChild
             className="pl-2.5 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
-            <a className="flex items-center" href={`${APP_URL}/saylor`} target="_blank">
+            <a className="flex items-center" href={`${APP_URL}/saylor-mode`} target="_blank">
               <Info className="mr-1 size-3" />
               What is Saylor Mode?
             </a>
