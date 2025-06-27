@@ -8,6 +8,7 @@ import {
   SettingsIcon,
   EyeIcon,
 } from "lucide-react";
+import Link from "next/link";
 
 export function SaylorCTA() {
   return (
@@ -39,30 +40,10 @@ export function SaylorCTA() {
               size="lg"
               className="font-medium text-lg px-8 bg-white text-oc-primary hover:bg-gray-100"
             >
-              <a
-                href="https://chrome.google.com/webstore/detail/YOUR_EXTENSION_ID"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Link href="/#download">
                 <DownloadIcon className="w-5 h-5 mr-2" />
-                Add to Chrome
-              </a>
-            </Button>
-
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="font-medium text-lg px-8 border-white text-white hover:bg-white/10"
-            >
-              <a
-                href="https://addons.mozilla.org/firefox/addon/YOUR_ADDON_ID"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <DownloadIcon className="w-5 h-5 mr-2" />
-                Add to Firefox
-              </a>
+                Install Extension
+              </Link>
             </Button>
           </div>
         </div>
@@ -106,26 +87,6 @@ export function SaylorCTA() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          <div className="text-center">
-            <div className="text-3xl lg:text-4xl font-bold mb-2">10K+</div>
-            <div className="opacity-90">Active Users</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl lg:text-4xl font-bold mb-2">4.8★</div>
-            <div className="opacity-90">User Rating</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl lg:text-4xl font-bold mb-2">100M+</div>
-            <div className="opacity-90">Prices Converted</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl lg:text-4xl font-bold mb-2">0</div>
-            <div className="opacity-90">Data Collected</div>
-          </div>
-        </div>
-
         {/* Final CTA */}
         <div className="text-center">
           <h3 className="text-2xl font-bold mb-4">
@@ -142,18 +103,18 @@ export function SaylorCTA() {
               size="lg"
               className="font-medium text-lg px-8 bg-white text-oc-primary hover:bg-gray-100"
             >
-              <a href="/#download">
+              <Link href="/#download">
                 Get Started Now <ArrowRightIcon className="w-5 h-5 ml-2" />
-              </a>
+              </Link>
             </Button>
 
             <Button
               asChild
               variant="outline"
               size="lg"
-              className="font-medium text-lg px-8 border-white text-white hover:bg-white/10"
+              className="font-medium text-lg px-8 border-white bg-transparent text-white hover:bg-white/10"
             >
-              <a href="/">Back to Main Site</a>
+              <Link href="/">Back to Main Site</Link>
             </Button>
           </div>
         </div>

@@ -43,13 +43,52 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SaylorPage() {
+async function getBitcoinPrice(): Promise<{
+  price: number;
+  growthFactor: number;
+}> {
+  try {
+    const baseUrl = "https://opportunitycost.app";
+
+    const response = await fetch(`${baseUrl}/api/bitcoin-price`, {
+      next: { revalidate: 300 }, // 5 minutes
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch Bitcoin price");
+    }
+
+    const data = await response.json();
+    const currentPrice = data.bitcoin.usd;
+    const targetPrice = 21_000_000;
+    const growthFactor = Math.round(targetPrice / currentPrice);
+
+    return { price: currentPrice, growthFactor };
+  } catch (error) {
+    console.error("Error fetching Bitcoin price:", error);
+    // Fallback values
+    return { price: 100_000, growthFactor: 210 };
+  }
+}
+
+export default async function SaylorPage() {
+  const { price: currentBtcPrice, growthFactor } = await getBitcoinPrice();
+
   return (
     <div data-opp-cost-disabled="true">
       <Header />
-      <SaylorHero />
-      <SaylorPrediction />
-      <SaylorFeatures />
+      <SaylorHero
+        currentBtcPrice={currentBtcPrice}
+        growthFactor={growthFactor}
+      />
+      <SaylorPrediction
+        currentBtcPrice={currentBtcPrice}
+        growthFactor={growthFactor}
+      />
+      <SaylorFeatures
+        currentBtcPrice={currentBtcPrice}
+        growthFactor={growthFactor}
+      />
       <SaylorVideo />
       <SaylorCTA />
       <Footer />

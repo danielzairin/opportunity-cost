@@ -3,9 +3,20 @@
 import { Button } from "../ui/button";
 import { ArrowRightIcon } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import { formatPrice } from "@/lib/utils";
 import Image from "next/image";
+import Link from "next/link";
 
-export function SaylorHero() {
+interface SaylorHeroProps {
+  currentBtcPrice: number;
+  growthFactor: number;
+}
+
+export function SaylorHero({ currentBtcPrice, growthFactor }: SaylorHeroProps) {
+  const currentYear = new Date().getFullYear();
+  const targetYear = 2046;
+  const yearsRemaining = targetYear - currentYear;
+
   return (
     <section className="pt-40 pb-20 border-b border-border relative overflow-hidden bg-gradient-to-br from-background to-oc-primary/10 dark:from-background dark:to-oc-primary/15">
       {/* Background pattern */}
@@ -29,11 +40,11 @@ export function SaylorHero() {
                 <span className="text-oc-primary">$21 Million</span>?
               </h1>
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                Michael Saylor's bold 21-year prediction becomes your reality
-                check.
+                Michael Saylor&apos;s bold {yearsRemaining}-year prediction
+                becomes your reality check.
                 <br />
                 <span className="font-medium">
-                  See what every price would cost in tomorrow's world.
+                  See what every price would cost in tomorrow&apos;s world.
                 </span>
               </p>
             </div>
@@ -45,10 +56,9 @@ export function SaylorHero() {
                 size="lg"
                 className="font-medium text-lg px-8"
               >
-                <a href="#download">
-                  Add Saylor Mode to Chrome{" "}
-                  <ArrowRightIcon className="w-5 h-5" />
-                </a>
+                <Link href="#download">
+                  Try Saylor Mode <ArrowRightIcon className="w-5 h-5" />
+                </Link>
               </Button>
               <Button
                 asChild
@@ -68,11 +78,15 @@ export function SaylorHero() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-oc-primary">21</div>
+                <div className="text-2xl font-bold text-oc-primary">
+                  {yearsRemaining}
+                </div>
                 <div className="text-sm text-muted-foreground">Years</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-oc-primary">1000x</div>
+                <div className="text-2xl font-bold text-oc-primary">
+                  {growthFactor}x
+                </div>
                 <div className="text-sm text-muted-foreground">Growth</div>
               </div>
             </div>
@@ -86,7 +100,7 @@ export function SaylorHero() {
                 alt="Michael Saylor - Bitcoin visionary"
                 width={500}
                 height={500}
-                className="relative z-10 rounded-lg shadow-2xl"
+                className="relative z-10 max-w-80 rounded-lg shadow-2xl"
                 priority
               />
             </div>

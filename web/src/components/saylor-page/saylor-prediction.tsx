@@ -1,9 +1,24 @@
 "use client";
 
 import { Container } from "@/components/ui/container";
+import { formatPrice } from "@/lib/utils";
 import { CalendarIcon, TrendingUpIcon, TargetIcon } from "lucide-react";
 
-export function SaylorPrediction() {
+interface SaylorPredictionProps {
+  currentBtcPrice: number;
+  growthFactor: number;
+}
+
+export function SaylorPrediction({
+  currentBtcPrice,
+  growthFactor,
+}: SaylorPredictionProps) {
+  const currentYear = new Date().getFullYear();
+  const targetYear = 2046;
+  const yearsRemaining = targetYear - currentYear;
+  const midpointYear = currentYear + Math.floor(yearsRemaining / 2);
+  const midpointPrice = Math.sqrt(currentBtcPrice * 21_000_000);
+
   return (
     <section className="py-20 bg-muted/30 relative">
       <Container className="relative z-10">
@@ -30,15 +45,15 @@ export function SaylorPrediction() {
           <div className="flex flex-col lg:flex-row items-center justify-center gap-8 text-lg">
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-6 h-6" />
-              <span>21 years from now</span>
+              <span>{yearsRemaining} years from now</span>
             </div>
             <div className="flex items-center gap-2">
               <TrendingUpIcon className="w-6 h-6" />
-              <span>~1,000x growth</span>
+              <span>~{growthFactor}x growth</span>
             </div>
             <div className="flex items-center gap-2">
               <TargetIcon className="w-6 h-6" />
-              <span>Saylor's target</span>
+              <span>Saylor&apos;s target</span>
             </div>
           </div>
         </div>
@@ -58,7 +73,9 @@ export function SaylorPrediction() {
               <div className="flex items-center">
                 <div className="w-1/2 text-right pr-8">
                   <div className="text-xl font-bold">Today</div>
-                  <div className="text-muted-foreground">~$100,000</div>
+                  <div className="text-muted-foreground">
+                    {formatPrice(currentBtcPrice)}
+                  </div>
                 </div>
                 <div className="relative z-10 w-4 h-4 bg-oc-primary rounded-full border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
@@ -71,8 +88,10 @@ export function SaylorPrediction() {
               {/* Midpoint */}
               <div className="flex items-center">
                 <div className="w-1/2 text-right pr-8">
-                  <div className="text-xl font-bold">~2035</div>
-                  <div className="text-muted-foreground">~$2-5 Million</div>
+                  <div className="text-xl font-bold">~{midpointYear}</div>
+                  <div className="text-muted-foreground">
+                    {formatPrice(midpointPrice)}
+                  </div>
                 </div>
                 <div className="relative z-10 w-4 h-4 bg-oc-primary/80 rounded-full border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
@@ -85,13 +104,13 @@ export function SaylorPrediction() {
               {/* Target point */}
               <div className="flex items-center">
                 <div className="w-1/2 text-right pr-8">
-                  <div className="text-xl font-bold">2046</div>
+                  <div className="text-xl font-bold">{targetYear}</div>
                   <div className="text-muted-foreground">$21 Million</div>
                 </div>
                 <div className="relative z-10 w-6 h-6 bg-oc-primary rounded-full border-4 border-background shadow-lg"></div>
                 <div className="w-1/2 pl-8">
                   <div className="text-sm text-muted-foreground font-medium">
-                    Saylor's target
+                    Saylor&apos;s target
                   </div>
                 </div>
               </div>
@@ -102,7 +121,7 @@ export function SaylorPrediction() {
         {/* Quote */}
         <div className="text-center mt-16">
           <blockquote className="text-2xl lg:text-3xl font-medium text-foreground mb-4 italic">
-            "I think we're going to be $21 million in 21 years"
+            &ldquo;I think we&apos;re going to be $21 million in 21 years&rdquo;
           </blockquote>
           <cite className="text-lg text-muted-foreground">
             — Michael Saylor, BTC Prague 2025
