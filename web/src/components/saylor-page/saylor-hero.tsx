@@ -7,11 +7,11 @@ import Image from "next/image";
 
 export function SaylorHero() {
   return (
-    <section className="pt-40 pb-20 border-b border-border relative overflow-hidden bg-gradient-to-br from-background to-orange-500/10 dark:from-background dark:to-orange-500/20">
+    <section className="pt-40 pb-20 border-b border-border relative overflow-hidden bg-gradient-to-br from-background to-oc-primary/10 dark:from-background dark:to-oc-primary/15">
       {/* Background pattern */}
       <div className="absolute inset-0">
-        <div className="absolute opacity-5 inset-0 bg-[linear-gradient(0deg,transparent_49.5%,#ea580c_49.5%,#ea580c_50.5%,transparent_50.5%)] bg-[length:100%_150px]"></div>
-        <div className="absolute opacity-5 inset-0 bg-[linear-gradient(90deg,transparent_49.5%,#ea580c_49.5%,#ea580c_50.5%,transparent_50.5%)] bg-[length:150px_100%]"></div>
+        <div className="absolute opacity-10 inset-0 bg-[linear-gradient(0deg,transparent_49.5%,#f08a5d_49.5%,#f08a5d_50.5%,transparent_50.5%)] bg-[length:100%_100px]"></div>
+        <div className="absolute opacity-10 inset-0 bg-[linear-gradient(90deg,transparent_49.5%,#f08a5d_49.5%,#f08a5d_50.5%,transparent_50.5%)] bg-[length:100px_100%]"></div>
       </div>
 
       {/* Gradient overlay */}
@@ -21,12 +21,12 @@ export function SaylorHero() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="text-center lg:text-left order-2 lg:order-1">
             <div className="mb-6">
-              <span className="inline-block px-3 py-1 text-sm font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full mb-4">
+              <span className="inline-block px-3 py-1 text-sm font-medium bg-oc-primary/10 dark:bg-oc-primary/20 text-oc-primary rounded-full mb-4">
                 Saylor Mode
               </span>
               <h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
                 What if Bitcoin hits{" "}
-                <span className="text-orange-500">$21 Million</span>?
+                <span className="text-oc-primary">$21 Million</span>?
               </h1>
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
                 Michael Saylor's bold 21-year prediction becomes your reality
@@ -62,17 +62,17 @@ export function SaylorHero() {
 
             <div className="mt-8 flex items-center justify-center lg:justify-start gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-500">$21M</div>
+                <div className="text-2xl font-bold text-oc-primary">$21M</div>
                 <div className="text-sm text-muted-foreground">
                   Target Price
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-500">21</div>
+                <div className="text-2xl font-bold text-oc-primary">21</div>
                 <div className="text-sm text-muted-foreground">Years</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-500">1000x</div>
+                <div className="text-2xl font-bold text-oc-primary">1000x</div>
                 <div className="text-sm text-muted-foreground">Growth</div>
               </div>
             </div>
@@ -80,7 +80,7 @@ export function SaylorHero() {
 
           <div className="order-1 lg:order-2 flex justify-center">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 to-orange-600/20 rounded-full blur-3xl scale-110"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-oc-primary/20 to-oc-primary/30 rounded-full blur-3xl scale-110"></div>
               <Image
                 src="/images/enhanced_saylor.png"
                 alt="Michael Saylor - Bitcoin visionary"

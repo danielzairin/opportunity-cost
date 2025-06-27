@@ -46,7 +46,7 @@ export function SaylorFeatures() {
       <Container>
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            What is <span className="text-orange-500">Saylor Mode</span>?
+            What is <span className="text-oc-primary">Saylor Mode</span>?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Saylor Mode shows you what prices would look like if Bitcoin reaches
@@ -71,18 +71,18 @@ export function SaylorFeatures() {
               </div>
             </div>
 
-            <ArrowRightIcon className="w-8 h-8 text-orange-500" />
+            <ArrowRightIcon className="w-8 h-8 text-oc-primary" />
 
-            <div className="bg-orange-50 dark:bg-orange-950/50 rounded-xl p-6 border border-orange-200 dark:border-orange-800">
+            <div className="bg-oc-primary/10 dark:bg-oc-primary/20 rounded-xl p-6 border border-oc-primary/20">
               <div className="text-lg text-muted-foreground mb-2">
                 Saylor's Target
               </div>
-              <div className="text-3xl font-bold text-orange-600">
+              <div className="text-3xl font-bold text-oc-primary">
                 $21,000,000
               </div>
             </div>
 
-            <ArrowRightIcon className="w-8 h-8 text-orange-500" />
+            <ArrowRightIcon className="w-8 h-8 text-oc-primary" />
 
             <div className="bg-background rounded-xl p-6 border border-border">
               <div className="text-lg text-muted-foreground mb-2">
@@ -95,7 +95,7 @@ export function SaylorFeatures() {
           <div className="text-center mt-8">
             <p className="text-lg text-muted-foreground">
               Every dollar today ={" "}
-              <span className="font-bold text-orange-500">$210</span> in Saylor
+              <span className="font-bold text-oc-primary">$210</span> in Saylor
               Mode
             </p>
           </div>
@@ -130,7 +130,7 @@ export function SaylorFeatures() {
                   <span className="text-sm text-muted-foreground">
                     Saylor Mode:
                   </span>
-                  <span className="font-bold text-orange-500">
+                  <span className="font-bold text-oc-primary">
                     {example.saylorPrice}
                   </span>
                 </div>
@@ -150,14 +150,14 @@ export function SaylorFeatures() {
         </div>
 
         {/* How it works */}
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 rounded-2xl p-8 border border-orange-200 dark:border-orange-800">
+        <div className="bg-oc-primary/10 dark:bg-oc-primary/20 rounded-2xl p-8 border border-oc-primary/20">
           <h3 className="text-2xl font-bold text-center mb-8">
             How Saylor Mode Works
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-oc-primary rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white font-bold text-xl">1</span>
               </div>
               <h4 className="font-bold text-foreground mb-2">
@@ -169,7 +169,7 @@ export function SaylorFeatures() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-oc-primary rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white font-bold text-xl">2</span>
               </div>
               <h4 className="font-bold text-foreground mb-2">
@@ -181,7 +181,7 @@ export function SaylorFeatures() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-oc-primary rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white font-bold text-xl">3</span>
               </div>
               <h4 className="font-bold text-foreground mb-2">See the Future</h4>

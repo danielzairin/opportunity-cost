@@ -6,7 +6,7 @@ import { PlayIcon, ExternalLinkIcon } from "lucide-react";
 
 export function SaylorVideo() {
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-orange-50/30 dark:to-orange-950/20 border-t border-border">
+    <section className="py-20 bg-muted/30 border-t border-border">
       <Container>
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
@@ -161,7 +161,7 @@ export function SaylorVideo() {
                   The boldest prediction yet
                 </div>
               </div>
-              <div className="text-orange-600 font-medium">
+              <div className="text-oc-primary font-medium">
                 ⏳ Time will tell
               </div>
             </div>

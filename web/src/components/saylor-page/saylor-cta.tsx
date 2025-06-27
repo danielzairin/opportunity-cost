@@ -13,7 +13,7 @@ export function SaylorCTA() {
   return (
     <section
       id="download"
-      className="py-20 bg-gradient-to-br from-orange-500 to-orange-600 text-white relative overflow-hidden"
+      className="py-20 bg-gradient-to-br from-oc-primary to-oc-primary/80 text-white relative overflow-hidden"
     >
       {/* Background patterns */}
       <div className="absolute inset-0">
@@ -37,7 +37,7 @@ export function SaylorCTA() {
               asChild
               variant="secondary"
               size="lg"
-              className="font-medium text-lg px-8 bg-white text-orange-600 hover:bg-gray-100"
+              className="font-medium text-lg px-8 bg-white text-oc-primary hover:bg-gray-100"
             >
               <a
                 href="https://chrome.google.com/webstore/detail/YOUR_EXTENSION_ID"
@@ -140,7 +140,7 @@ export function SaylorCTA() {
               asChild
               variant="secondary"
               size="lg"
-              className="font-medium text-lg px-8 bg-white text-orange-600 hover:bg-gray-100"
+              className="font-medium text-lg px-8 bg-white text-oc-primary hover:bg-gray-100"
             >
               <a href="/#download">
                 Get Started Now <ArrowRightIcon className="w-5 h-5 ml-2" />

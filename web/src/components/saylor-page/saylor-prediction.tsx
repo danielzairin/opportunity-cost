@@ -5,13 +5,11 @@ import { CalendarIcon, TrendingUpIcon, TargetIcon } from "lucide-react";
 
 export function SaylorPrediction() {
   return (
-    <section className="py-20 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 to-background dark:from-orange-950/20 dark:to-background"></div>
-
+    <section className="py-20 bg-muted/30 relative">
       <Container className="relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            The <span className="text-orange-500">21/21</span> Prediction
+            The <span className="text-oc-primary">21/21</span> Prediction
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             At BTC Prague 2025, Michael Saylor boldly predicted Bitcoin would
@@ -21,7 +19,7 @@ export function SaylorPrediction() {
         </div>
 
         {/* Main prediction display */}
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl p-8 lg:p-12 text-white text-center mb-16 shadow-2xl">
+        <div className="bg-gradient-to-br from-oc-primary to-oc-primary/80 rounded-3xl p-8 lg:p-12 text-white text-center mb-16 shadow-2xl">
           <div className="mb-6">
             <div className="text-6xl lg:text-8xl font-bold mb-4">
               $21,000,000
@@ -53,7 +51,7 @@ export function SaylorPrediction() {
 
           <div className="relative">
             {/* Timeline line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-gradient-to-b from-orange-500 to-orange-600 h-full rounded-full"></div>
+            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-gradient-to-b from-oc-primary to-oc-primary/80 h-full rounded-full"></div>
 
             <div className="space-y-12">
               {/* Current point */}
@@ -62,7 +60,7 @@ export function SaylorPrediction() {
                   <div className="text-xl font-bold">Today</div>
                   <div className="text-muted-foreground">~$100,000</div>
                 </div>
-                <div className="relative z-10 w-4 h-4 bg-orange-500 rounded-full border-4 border-background"></div>
+                <div className="relative z-10 w-4 h-4 bg-oc-primary rounded-full border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
                   <div className="text-sm text-muted-foreground">
                     Starting point
@@ -76,7 +74,7 @@ export function SaylorPrediction() {
                   <div className="text-xl font-bold">~2035</div>
                   <div className="text-muted-foreground">~$2-5 Million</div>
                 </div>
-                <div className="relative z-10 w-4 h-4 bg-orange-400 rounded-full border-4 border-background"></div>
+                <div className="relative z-10 w-4 h-4 bg-oc-primary/80 rounded-full border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
                   <div className="text-sm text-muted-foreground">
                     Halfway there
@@ -90,7 +88,7 @@ export function SaylorPrediction() {
                   <div className="text-xl font-bold">2046</div>
                   <div className="text-muted-foreground">$21 Million</div>
                 </div>
-                <div className="relative z-10 w-6 h-6 bg-orange-600 rounded-full border-4 border-background shadow-lg"></div>
+                <div className="relative z-10 w-6 h-6 bg-oc-primary rounded-full border-4 border-background shadow-lg"></div>
                 <div className="w-1/2 pl-8">
                   <div className="text-sm text-muted-foreground font-medium">
                     Saylor's target
