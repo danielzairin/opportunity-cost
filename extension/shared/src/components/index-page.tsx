@@ -767,6 +767,9 @@ function Settings() {
     };
   }, []);
 
+  // Compute if highlight bitcoin should be mandatory
+  const isHighlightMandatory = saylorMode && displayMode === "bitcoin-only";
+
   useEffect(() => {
     // Load user preferences
     const loadPreferences = async () => {
@@ -795,12 +798,41 @@ function Settings() {
     };
   }, []);
 
+  // Automatically enable highlight bitcoin when both Saylor Mode and Bitcoin-only mode are active
+  useEffect(() => {
+    if (isHighlightMandatory && !highlightBitcoinValue) {
+      setHighlightBitcoinValue(true);
+      // Save the preference automatically
+      PriceDatabase.savePreferences({ highlightBitcoinValue: true })
+        .then(() => {
+          browser.runtime.sendMessage({ action: "preferencesUpdated" });
+        })
+        .catch((error) => {
+          console.error("Error auto-saving highlight preference:", error);
+        });
+    }
+  }, [isHighlightMandatory, highlightBitcoinValue]);
+
   // Toggle Bitcoin-only mode
   const toggleBitcoinOnlyMode = async () => {
     const newMode = displayMode === "bitcoin-only" ? "dual-display" : "bitcoin-only";
     setDisplayMode(newMode);
+
+    // If switching to bitcoin-only mode and Saylor Mode is active, enable highlight bitcoin
+    const shouldEnableHighlight = newMode === "bitcoin-only" && saylorMode;
+    if (shouldEnableHighlight && !highlightBitcoinValue) {
+      setHighlightBitcoinValue(true);
+    }
+
     try {
-      await PriceDatabase.savePreferences({ displayMode: newMode });
+      const prefsToSave: { displayMode: "bitcoin-only" | "dual-display"; highlightBitcoinValue?: boolean } = {
+        displayMode: newMode,
+      };
+      if (shouldEnableHighlight) {
+        prefsToSave.highlightBitcoinValue = true;
+      }
+
+      await PriceDatabase.savePreferences(prefsToSave);
       await browser.runtime.sendMessage({ action: "preferencesUpdated" });
       document.dispatchEvent(
         new CustomEvent(DISPLAY_MODE_CHANGE_EVENT, {
@@ -814,6 +846,11 @@ function Settings() {
 
   // Toggle highlighting Bitcoin values
   const toggleHighlightBitcoinValue = async () => {
+    // Prevent disabling if it's mandatory (Saylor Mode + Bitcoin-only mode)
+    if (isHighlightMandatory && highlightBitcoinValue) {
+      return;
+    }
+
     const newHighlightValue = !highlightBitcoinValue;
     setHighlightBitcoinValue(newHighlightValue);
     try {
@@ -834,8 +871,19 @@ function Settings() {
       document.dispatchEvent(new CustomEvent(SAYLOR_MODE_ACTIVATED_EVENT));
     }
 
+    // If enabling Saylor Mode and Bitcoin-only mode is active, enable highlight bitcoin
+    const shouldEnableHighlight = newSaylorMode && displayMode === "bitcoin-only";
+    if (shouldEnableHighlight && !highlightBitcoinValue) {
+      setHighlightBitcoinValue(true);
+    }
+
     try {
-      await PriceDatabase.savePreferences({ saylorMode: newSaylorMode });
+      const prefsToSave: { saylorMode: boolean; highlightBitcoinValue?: boolean } = { saylorMode: newSaylorMode };
+      if (shouldEnableHighlight) {
+        prefsToSave.highlightBitcoinValue = true;
+      }
+
+      await PriceDatabase.savePreferences(prefsToSave);
       await browser.runtime.sendMessage({ action: "preferencesUpdated" });
     } catch (error) {
       console.error("Error saving Saylor Mode preference:", error);
@@ -882,17 +930,30 @@ function Settings() {
             <span className="text-primary">Bitcoin-only Mode</span>
           </span>
         </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          onSelect={(e) => e.preventDefault()}
-          checked={highlightBitcoinValue}
-          onCheckedChange={toggleHighlightBitcoinValue}
-          disabled={prefsLoading}
-        >
-          <span className="flex items-center">
-            <PaintbrushVertical className={cn("mr-2 h-4 w-4", highlightBitcoinValue && "text-oc-primary")} />
-            <span className="text-primary">Highlight Bitcoin</span>
-          </span>
-        </DropdownMenuCheckboxItem>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <div>
+              <DropdownMenuCheckboxItem
+                onSelect={(e) => e.preventDefault()}
+                checked={highlightBitcoinValue}
+                onCheckedChange={toggleHighlightBitcoinValue}
+                disabled={prefsLoading || isHighlightMandatory}
+              >
+                <span className="flex items-center">
+                  <PaintbrushVertical className={cn("mr-2 h-4 w-4", highlightBitcoinValue && "text-oc-primary")} />
+                  <span className={cn("text-primary", isHighlightMandatory && "opacity-75")}>Highlight Bitcoin</span>
+                </span>
+              </DropdownMenuCheckboxItem>
+            </div>
+          </TooltipTrigger>
+          {isHighlightMandatory && (
+            <TooltipContent>
+              Automatically enabled when Saylor Mode
+              <br />
+              and Bitcoin-only mode are both active
+            </TooltipContent>
+          )}
+        </Tooltip>
         <DropdownMenuCheckboxItem
           onSelect={(e) => e.preventDefault()}
           checked={saylorMode}

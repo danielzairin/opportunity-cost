@@ -15,6 +15,7 @@ export function OptionsPage() {
   const [displayMode, setDisplayMode] = useState<"bitcoin-only" | "dual-display">("dual-display");
   const [denomination, setDenomination] = useState<"btc" | "sats" | "dynamic">("btc");
   const [highlightBitcoinValue, sethighlightBitcoinValue] = useState(false);
+  const [saylorMode, setSaylorMode] = useState(false);
   const [disabledSites, setDisabledSites] = useState<string[]>([]);
   const [newSite, setNewSite] = useState("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
@@ -22,6 +23,9 @@ export function OptionsPage() {
   const [saveMessage, setSaveMessage] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+
+  // Compute if highlight bitcoin should be mandatory
+  const isHighlightMandatory = saylorMode && displayMode === "bitcoin-only";
 
   // Function to detect system theme preference
   const getSystemThemePreference = (): boolean => {
@@ -61,6 +65,13 @@ export function OptionsPage() {
     };
   }, [themeMode]);
 
+  // Automatically enable highlight bitcoin when both Saylor Mode and Bitcoin-only mode are active
+  useEffect(() => {
+    if (isHighlightMandatory && !highlightBitcoinValue) {
+      sethighlightBitcoinValue(true);
+    }
+  }, [isHighlightMandatory, highlightBitcoinValue]);
+
   // Load settings on mount
   useEffect(() => {
     async function loadSettings() {
@@ -72,6 +83,7 @@ export function OptionsPage() {
         setDisplayMode(preferences.displayMode || "dual-display");
         setDenomination(preferences.denomination || "btc");
         sethighlightBitcoinValue(preferences.highlightBitcoinValue === true); // default false
+        setSaylorMode(preferences.saylorMode || false);
         setDisabledSites(preferences.disabledSites || []);
 
         // Load theme preference
@@ -99,11 +111,15 @@ export function OptionsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Force highlight bitcoin to be true if both Saylor Mode and Bitcoin-only mode are active
+      const finalHighlightValue = isHighlightMandatory ? true : highlightBitcoinValue;
+
       await PriceDatabase.savePreferences({
         defaultCurrency,
         displayMode,
         denomination,
-        highlightBitcoinValue,
+        highlightBitcoinValue: finalHighlightValue,
+        saylorMode,
         themeMode,
       });
       // Notify background script that preferences have been updated
@@ -270,16 +286,46 @@ export function OptionsPage() {
               <label className="inline-flex items-center font-bold dark:text-gray-300">
                 <input
                   type="checkbox"
+                  id="saylor-mode"
+                  name="saylorMode"
+                  className="mr-2"
+                  checked={saylorMode}
+                  onChange={(e) => setSaylorMode(e.target.checked)}
+                />
+                Saylor Mode ⚡
+              </label>
+              <p className="mb-2 ml-5 text-sm text-gray-600 dark:text-gray-400">
+                Shows future prices at $21M BTC instead of current Bitcoin values.
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <label className="inline-flex items-center font-bold dark:text-gray-300">
+                <input
+                  type="checkbox"
                   id="highlight-bitcoin-value"
                   name="highlightBitcoinValue"
                   className="mr-2"
                   checked={highlightBitcoinValue}
-                  onChange={(e) => sethighlightBitcoinValue(e.target.checked)}
+                  onChange={(e) => {
+                    // Prevent disabling if it's mandatory
+                    if (isHighlightMandatory && highlightBitcoinValue) {
+                      return;
+                    }
+                    sethighlightBitcoinValue(e.target.checked);
+                  }}
+                  disabled={isHighlightMandatory}
                 />
                 Highlight Bitcoin values
+                {isHighlightMandatory && <span className="ml-1 text-xs opacity-75">*</span>}
               </label>
               <p className="mb-2 ml-5 text-sm text-gray-600 dark:text-gray-400">
                 Adds a colored background to Bitcoin values.
+                {isHighlightMandatory && (
+                  <span className="block text-xs text-orange-600 dark:text-orange-400">
+                    * Automatically enabled when Saylor Mode and Bitcoin-only mode are both active
+                  </span>
+                )}
               </p>
             </div>
 
